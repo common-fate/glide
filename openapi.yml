@@ -1,15 +1,15 @@
 openapi: 3.0.0
 info:
   title: Common Fate
-  version: '1.0'
+  version: "1.0"
   contact:
     name: Common Fate
-    url: 'https://commonfate.io'
+    url: "https://commonfate.io"
   description: Common Fate API
 servers:
-  - url: 'http://localhost:8080'
+  - url: "http://localhost:8080"
 paths:
-  '/api/v1/users/{userId}':
+  "/api/v1/users/{userId}":
     parameters:
       - schema:
           type: string
@@ -23,15 +23,15 @@ paths:
       operationId: user-get-user
       description: Returns a Common Fate user.
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
-        '401':
+                $ref: "#/components/schemas/User"
+        "401":
           description: Unauthorized
-        '404':
+        "404":
           description: Not Found
   /api/v1/users/me:
     get:
@@ -41,9 +41,9 @@ paths:
       operationId: user-get-me
       description: Returns information about the currently logged in user.
       responses:
-        '200':
-          $ref: '#/components/responses/AuthUserResponse'
-        '401':
+        "200":
+          $ref: "#/components/responses/AuthUserResponse"
+        "401":
           description: Unauthorized
   /api/v1/admin/deployment/version:
     get:
@@ -51,8 +51,8 @@ paths:
       tags:
         - Admin
       responses:
-        '200':
-          $ref: '#/components/responses/DeploymentVersionResponse'
+        "200":
+          $ref: "#/components/responses/DeploymentVersionResponse"
       operationId: admin-get-deployment-version
       description: Returns the version information
     parameters: []
@@ -62,12 +62,12 @@ paths:
       tags:
         - Admin
       responses:
-        '200':
-          $ref: '#/components/responses/ListAccessRulesResponse'
-        '401':
-          $ref: '#/components/responses/ErrorResponse'
-        '500':
-          $ref: '#/components/responses/ErrorResponse'
+        "200":
+          $ref: "#/components/responses/ListAccessRulesResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
       operationId: admin-list-access-rules
       description: List all access rules
       parameters:
@@ -80,42 +80,42 @@ paths:
       summary: Create Access Rule
       operationId: admin-create-access-rule
       responses:
-        '201':
+        "201":
           description: Created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AccessRule'
-        '400':
-          $ref: '#/components/responses/ErrorResponse'
-        '401':
-          $ref: '#/components/responses/ErrorResponse'
-        '500':
-          $ref: '#/components/responses/ErrorResponse'
+                $ref: "#/components/schemas/AccessRule"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
       description: Create an access rule
       requestBody:
-        $ref: '#/components/requestBodies/CreateAccessRuleRequest'
+        $ref: "#/components/requestBodies/CreateAccessRuleRequest"
       tags:
         - Admin
     parameters: []
-  '/api/v1/admin/access-rules/{ruleId}':
+  "/api/v1/admin/access-rules/{ruleId}":
     get:
       summary: Get Access Rule
       tags:
         - Admin
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AccessRule'
-        '401':
-          $ref: '#/components/responses/ErrorResponse'
-        '404':
-          $ref: '#/components/responses/ErrorResponse'
-        '500':
-          $ref: '#/components/responses/ErrorResponse'
+                $ref: "#/components/schemas/AccessRule"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
       operationId: admin-get-access-rule
       description: Get an Access Rule.
     parameters:
@@ -128,22 +128,22 @@ paths:
       summary: Update Access Rule
       operationId: admin-update-access-rule
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AccessRule'
-        '400':
+                $ref: "#/components/schemas/AccessRule"
+        "400":
           description: Bad Request
-        '401':
+        "401":
           description: Unauthorized
-        '404':
+        "404":
           description: Not Found
-        '500':
+        "500":
           description: Internal Server Error
       requestBody:
-        $ref: '#/components/requestBodies/CreateAccessRuleRequest'
+        $ref: "#/components/requestBodies/CreateAccessRuleRequest"
       description: Updates an Access Rule. Updating a rule creates a new version.
       tags:
         - Admin
@@ -151,22 +151,22 @@ paths:
       summary: Delete Access Rule
       operationId: admin-delete-access-rule
       responses:
-        '204':
+        "204":
           description: No Content
-        '401':
-          $ref: '#/components/responses/ErrorResponse'
-        '404':
-          $ref: '#/components/responses/ErrorResponse'
-        '500':
-          $ref: '#/components/responses/ErrorResponse'
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
   /api/v1/admin/requests:
     get:
       summary: Your GET endpoint
       tags:
         - Admin
       responses:
-        '200':
-          $ref: '#/components/responses/ListRequestsResponse'
+        "200":
+          $ref: "#/components/responses/ListRequestsResponse"
       operationId: admin-list-requests
       description: Return a list of all requests
       parameters:
@@ -186,7 +186,7 @@ paths:
           in: query
           name: nextToken
           description: encrypted token containing pagination info
-  '/api/v1/admin/users/{userId}':
+  "/api/v1/admin/users/{userId}":
     parameters:
       - schema:
           type: string
@@ -197,18 +197,18 @@ paths:
       summary: Update User
       operationId: admin-update-user
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
-        '400':
-          $ref: '#/components/responses/ErrorResponse'
-        '401':
-          $ref: '#/components/responses/ErrorResponse'
-        '500':
-          $ref: '#/components/responses/ErrorResponse'
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
       description: Update a user including group membership
       requestBody:
         content:
@@ -230,8 +230,8 @@ paths:
       tags:
         - Admin
       responses:
-        '200':
-          $ref: '#/components/responses/ListUserResponse'
+        "200":
+          $ref: "#/components/responses/ListUserResponse"
       operationId: admin-list-users
       description: Fetch a list of users
       parameters:
@@ -244,21 +244,21 @@ paths:
       summary: Create User
       operationId: admin-create-user
       responses:
-        '201':
+        "201":
           description: Created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
-        '400':
-          $ref: '#/components/responses/ErrorResponse'
-        '401':
-          $ref: '#/components/responses/ErrorResponse'
-        '500':
-          $ref: '#/components/responses/ErrorResponse'
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
       description: Create new user in the Cognito user pool if it is enabled.
       requestBody:
-        $ref: '#/components/requestBodies/CreateUserRequest'
+        $ref: "#/components/requestBodies/CreateUserRequest"
       tags:
         - Admin
   /api/v1/admin/groups:
@@ -269,8 +269,8 @@ paths:
       operationId: admin-list-groups
       description: Lists all active groups
       responses:
-        '200':
-          $ref: '#/components/responses/ListGroupsResponse'
+        "200":
+          $ref: "#/components/responses/ListGroupsResponse"
       parameters:
         - schema:
             type: string
@@ -289,24 +289,24 @@ paths:
       summary: Create Group
       operationId: admin-create-group
       responses:
-        '201':
+        "201":
           description: Created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Group'
-        '400':
-          $ref: '#/components/responses/ErrorResponse'
-        '401':
-          $ref: '#/components/responses/ErrorResponse'
-        '500':
-          $ref: '#/components/responses/ErrorResponse'
+                $ref: "#/components/schemas/Group"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
       description: Create new group in the Cognito user pool if it is enabled.
       requestBody:
-        $ref: '#/components/requestBodies/CreateGroupRequest'
+        $ref: "#/components/requestBodies/CreateGroupRequest"
       tags:
         - Admin
-  '/api/v1/admin/groups/{groupId}':
+  "/api/v1/admin/groups/{groupId}":
     parameters:
       - schema:
           type: string
@@ -320,28 +320,28 @@ paths:
       operationId: admin-get-group
       description: Returns information for a group.
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Group'
+                $ref: "#/components/schemas/Group"
     put:
       summary: Update Group
       operationId: admin-update-group
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Group'
-        '400':
-          $ref: '#/components/responses/ErrorResponse'
-        '500':
-          $ref: '#/components/responses/ErrorResponse'
+                $ref: "#/components/schemas/Group"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
       requestBody:
-        $ref: '#/components/requestBodies/CreateGroupRequest'
+        $ref: "#/components/requestBodies/CreateGroupRequest"
       description: Update a group
       tags:
         - Admin
@@ -351,12 +351,12 @@ paths:
       tags:
         - Admin
       responses:
-        '200':
+        "200":
           description: OK
-        '404':
-          $ref: '#/components/responses/ErrorResponse'
-        '500':
-          $ref: '#/components/responses/ErrorResponse'
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
       description: Delete an internal group
   /api/v1/admin/identity/sync:
     parameters: []
@@ -364,12 +364,12 @@ paths:
       summary: Sync Identity
       operationId: admin-sync-identity
       responses:
-        '200':
+        "200":
           description: OK
-        '401':
-          $ref: '#/components/responses/ErrorResponse'
-        '500':
-          $ref: '#/components/responses/ErrorResponse'
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
       description: Run the identity sync operation on demand
       tags:
         - Admin
@@ -379,34 +379,34 @@ paths:
       tags:
         - Admin
       responses:
-        '200':
-          $ref: '#/components/responses/IdentityConfigurationResponse'
-        '401':
-          $ref: '#/components/responses/ErrorResponse'
-        '500':
-          $ref: '#/components/responses/ErrorResponse'
+        "200":
+          $ref: "#/components/responses/IdentityConfigurationResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
       operationId: admin-get-identity-configuration
       description: Get information about the identity configuration
-  '/api/v1/admin/handlers/{id}':
+  "/api/v1/admin/handlers/{id}":
     get:
       summary: Get handler
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TGHandler'
-        '401':
-          $ref: '#/components/responses/ErrorResponse'
-        '404':
-          $ref: '#/components/responses/ErrorResponse'
-        '500':
-          $ref: '#/components/responses/ErrorResponse'
+                $ref: "#/components/schemas/TGHandler"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
       operationId: admin-get-handler
       tags:
         - Admin
-      description: ''
+      description: ""
     parameters:
       - schema:
           type: string
@@ -414,22 +414,22 @@ paths:
         in: path
         required: true
     delete:
-      summary: ''
+      summary: ""
       operationId: admin-delete-handler
       responses:
-        '204':
+        "204":
           description: Returns no content
           content:
             application/json:
               schema:
                 type: object
                 properties: {}
-        '401':
-          $ref: '#/components/responses/ErrorResponse'
-        '404':
-          $ref: '#/components/responses/ErrorResponse'
-        '500':
-          $ref: '#/components/responses/ErrorResponse'
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
       description: Removes a handler
       tags:
         - Admin
@@ -437,39 +437,39 @@ paths:
     get:
       summary: Get handlers
       responses:
-        '200':
-          $ref: '#/components/responses/ListHandlersResponse'
-        '401':
-          $ref: '#/components/responses/ErrorResponse'
-        '500':
-          $ref: '#/components/responses/ErrorResponse'
+        "200":
+          $ref: "#/components/responses/ListHandlersResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
       operationId: admin-list-handlers
-      description: ''
+      description: ""
       tags:
         - Admin
     post:
       summary: Register a handler
       operationId: admin-register-handler
       responses:
-        '201':
+        "201":
           description: Created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TGHandler'
-        '400':
-          $ref: '#/components/responses/ErrorResponse'
-        '401':
-          $ref: '#/components/responses/ErrorResponse'
-        '500':
-          $ref: '#/components/responses/ErrorResponse'
+                $ref: "#/components/schemas/TGHandler"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
       requestBody:
-        $ref: '#/components/requestBodies/RegisterHandlerRequest'
+        $ref: "#/components/requestBodies/RegisterHandlerRequest"
       tags:
         - Admin
-      description: ''
+      description: ""
     parameters: []
-  '/api/v1/admin/target-groups/{id}':
+  "/api/v1/admin/target-groups/{id}":
     parameters:
       - schema:
           type: string
@@ -479,18 +479,18 @@ paths:
     get:
       summary: Get target group (detailed)
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TargetGroup'
-        '401':
-          $ref: '#/components/responses/ErrorResponse'
-        '404':
-          $ref: '#/components/responses/ErrorResponse'
-        '500':
-          $ref: '#/components/responses/ErrorResponse'
+                $ref: "#/components/schemas/TargetGroup"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
       operationId: admin-get-target-group
       tags:
         - Admin
@@ -498,14 +498,14 @@ paths:
       summary: delete target group
       operationId: admin-delete-target-group
       responses:
-        '204':
+        "204":
           description: No Content
-        '401':
-          $ref: '#/components/responses/ErrorResponse'
-        '404':
-          $ref: '#/components/responses/ErrorResponse'
-        '500':
-          $ref: '#/components/responses/ErrorResponse'
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
       description: delete target group
       tags:
         - Admin
@@ -513,12 +513,12 @@ paths:
     get:
       summary: Get target groups
       responses:
-        '200':
-          $ref: '#/components/responses/ListTargetGroupResponse'
-        '401':
-          $ref: '#/components/responses/ErrorResponse'
-        '500':
-          $ref: '#/components/responses/ErrorResponse'
+        "200":
+          $ref: "#/components/responses/ListTargetGroupResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
       operationId: admin-list-target-groups
       tags:
         - Admin
@@ -526,26 +526,26 @@ paths:
       summary: Create target group
       operationId: admin-create-target-group
       responses:
-        '201':
+        "201":
           description: Created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TargetGroup'
-        '400':
-          $ref: '#/components/responses/ErrorResponse'
-        '401':
-          $ref: '#/components/responses/ErrorResponse'
-        '409':
-          $ref: '#/components/responses/ErrorResponse'
-        '500':
-          $ref: '#/components/responses/ErrorResponse'
+                $ref: "#/components/schemas/TargetGroup"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "409":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
       requestBody:
-        $ref: '#/components/requestBodies/CreateTargetGroupRequest'
+        $ref: "#/components/requestBodies/CreateTargetGroupRequest"
       tags:
         - Admin
     parameters: []
-  '/api/v1/admin/target-groups/{id}/link':
+  "/api/v1/admin/target-groups/{id}/link":
     parameters:
       - schema:
           type: string
@@ -557,25 +557,25 @@ paths:
       summary: Link a target group deployment to its target group
       operationId: admin-create-target-group-link
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TargetRoute'
-        '400':
-          $ref: '#/components/responses/ErrorResponse'
-        '401':
-          $ref: '#/components/responses/ErrorResponse'
-        '404':
-          $ref: '#/components/responses/ErrorResponse'
-        '500':
-          $ref: '#/components/responses/ErrorResponse'
+                $ref: "#/components/schemas/TargetRoute"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
       requestBody:
-        $ref: '#/components/requestBodies/CreateTargetGroupLink'
+        $ref: "#/components/requestBodies/CreateTargetGroupLink"
       tags:
         - Admin
-  '/api/v1/admin/target-groups/{id}/unlink':
+  "/api/v1/admin/target-groups/{id}/unlink":
     parameters:
       - schema:
           type: string
@@ -587,16 +587,16 @@ paths:
       summary: Unlink a target group deployment from its target group
       operationId: admin-remove-target-group-link
       responses:
-        '200':
+        "200":
           description: OK
-        '400':
-          $ref: '#/components/responses/ErrorResponse'
-        '401':
-          $ref: '#/components/responses/ErrorResponse'
-        '404':
-          $ref: '#/components/responses/ErrorResponse'
-        '500':
-          $ref: '#/components/responses/ErrorResponse'
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
       parameters:
         - schema:
             type: string
@@ -608,10 +608,10 @@ paths:
           in: query
           name: kind
           required: true
-      description: ''
+      description: ""
       tags:
         - Admin
-  '/api/v1/admin/target-groups/{id}/routes':
+  "/api/v1/admin/target-groups/{id}/routes":
     parameters:
       - schema:
           type: string
@@ -620,27 +620,27 @@ paths:
         in: path
         required: true
     get:
-      summary: ''
+      summary: ""
       operationId: admin-list-target-routes
       responses:
-        '200':
-          $ref: '#/components/responses/ListTargetGroupRoutes'
-        '404':
-          $ref: '#/components/responses/ErrorResponse'
-        '500':
-          $ref: '#/components/responses/ErrorResponse'
+        "200":
+          $ref: "#/components/responses/ListTargetGroupRoutes"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
       description: Lists all routes for a given Target Group
   /api/v1/admin/healthcheck-handlers:
     post:
       summary: Healthcheck Handlers
       operationId: admin-healthcheck-handlers
       responses:
-        '204':
+        "204":
           description: No Content
-        '401':
-          $ref: '#/components/responses/ErrorResponse'
-        '500':
-          $ref: '#/components/responses/ErrorResponse'
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
       description: Runs the healthcheck for handlers
       tags:
         - Admin
@@ -650,10 +650,10 @@ paths:
       summary: List Entitlements
       tags: []
       responses:
-        '200':
-          $ref: '#/components/responses/ListEntitlementsResponse'
-        '500':
-          $ref: '#/components/responses/ErrorResponse'
+        "200":
+          $ref: "#/components/responses/ListEntitlementsResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
       operationId: user-list-entitlements
       description: |-
         List all entitlement kinds configured in Common Fate.
@@ -663,14 +663,14 @@ paths:
       summary: List Entitlement Resources
       tags: []
       responses:
-        '200':
-          $ref: '#/components/responses/ListTargetsResponse'
-        '400':
-          $ref: '#/components/responses/ErrorResponse'
-        '404':
-          $ref: '#/components/responses/ErrorResponse'
-        '500':
-          $ref: '#/components/responses/ErrorResponse'
+        "200":
+          $ref: "#/components/responses/ListTargetsResponse"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
       operationId: user-list-entitlement-targets
       description: List all targets that the user has access to
       parameters:
@@ -693,12 +693,12 @@ paths:
       summary: Submit Preflight
       operationId: user-request-preflight
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Preflight'
+                $ref: "#/components/schemas/Preflight"
               examples:
                 ex_1:
                   value:
@@ -722,7 +722,7 @@ paths:
                                 fieldDescription: The ID of the AWS account
                                 valueLabel: AWS Account ID
                                 valueDescription: Please enter your AWS Account ID
-                                value: '012345678912'
+                                value: "012345678912"
                               - id: accountName
                                 fieldTitle: Account Name
                                 fieldDescription: The name of the AWS account
@@ -734,7 +734,7 @@ paths:
                                 fieldDescription: The name of the permission set to request access for
                                 valueLabel: Permission Set Name
                                 valueDescription: Please select the permission set you need access to
-                                value: 'arn:aws:iam::012345678912:instance-profile/permission-set-name'
+                                value: "arn:aws:iam::012345678912:instance-profile/permission-set-name"
                           - id: target-2
                             targetGroupId: okta
                             targetGroupFrom:
@@ -768,27 +768,27 @@ paths:
                                 valueLabel: Okta Account ID
                                 valueDescription: Please enter your Okta Account ID
                                 value: Admin
-                    createdAt: '2021-09-01T12:00:00Z'
-        '400':
-          $ref: '#/components/responses/ErrorResponse'
-        '401':
-          $ref: '#/components/responses/ErrorResponse'
-        '404':
-          $ref: '#/components/responses/ErrorResponse'
-        '500':
-          $ref: '#/components/responses/ErrorResponse'
+                    createdAt: "2021-09-01T12:00:00Z"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
       description: Verify and validate a collection of request items
       requestBody:
-        $ref: '#/components/requestBodies/CreatePreflightRequest'
+        $ref: "#/components/requestBodies/CreatePreflightRequest"
   /api/v1/reviews:
     get:
       summary: List Reviews
       tags: []
       responses:
-        '200':
-          $ref: '#/components/responses/ListRequestsResponse'
-        '500':
-          $ref: '#/components/responses/ErrorResponse'
+        "200":
+          $ref: "#/components/responses/ListRequestsResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
       operationId: user-list-reviews
       description: Lists requests where the user is a reviewer
       parameters:
@@ -814,10 +814,10 @@ paths:
       summary: List Requests
       tags: []
       responses:
-        '200':
-          $ref: '#/components/responses/ListRequestsResponse'
-        '500':
-          $ref: '#/components/responses/ErrorResponse'
+        "200":
+          $ref: "#/components/responses/ListRequestsResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
       operationId: user-list-requests
       description: Lists a users own requests
       parameters:
@@ -836,15 +836,15 @@ paths:
           description: filter for past or upcoming requests
     parameters: []
     post:
-      summary: ''
+      summary: ""
       operationId: user-post-requests
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Request'
+                $ref: "#/components/schemas/Request"
               examples:
                 ex_1:
                   value:
@@ -857,10 +857,10 @@ paths:
                         status: DECLINED
                         time:
                           durationSeconds: 0
-                          startTime: '14:15:22Z'
+                          startTime: "14:15:22Z"
                         overrideTiming:
                           durationSeconds: 0
-                          startTime: '14:15:22Z'
+                          startTime: "14:15:22Z"
                         updatedAt: string
                         createdAt: string
                         targets:
@@ -883,16 +883,16 @@ paths:
                             status: PENDING_PROVISIONING
                         approvalMethod: AUTOMATIC
                     requestedBy: string
-                    requestedAt: '14:15:22Z'
+                    requestedAt: "14:15:22Z"
                     status: CANCELLED
-        '404':
-          $ref: '#/components/responses/ErrorResponse'
-        '500':
-          $ref: '#/components/responses/ErrorResponse'
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
       description: Initiates the granting process for a group of requests
       requestBody:
-        $ref: '#/components/requestBodies/CreateAccessRequestRequest'
-  '/api/v1/requests/{requestId}/review/{groupId}':
+        $ref: "#/components/requestBodies/CreateAccessRequestRequest"
+  "/api/v1/requests/{requestId}/review/{groupId}":
     parameters:
       - schema:
           type: string
@@ -908,14 +908,14 @@ paths:
       summary: Review a request
       operationId: user-review-request
       responses:
-        '200':
-          $ref: '#/components/responses/ReviewResponse'
+        "200":
+          $ref: "#/components/responses/ReviewResponse"
       tags:
         - End User
-      description: 'Review an access request made by a user. The reviewing user must be an approver for a request. Users cannot review their own requests, even if they are an approver for the Access Rule.'
+      description: "Review an access request made by a user. The reviewing user must be an approver for a request. Users cannot review their own requests, even if they are an approver for the Access Rule."
       requestBody:
-        $ref: '#/components/requestBodies/ReviewRequest'
-  '/api/v1/requests/{requestid}/revoke':
+        $ref: "#/components/requestBodies/ReviewRequest"
+  "/api/v1/requests/{requestid}/revoke":
     parameters:
       - schema:
           type: string
@@ -926,28 +926,28 @@ paths:
       summary: Revoke an active request
       operationId: user-revoke-request
       responses:
-        '200':
+        "200":
           description: OK
-        '400':
-          $ref: '#/components/responses/ErrorResponse'
-        '404':
-          $ref: '#/components/responses/ErrorResponse'
-        '500':
-          $ref: '#/components/responses/ErrorResponse'
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
       tags:
         - End User
-      description: 'Admins and approvers can revoke access previously approved. Effective immediately '
-  '/api/v1/requests/{requestId}':
+      description: "Admins and approvers can revoke access previously approved. Effective immediately "
+  "/api/v1/requests/{requestId}":
     get:
       summary: Get Request
       tags: []
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Request'
+                $ref: "#/components/schemas/Request"
               examples:
                 ex_1:
                   value:
@@ -960,10 +960,10 @@ paths:
                         status: PENDING_APPROVAL
                         time:
                           durationSeconds: 0
-                          startTime: '14:15:22Z'
+                          startTime: "14:15:22Z"
                         overrideTiming:
                           durationSeconds: 0
-                          startTime: '14:15:22Z'
+                          startTime: "14:15:22Z"
                         updatedAt: string
                         createdAt: string
                         requestedBy:
@@ -1007,12 +1007,12 @@ paths:
                       lastName: string
                       email: string
                       picture: string
-                    requestedAt: '14:15:22Z'
+                    requestedAt: "14:15:22Z"
                     status: CANCELLED
-        '404':
-          $ref: '#/components/responses/ErrorResponse'
-        '500':
-          $ref: '#/components/responses/ErrorResponse'
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
       operationId: user-get-request
       description: Gets information for a request
     parameters:
@@ -1031,12 +1031,12 @@ components:
           id: string
           email: string
           name: string
-          picture: 'https://avatars.githubusercontent.com/u/17420369?v=4'
+          picture: "https://avatars.githubusercontent.com/u/17420369?v=4"
         Chris:
           id: string
           email: chris@commonfate.io
           name: Chris Norman
-          picture: 'https://avatars.githubusercontent.com/u/14214200?v=4'
+          picture: "https://avatars.githubusercontent.com/u/14214200?v=4"
       properties:
         id:
           type: string
@@ -1047,7 +1047,7 @@ components:
         picture:
           type: string
         status:
-          $ref: '#/components/schemas/IdpStatus'
+          $ref: "#/components/schemas/IdpStatus"
         lastName:
           type: string
         updatedAt:
@@ -1070,7 +1070,7 @@ components:
     Group:
       title: Group
       type: object
-      description: ''
+      description: ""
       properties:
         name:
           type: string
@@ -1119,18 +1119,18 @@ components:
         targets:
           type: array
           items:
-            $ref: '#/components/schemas/AccessRuleTarget'
+            $ref: "#/components/schemas/AccessRuleTarget"
         timeConstraints:
-          $ref: '#/components/schemas/AccessRuleTimeConstraints'
+          $ref: "#/components/schemas/AccessRuleTimeConstraints"
         groups:
           description: The group IDs that the access rule applies to.
           type: array
           items:
             type: string
         approval:
-          $ref: '#/components/schemas/AccessRuleApproverConfig'
+          $ref: "#/components/schemas/AccessRuleApproverConfig"
         metadata:
-          $ref: '#/components/schemas/AccessRuleMetadata'
+          $ref: "#/components/schemas/AccessRuleMetadata"
         priority:
           type: integer
           minimum: 0
@@ -1220,7 +1220,7 @@ components:
         id: d39d43ed71c33
       properties:
         targetGroup:
-          $ref: '#/components/schemas/TargetGroup'
+          $ref: "#/components/schemas/TargetGroup"
         fieldFilterExpessions:
           type: object
       required:
@@ -1249,7 +1249,7 @@ components:
         diagnostics:
           type: array
           items:
-            $ref: '#/components/schemas/Diagnostic'
+            $ref: "#/components/schemas/Diagnostic"
       required:
         - id
         - runtime
@@ -1270,9 +1270,9 @@ components:
         id:
           type: string
         schema:
-          $ref: '#/components/schemas/TargetGroupSchema'
+          $ref: "#/components/schemas/TargetGroupSchema"
         from:
-          $ref: '#/components/schemas/TargetGroupFrom'
+          $ref: "#/components/schemas/TargetGroupFrom"
         icon:
           type: string
         createdAt:
@@ -1313,13 +1313,13 @@ components:
         id: 7ba34eb453d65
       type: object
       additionalProperties:
-        $ref: '#/components/schemas/TargetGroupSchemaArgument'
+        $ref: "#/components/schemas/TargetGroupSchemaArgument"
     TargetGroupSchemaArgument:
       title: Target Group Schema Argument
       x-stoplight:
         id: 674a9bde14c32
       type: object
-      description: 'Define the metadata, data type and UI elements for the argument'
+      description: "Define the metadata, data type and UI elements for the argument"
       properties:
         id:
           type: string
@@ -1349,7 +1349,7 @@ components:
         diagnostics:
           type: array
           items:
-            $ref: '#/components/schemas/Diagnostic'
+            $ref: "#/components/schemas/Diagnostic"
       required:
         - targetGroupId
         - handlerId
@@ -1364,7 +1364,7 @@ components:
       type: object
       properties:
         level:
-          $ref: '#/components/schemas/LogLevel'
+          $ref: "#/components/schemas/LogLevel"
         code:
           type: string
         message:
@@ -1393,7 +1393,7 @@ components:
         accessGroups:
           type: array
           items:
-            $ref: '#/components/schemas/PreflightAccessGroup'
+            $ref: "#/components/schemas/PreflightAccessGroup"
         createdAt:
           type: string
           x-go-type: time.Time
@@ -1412,11 +1412,11 @@ components:
         requiresApproval:
           type: boolean
         timeConstraints:
-          $ref: '#/components/schemas/AccessRuleTimeConstraints'
+          $ref: "#/components/schemas/AccessRuleTimeConstraints"
         targets:
           type: array
           items:
-            $ref: '#/components/schemas/Target'
+            $ref: "#/components/schemas/Target"
       required:
         - id
         - requiresApproval
@@ -1447,11 +1447,11 @@ components:
         id:
           type: string
         kind:
-          $ref: '#/components/schemas/TargetKind'
+          $ref: "#/components/schemas/TargetKind"
         fields:
           type: array
           items:
-            $ref: '#/components/schemas/TargetField'
+            $ref: "#/components/schemas/TargetField"
       required:
         - id
         - kind
@@ -1531,7 +1531,7 @@ components:
                 maxDurationSeconds: 60
               overrideTiming:
                 durationSeconds: 0
-                startTime: '14:15:22Z'
+                startTime: "14:15:22Z"
               updatedAt: string
               createdAt: string
               targets:
@@ -1553,25 +1553,25 @@ components:
                       value: string
                   status: PENDING
           requestedBy: string
-          requestedAt: '14:15:22Z'
+          requestedAt: "14:15:22Z"
       properties:
         id:
           type: string
           x-go-name: ID
         purpose:
-          $ref: '#/components/schemas/RequestPurpose'
+          $ref: "#/components/schemas/RequestPurpose"
         accessGroups:
           type: array
           items:
-            $ref: '#/components/schemas/RequestAccessGroup'
+            $ref: "#/components/schemas/RequestAccessGroup"
         requestedBy:
-          $ref: '#/components/schemas/RequestRequestedBy'
+          $ref: "#/components/schemas/RequestRequestedBy"
         requestedAt:
           type: string
           x-go-type: time.Time
           format: time
         status:
-          $ref: '#/components/schemas/RequestStatus'
+          $ref: "#/components/schemas/RequestStatus"
       required:
         - id
         - purpose
@@ -1596,7 +1596,7 @@ components:
                 maxDurationSeconds: 60
               overrideTiming:
                 durationSeconds: 0
-                startTime: '14:15:22Z'
+                startTime: "14:15:22Z"
               updatedAt: string
               createdAt: string
               targets:
@@ -1618,7 +1618,7 @@ components:
                       value: string
                   status: PENDING
           requestedBy: string
-          requestedAt: '14:15:22Z'
+          requestedAt: "14:15:22Z"
       x-stoplight:
         id: bd24ac9430a01
       properties:
@@ -1674,17 +1674,17 @@ components:
         actor:
           type: string
         fromStatus:
-          $ref: '#/components/schemas/RequestStatus'
+          $ref: "#/components/schemas/RequestStatus"
         toStatus:
-          $ref: '#/components/schemas/RequestStatus'
+          $ref: "#/components/schemas/RequestStatus"
         fromTiming:
-          $ref: '#/components/schemas/RequestAccessGroupTiming'
+          $ref: "#/components/schemas/RequestAccessGroupTiming"
         toTiming:
-          $ref: '#/components/schemas/RequestAccessGroupTiming'
+          $ref: "#/components/schemas/RequestAccessGroupTiming"
         fromGrantStatus:
-          $ref: '#/components/schemas/RequestAccessGroupTargetStatus'
+          $ref: "#/components/schemas/RequestAccessGroupTargetStatus"
         toGrantStatus:
-          $ref: '#/components/schemas/RequestAccessGroupTargetStatus'
+          $ref: "#/components/schemas/RequestAccessGroupTargetStatus"
         grantCreated:
           type: boolean
         requestCreated:
@@ -1693,7 +1693,7 @@ components:
           type: string
         recordedEvent:
           type: object
-          x-go-type: 'map[string]string'
+          x-go-type: "map[string]string"
           description: An event which was recorded relating to the grant.
       required:
         - id
@@ -1710,11 +1710,11 @@ components:
         requestId:
           type: string
         status:
-          $ref: '#/components/schemas/RequestAccessGroupStatus'
+          $ref: "#/components/schemas/RequestAccessGroupStatus"
         time:
-          $ref: '#/components/schemas/RequestAccessGroupTiming'
+          $ref: "#/components/schemas/RequestAccessGroupTiming"
         overrideTiming:
-          $ref: '#/components/schemas/RequestAccessGroupTiming'
+          $ref: "#/components/schemas/RequestAccessGroupTiming"
         updatedAt:
           type: string
           x-go-type: time.Time
@@ -1722,15 +1722,15 @@ components:
           type: string
           x-go-type: time.Time
         requestedBy:
-          $ref: '#/components/schemas/RequestRequestedBy'
+          $ref: "#/components/schemas/RequestRequestedBy"
         targets:
           type: array
           items:
-            $ref: '#/components/schemas/RequestAccessGroupTarget'
+            $ref: "#/components/schemas/RequestAccessGroupTarget"
         approvalMethod:
-          $ref: '#/components/schemas/RequestAccessGroupApprovalMethod'
+          $ref: "#/components/schemas/RequestAccessGroupApprovalMethod"
         accessRule:
-          $ref: '#/components/schemas/RequestAccessGroupAccessRule'
+          $ref: "#/components/schemas/RequestAccessGroupAccessRule"
       required:
         - id
         - requestId
@@ -1749,12 +1749,12 @@ components:
         id: 9c910ef95507c
       properties:
         timeConstraints:
-          $ref: '#/components/schemas/AccessRuleTimeConstraints'
+          $ref: "#/components/schemas/AccessRuleTimeConstraints"
       required:
         - timeConstraints
     RequestAccessGroupApprovalMethod:
       type: string
-      description: 'Describes whether a request has been approved automatically or from a review '
+      description: "Describes whether a request has been approved automatically or from a review "
       title: ApprovalMethod
       x-stoplight:
         id: b183b2aaba142
@@ -1799,8 +1799,8 @@ components:
           provider: okta
           with:
             group: Admins
-          start: '2022-06-13T03:39:30.921Z'
-          end: '2022-06-13T11:39:30.921Z'
+          start: "2022-06-13T03:39:30.921Z"
+          end: "2022-06-13T11:39:30.921Z"
       x-stoplight:
         id: 3d80288c0358c
       properties:
@@ -1813,17 +1813,17 @@ components:
         targetGroupId:
           type: string
         targetGroupFrom:
-          $ref: '#/components/schemas/TargetGroupFrom'
+          $ref: "#/components/schemas/TargetGroupFrom"
         targetGroupIcon:
           type: string
         fields:
           type: array
           items:
-            $ref: '#/components/schemas/TargetField'
+            $ref: "#/components/schemas/TargetField"
         status:
-          $ref: '#/components/schemas/RequestAccessGroupTargetStatus'
+          $ref: "#/components/schemas/RequestAccessGroupTargetStatus"
         requestedBy:
-          $ref: '#/components/schemas/RequestRequestedBy'
+          $ref: "#/components/schemas/RequestRequestedBy"
       required:
         - id
         - requestId
@@ -1871,14 +1871,14 @@ components:
     CreateAccessRequestGroupOptions:
       type: object
       title: CreateAccessRequestGroupOptions
-      description: ''
+      description: ""
       x-stoplight:
         id: 6f6c2fa4da748
       properties:
         id:
           type: string
         timing:
-          $ref: '#/components/schemas/RequestAccessGroupTiming'
+          $ref: "#/components/schemas/RequestAccessGroupTiming"
       required:
         - id
         - timing
@@ -1905,7 +1905,7 @@ components:
               users:
                 type: array
                 items:
-                  $ref: '#/components/schemas/User'
+                  $ref: "#/components/schemas/User"
               next:
                 type: string
                 nullable: true
@@ -1923,7 +1923,7 @@ components:
               accessRules:
                 type: array
                 items:
-                  $ref: '#/components/schemas/AccessRule'
+                  $ref: "#/components/schemas/AccessRule"
               next:
                 type: string
                 nullable: true
@@ -1940,7 +1940,7 @@ components:
               requests:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Request'
+                  $ref: "#/components/schemas/Request"
               next:
                 type: string
                 nullable: true
@@ -1957,7 +1957,7 @@ components:
               groups:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Group'
+                  $ref: "#/components/schemas/Group"
               next:
                 type: string
                 nullable: true
@@ -1972,7 +1972,7 @@ components:
             type: object
             properties:
               request:
-                $ref: '#/components/schemas/Request'
+                $ref: "#/components/schemas/Request"
     AuthUserResponse:
       description: Details about the authenticated user
       content:
@@ -1981,7 +1981,7 @@ components:
             type: object
             properties:
               user:
-                $ref: '#/components/schemas/User'
+                $ref: "#/components/schemas/User"
               isAdmin:
                 description: Whether the user is an administrator of Common Fate.
                 type: boolean
@@ -1998,7 +1998,7 @@ components:
               events:
                 type: array
                 items:
-                  $ref: '#/components/schemas/RequestEvent'
+                  $ref: "#/components/schemas/RequestEvent"
               next:
                 type: string
                 nullable: true
@@ -2041,7 +2041,7 @@ components:
               groups:
                 type: array
                 items:
-                  $ref: '#/components/schemas/RequestAccessGroup'
+                  $ref: "#/components/schemas/RequestAccessGroup"
               next:
                 type: string
             required:
@@ -2056,7 +2056,7 @@ components:
               targetGroups:
                 type: array
                 items:
-                  $ref: '#/components/schemas/TargetGroup'
+                  $ref: "#/components/schemas/TargetGroup"
             required:
               - targetGroups
     ListHandlersResponse:
@@ -2069,7 +2069,7 @@ components:
               res:
                 type: array
                 items:
-                  $ref: '#/components/schemas/TGHandler'
+                  $ref: "#/components/schemas/TGHandler"
               next:
                 type: string
             required:
@@ -2085,7 +2085,7 @@ components:
               routes:
                 type: array
                 items:
-                  $ref: '#/components/schemas/TargetRoute'
+                  $ref: "#/components/schemas/TargetRoute"
               next:
                 type: string
             required:
@@ -2100,7 +2100,7 @@ components:
               grants:
                 type: array
                 items:
-                  $ref: '#/components/schemas/RequestAccessGroupTarget'
+                  $ref: "#/components/schemas/RequestAccessGroupTarget"
               next:
                 type: string
             required:
@@ -2115,7 +2115,7 @@ components:
               targets:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Target'
+                  $ref: "#/components/schemas/Target"
               next:
                 type: string
             required:
@@ -2139,7 +2139,7 @@ components:
                         value: string
                 next: string
     ListEntitlementsResponse:
-      description: ''
+      description: ""
       content:
         application/json:
           schema:
@@ -2148,7 +2148,7 @@ components:
               entitlements:
                 type: array
                 items:
-                  $ref: '#/components/schemas/TargetKind'
+                  $ref: "#/components/schemas/TargetKind"
             required:
               - entitlements
           examples:
@@ -2174,13 +2174,13 @@ components:
                         fieldDescription: The unique account number
                         valueLabel: Account
                         valueDescription: The unique account number
-                        value: '123456789012'
+                        value: "123456789012"
                       - id: 5c5a5d5e-4d4e-5f5a-5b5c-cc4c4d4d4e5f
                         fieldTitle: Role ARN
                         fieldDescription: The Amazon Resource Name (ARN) of the role to assume
                         valueLabel: Role ARN
                         valueDescription: The Amazon Resource Name (ARN) of the role to assume
-                        value: 'arn:aws:iam::123456789012:role/MyRole'
+                        value: "arn:aws:iam::123456789012:role/MyRole"
                   - id: f8b4e4fe-4ca4-4d3c-8d3a-5c5f5e5c3f3e
                     targetGroupId: group-1
                     targetGroupFrom:
@@ -2200,13 +2200,13 @@ components:
                         fieldDescription: The unique account number
                         valueLabel: Account
                         valueDescription: The unique account number
-                        value: '987654321098'
+                        value: "987654321098"
                       - id: b1a2a1b2-2b2a-1a1b-a2a1-b1b2a1b2b1a2
                         fieldTitle: Role ARN
                         fieldDescription: The Amazon Resource Name (ARN) of the role to assume
                         valueLabel: Role ARN
                         valueDescription: The Amazon Resource Name (ARN) of the role to assume
-                        value: 'arn:aws:iam::987654321098:role/MyRole'
+                        value: "arn:aws:iam::987654321098:role/MyRole"
                   - id: d3e4f5d6-5c6b-4a3a-9c8d-9e1f2c3d4e5f
                     targetGroupId: group-1
                     targetGroupFrom:
@@ -2226,13 +2226,13 @@ components:
                         fieldDescription: The unique account number
                         valueLabel: Account
                         valueDescription: The unique account number
-                        value: '456789012345'
+                        value: "456789012345"
                       - id: 0d1e2f3c-4b5a-6d7e-8f9a-a1b2c3d4e5f
                         fieldTitle: Role ARN
                         fieldDescription: The Amazon Resource Name (ARN) of the role to assume
                         valueLabel: Role ARN
                         valueDescription: The Amazon Resource Name (ARN) of the role to assume
-                        value: 'arn:aws:iam::456789012345:role/MyRole'
+                        value: "arn:aws:iam::456789012345:role/MyRole"
                   - id: d3e4f5d6-5c6b-4a3a-9c8d-9e1f2c3d4e5f
                     targetGroupId: group-1
                     targetGroupFrom:
@@ -2322,7 +2322,7 @@ components:
                         fieldDescription: The Amazon Resource Name (ARN) of the role to assume in the SSO instance
                         valueLabel: SSO Role ARN
                         valueDescription: The Amazon Resource Name (ARN) of the role to assume in the SSO instance
-                        value: 'arn:aws:iam::123456789012:role/MyRole'
+                        value: "arn:aws:iam::123456789012:role/MyRole"
                   - id: d4e5f6g7-h8i9-j0k1-l2m3-n4o5p6q7r8s
                     targetGroupId: group-1
                     targetGroupFrom:
@@ -2342,7 +2342,7 @@ components:
                         fieldDescription: The Amazon Resource Name (ARN) of the role to assume in the SSO instance
                         valueLabel: SSO Role ARN
                         valueDescription: The Amazon Resource Name (ARN) of the role to assume in the SSO instance
-                        value: 'arn:aws:iam::123456789012:role/MyRole'
+                        value: "arn:aws:iam::123456789012:role/MyRole"
                 next: string
   examples: {}
   securitySchemes: {}
@@ -2359,7 +2359,7 @@ components:
                 items:
                   type: string
               approval:
-                $ref: '#/components/schemas/AccessRuleApproverConfig'
+                $ref: "#/components/schemas/AccessRuleApproverConfig"
               name:
                 type: string
                 example: Okta admin
@@ -2373,11 +2373,11 @@ components:
                 minLength: 0
                 maxLength: 2048
               timeConstraints:
-                $ref: '#/components/schemas/AccessRuleTimeConstraints'
+                $ref: "#/components/schemas/AccessRuleTimeConstraints"
               targets:
                 type: array
                 items:
-                  $ref: '#/components/schemas/CreateAccessRuleTarget'
+                  $ref: "#/components/schemas/CreateAccessRuleTarget"
               priority:
                 type: integer
             required:
@@ -2416,7 +2416,7 @@ components:
               - firstName
               - lastName
               - isAdmin
-      description: ''
+      description: ""
     ReviewRequest:
       content:
         application/json:
@@ -2424,13 +2424,13 @@ components:
             type: object
             properties:
               decision:
-                $ref: '#/components/schemas/ReviewDecision'
+                $ref: "#/components/schemas/ReviewDecision"
               comment:
                 type: string
                 minLength: 0
                 maxLength: 2048
               overrideTiming:
-                $ref: '#/components/schemas/RequestAccessGroupTiming'
+                $ref: "#/components/schemas/RequestAccessGroupTiming"
             required:
               - decision
       description: |-
@@ -2446,7 +2446,7 @@ components:
               name:
                 type: string
                 minLength: 1
-                pattern: '^[a-zA-Z0-9_.-]'
+                pattern: "^[a-zA-Z0-9_.-]"
                 maxLength: 2048
               description:
                 type: string
@@ -2466,11 +2466,11 @@ components:
             type: object
             properties:
               from:
-                $ref: '#/components/schemas/TargetGroupFrom'
+                $ref: "#/components/schemas/TargetGroupFrom"
               id:
                 type: string
                 maxLength: 64
-                pattern: '^[-a-zA-Z0-9]*$'
+                pattern: "^[-a-zA-Z0-9]*$"
             required:
               - from
               - id
@@ -2482,15 +2482,15 @@ components:
             properties:
               id:
                 type: string
-                description: 'The ID of the target group to deploy to. User, provided'
-                pattern: '^[-a-zA-Z0-9]*$'
+                description: "The ID of the target group to deploy to. User, provided"
+                pattern: "^[-a-zA-Z0-9]*$"
                 maxLength: 64
               runtime:
                 type: string
                 default: aws-lambda
               awsAccount:
                 type: string
-                pattern: '^[0-9]{12}'
+                pattern: "^[0-9]{12}"
               awsRegion:
                 type: string
                 pattern: ^(us(-gov)?|ap|ca|cn|eu|sa)-(central|(north|south)?(east|west)?)-\d$
@@ -2546,7 +2546,7 @@ components:
               groupOptions:
                 type: array
                 items:
-                  $ref: '#/components/schemas/CreateAccessRequestGroupOptions'
+                  $ref: "#/components/schemas/CreateAccessRequestGroupOptions"
               reason:
                 type: string
             required:
