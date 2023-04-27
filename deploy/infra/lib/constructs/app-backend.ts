@@ -130,8 +130,6 @@ export class AppBackend extends Construct {
         COMMONFATE_PAGINATION_KMS_KEY_ARN: this._KMSkey.keyArn,
 
         COMMONFATE_DEPLOYMENT_SUFFIX: props.deploymentSuffix,
-        COMMONFATE_GRANTER_V2_STATE_MACHINE_ARN:
-          props.targetGroupGranter.getStateMachineARN(),
         COMMONFATE_ACCESS_REMOTE_CONFIG_URL: props.remoteConfigUrl,
         COMMONFATE_REMOTE_CONFIG_HEADERS: props.remoteConfigHeaders,
         CF_ANALYTICS_DISABLED: props.analyticsDisabled,
@@ -188,19 +186,6 @@ export class AppBackend extends Construct {
       })
     );
 
-    this._lambda.addToRolePolicy(
-      new PolicyStatement({
-        actions: [
-          "states:StopExecution",
-          "states:StartExecution",
-          "states:DescribeExecution",
-          "states:GetExecutionHistory",
-          "states:StopExecution",
-        ],
-        // @TODO this should be specific to the v2 granter step function
-        resources: ["*"],
-      })
-    );
     grantAssumeIdentitySyncRole(this._lambda);
     grantAssumeHandlerRole(this._lambda);
     const api = this._apigateway.root.addResource("api");

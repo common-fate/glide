@@ -6,6 +6,7 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
 import { TargetGroupGranter } from "./targetgroup-granter";
 import * as path from "path";
+import { PolicyStatement } from "aws-cdk-lib/aws-iam";
 
 interface Props {
   eventBusSourceName: string;
@@ -33,6 +34,19 @@ export class EventHandler extends Construct {
       handler: "event-handler",
     });
 
+    this._lambda.addToRolePolicy(
+      new PolicyStatement({
+        actions: [
+          "states:StopExecution",
+          "states:StartExecution",
+          "states:DescribeExecution",
+          "states:GetExecutionHistory",
+        ],
+        resources: [props.targetGroupGranter.getStateMachineARN()],
+      })
+    );
+
+    props.eventBus.grantPutEventsTo(this._lambda);
     new Rule(this, "EventBusRule", {
       eventBus: props.eventBus,
       eventPattern: { source: [props.eventBusSourceName] },

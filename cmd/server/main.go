@@ -122,7 +122,6 @@ func run() error {
 		DeploymentConfig:    dc,
 
 		ProviderRegistryClient: registryClient,
-		StateMachineARN:        cfg.StateMachineARN,
 		FrontendURL:            cfg.FrontendURL,
 	})
 	if err != nil {

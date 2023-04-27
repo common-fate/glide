@@ -26,7 +26,6 @@ type Config struct {
 	// a regex string that is used to filter the identity groups that are returned from the IDP
 	IdentityGroupFilter string `env:"COMMONFATE_IDENTITY_GROUP_FILTER"`
 	NoAuthEmail         string `env:"NO_AUTH_EMAIL"`
-	StateMachineARN     string `env:"COMMONFATE_GRANTER_V2_STATE_MACHINE_ARN"`
 }
 
 type NotificationsConfig struct {

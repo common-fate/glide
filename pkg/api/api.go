@@ -147,7 +147,6 @@ type Opts struct {
 	CognitoUserPoolID      string
 	IDPType                string
 	AdminGroupID           string
-	StateMachineARN        string
 	FrontendURL            string
 }
 
