@@ -96,6 +96,13 @@ func (n *EventHandler) HandleAccessGroupEvents(ctx context.Context, log *zap.Sug
 		if err != nil {
 			return err
 		}
+
+		//update the group status
+		grantEvent.AccessGroup.Status = types.RequestAccessGroupStatusAPPROVED
+		err = n.DB.Put(ctx, &grantEvent.AccessGroup.Group)
+		if err != nil {
+			return err
+		}
 		_, err = n.Workflow.Grant(ctx, grantEvent.AccessGroup, grantEvent.Subject)
 		if err != nil {
 			return err
@@ -103,6 +110,18 @@ func (n *EventHandler) HandleAccessGroupEvents(ctx context.Context, log *zap.Sug
 	}
 
 	if event.DetailType == gevent.AccessGroupDeclinedType {
+		//update the group status
+		var grantEvent gevent.AccessGroupDeclined
+		err := json.Unmarshal(event.Detail, &grantEvent)
+		if err != nil {
+			return err
+		}
+
+		grantEvent.AccessGroup.Status = types.RequestAccessGroupStatusAPPROVED
+		err = n.DB.Put(ctx, &grantEvent.AccessGroup.Group)
+		if err != nil {
+			return err
+		}
 		//todo: send notification here
 		return nil
 	}
