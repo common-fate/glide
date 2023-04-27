@@ -91,17 +91,13 @@ func TestGroupTargets(t *testing.T) {
 			targets: []cache.Target{target1, target2},
 			AccessGroups: []access.PreflightAccessGroup{
 				{
-					Targets: []cache.Target{
-						target1,
-					},
+					Targets: []access.PreflightAccessGroupTarget{{Target: target1}},
 					TimeConstraints: types.AccessRuleTimeConstraints{
 						MaxDurationSeconds: 3600,
 					},
 				},
 				{
-					Targets: []cache.Target{
-						target2,
-					},
+					Targets: []access.PreflightAccessGroupTarget{{Target: target2}},
 					TimeConstraints: types.AccessRuleTimeConstraints{
 						MaxDurationSeconds: 3600,
 					},

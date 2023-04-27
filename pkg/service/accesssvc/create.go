@@ -2,46 +2,27 @@ package accesssvc
 
 import (
 	"context"
-	"time"
+	"errors"
 
 	"github.com/common-fate/common-fate/pkg/access"
-	"github.com/common-fate/common-fate/pkg/auth"
 	"github.com/common-fate/common-fate/pkg/gevent"
+	"github.com/common-fate/common-fate/pkg/identity"
 	"github.com/common-fate/common-fate/pkg/service/rulesvc"
 	"github.com/common-fate/common-fate/pkg/storage"
-	"github.com/common-fate/common-fate/pkg/target"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 )
 
-// type CreateRequestResult struct {
-// 	Request   access
-// 	Reviewers []access.Reviewer
-// }
-
-// type CreateRequests struct {
-// 	AccessRuleId string
-// 	Reason       *string
-// 	Timing       types.RequestAccessGroupTiming
-// 	// With         *types.CreateRequestWithSubRequest
-// }
-
-// type CreateRequestsOpts struct {
-// 	User   identity.User
-// 	Create CreateRequests
-// }
-
-func (s *Service) CreateRequest(ctx context.Context, createRequest types.CreateAccessRequestRequest) (*access.Request, error) {
-
-	u := auth.UserFromContext(ctx)
+func (s *Service) CreateRequest(ctx context.Context, user identity.User, createRequest types.CreateAccessRequestRequest) (*access.RequestWithGroupsWithTargets, error) {
 	//check preflight
 	preflightReq := storage.GetPreflight{
 		ID:     createRequest.PreflightId,
-		UserId: u.ID,
+		UserId: user.ID,
 	}
-
 	_, err := s.DB.Query(ctx, &preflightReq)
-	//shouldnt never get here since we check this in the api, but keeping it here
+	if err == ddb.ErrNoItems {
+		return nil, ErrPreflightNotFound
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -60,56 +41,48 @@ func (s *Service) CreateRequest(ctx context.Context, createRequest types.CreateA
 		ID:      types.NewRequestID(),
 		Purpose: access.Purpose{Reason: createRequest.Reason},
 		RequestedBy: access.RequestedBy{
-			Email:     u.Email,
-			FirstName: u.FirstName,
-			ID:        u.ID,
-			LastName:  u.LastName,
+			ID:        user.ID,
+			Email:     user.Email,
+			FirstName: user.FirstName,
+			LastName:  user.LastName,
 		},
 		RequestedAt:      now,
 		GroupTargetCount: totalTargets,
+		RequestStatus:    types.PENDING,
 	}
-
-	//emit request create event
-
-	err = s.EventPutter.Put(ctx, gevent.RequestCreated{
-		Request:        request,
-		RequestorEmail: request.RequestedBy.Email,
-	})
-	if err != nil {
-		return nil, err
+	out := access.RequestWithGroupsWithTargets{
+		Request: request,
 	}
-
 	//for each access group in the preflight we need to create corresponding access groups
 	//Then create corresponding grants
+	requestReviewers := make(map[string]string)
 
-	items := []ddb.Keyer{}
-	for _, access_group := range preflight.AccessGroups {
+	for i, preflightAccessGroup := range preflight.AccessGroups {
+		// @TODO could handle this better if we need to, but will work fine for our own frontend
+		// asserts that the order of the groups on the request matches the order on the preflight
+		// and thus that all the group ids match up
+		if createRequest.GroupOptions[i].Id != preflightAccessGroup.ID {
+			return nil, errors.New("malformed request")
+		}
 
-		// check to see if it valid for instant approval
-
-		//create grants for all entitlements in the group
-		//returns an array of grants
-
-		//lookup current access rule
-		ar := storage.GetAccessRule{ID: access_group.AccessRule}
-
+		// Fetch the access rule for the group
+		ar := storage.GetAccessRule{ID: preflightAccessGroup.AccessRule}
 		_, err := s.DB.Query(ctx, &ar)
 		if err != nil {
 			return nil, err
 		}
 
 		//create accessgroup object
-		ag := access.Group{
+		accessGroup := access.Group{
 			ID:                 types.NewAccessGroupID(),
 			RequestID:          request.ID,
 			AccessRuleSnapshot: *ar.Result,
-			TimeConstraints: access.Timing{
-				Duration:  time.Duration(ar.Result.TimeConstraints.MaxDurationSeconds),
-				StartTime: &now,
-			},
-			RequestedBy: request.RequestedBy,
-			CreatedAt:   now,
-			UpdatedAt:   now,
+			RequestedTiming:    access.TimingFromRequestTiming(createRequest.GroupOptions[i].Timing),
+			RequestedBy:        request.RequestedBy,
+			CreatedAt:          now,
+			UpdatedAt:          now,
+			Status:             types.RequestAccessGroupStatusPENDINGAPPROVAL,
+			RequestStatus:      request.RequestStatus,
 		}
 
 		approvers, err := rulesvc.GetApprovers(ctx, s.DB, *ar.Result)
@@ -117,41 +90,32 @@ func (s *Service) CreateRequest(ctx context.Context, createRequest types.CreateA
 			return nil, err
 		}
 
-		var reviewers []access.Reviewer
-		for _, u := range approvers {
-			// users cannot approve their own requests.
-			// We don't create a Reviewer for them, even if they are an approver on the Access Rule.
-			if u == request.RequestedBy.ID {
-				continue
+		for _, userID := range approvers {
+			// users cannot approve their own requests, so don't add them to the lists of reviewers
+			if userID != request.RequestedBy.ID {
+				// Add the reviewer IDs to the overall request reviewers map.
+				// this is a distinct list of reviewers who have access to review at least one group on the request
+				requestReviewers[userID] = userID
+				accessGroup.GroupReviewers = append(accessGroup.GroupReviewers, userID)
 			}
-
-			r := access.Reviewer{
-				ReviewerID:    u,
-				RequestID:     request.ID,
-				Notifications: access.Notifications{},
-			}
-			ag.RequestReviewers = append(ag.RequestReviewers, r.ReviewerID)
-
-			reviewers = append(reviewers, r)
-			items = append(items, &r)
-
 		}
-		//add access group to be saved
-		items = append(items, &ag)
-
-		groupTargets := []access.GroupTarget{}
-		for _, t := range access_group.Targets {
+		groupWithTargets := access.GroupWithTargets{
+			Group: accessGroup,
+		}
+		for _, preflightAccessGroupTarget := range preflightAccessGroup.Targets {
 			groupTarget := access.GroupTarget{
-				ID:              types.NewGroupTargetID(),
-				GroupID:         access_group.ID,
-				RequestID:       request.ID,
-				RequestedBy:     request.RequestedBy,
-				CreatedAt:       now,
-				UpdatedAt:       now,
-				TargetGroupFrom: target.From{},
-				TargetCacheID:   t.ID(),
+				ID:            types.NewGroupTargetID(),
+				GroupID:       preflightAccessGroup.ID,
+				RequestID:     request.ID,
+				RequestedBy:   request.RequestedBy,
+				CreatedAt:     now,
+				UpdatedAt:     now,
+				TargetKind:    preflightAccessGroupTarget.Target.Kind,
+				TargetCacheID: preflightAccessGroupTarget.Target.ID(),
+				RequestStatus: request.RequestStatus,
+				TargetGroupID: preflightAccessGroupTarget.TargetGroupID,
 			}
-			for _, f := range t.Fields {
+			for _, f := range preflightAccessGroupTarget.Target.Fields {
 				groupTarget.Fields = append(groupTarget.Fields, access.Field{
 					ID:               f.ID,
 					FieldTitle:       f.FieldTitle,
@@ -159,71 +123,60 @@ func (s *Service) CreateRequest(ctx context.Context, createRequest types.CreateA
 					ValueLabel:       f.ValueLabel,
 					ValueDescription: f.ValueDescription,
 					Value: access.FieldValue{
-						Type:  "",
+						Type:  "string",
 						Value: f.Value,
 					},
 				})
 			}
-
-			//Add the reviewers to the target groups too
-			for _, u := range reviewers {
-				groupTarget.RequestReviewers = append(groupTarget.RequestReviewers, u.ReviewerID)
-
-			}
-			groupTargets = append(groupTargets, groupTarget)
-			items = append(items, &groupTarget)
-
+			groupWithTargets.Targets = append(groupWithTargets.Targets, groupTarget)
 		}
-
-		//if approval is not required we want to emit an event to start the granding process for this group
-		if !ar.Result.Approval.IsRequired() {
-			s.EventPutter.Put(ctx, gevent.AccessGroupReviewed{
-				AccessGroup: access.GroupWithTargets{
-					Group:   ag,
-					Targets: groupTargets,
-				},
-
-				Outcome: types.ReviewDecisionAPPROVED,
-			})
-		}
-
-		//At this point we should have provisioned the following
-		//1 Access Request
-		//x Access Groups sourced from the preflight request
-		//y GroupTargets sourced from the targets on the access group
-		//Appended reviewers onto the Access Group and Group Target objects if exists
-
+		out.Groups = append(out.Groups, groupWithTargets)
 	}
+
+	// We need to update the statuses on all the objects and teh request reviewers as well
+
+	// the request status is determined by the approval status of the group
+	// if the are all auto approved then the request status will be Active
+	var items []ddb.Keyer
+	for k := range requestReviewers {
+		out.Request.RequestReviewers = append(out.Request.RequestReviewers, k)
+	}
+	items = append(items, &out.Request)
+	for i, group := range out.Groups {
+		group.RequestReviewers = out.Request.RequestReviewers
+		for i, target := range group.Targets {
+			target.RequestReviewers = out.Request.RequestReviewers
+			group.Targets[i] = target
+			items = append(items, &target)
+		}
+		out.Groups[i] = group
+		items = append(items, &group.Group)
+	}
+	// We also need to consider request history events as well
+
+	// finally, create the reviewer objects where reviews are required
+	for _, reviewerID := range out.Request.RequestReviewers {
+		items = append(items, &access.Reviewer{
+			ReviewerID: reviewerID,
+			RequestID:  out.Request.ID,
+		})
+	}
+	// save all the items to the database
 
 	err = s.DB.PutBatch(ctx, items...)
 	if err != nil {
 		return nil, err
 	}
+	// emit the events for request created and conditionally auto approvals
 
-	return &request, nil
+	err = s.EventPutter.Put(ctx, gevent.RequestCreated{
+		Request:        out,
+		RequestorEmail: request.RequestedBy.Email,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &out, nil
 
 }
-
-// type CreateRequest struct {
-// 	AccessRuleId string
-// 	Reason       *string
-// 	Timing       types.RequestAccessGroupTiming
-// 	With         map[string]string
-// }
-// type createRequestOpts struct {
-// 	User             identity.User
-// 	Request          CreateRequest
-// 	Rule             rule.AccessRule
-// 	RequestArguments map[string]types.RequestArgument
-// }
-
-// func groupMatches(ruleGroups []string, userGroups []string) error {
-// 	for _, rg := range ruleGroups {
-// 		for _, ug := range userGroups {
-// 			if rg == ug {
-// 				return nil
-// 			}
-// 		}
-// 	}
-// 	return apio.NewRequestError(ErrNoMatchingGroup, http.StatusBadRequest)
-// }

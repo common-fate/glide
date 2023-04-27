@@ -79,8 +79,8 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (GrantState,
 		grantResponse, err = func() (out *msg.GrantResponse, err error) {
 			defer func() {
 				if r := recover(); r != nil {
-					log.Errorw("recovered panic while granting access", "error", r, "target group", grant.TargetGroupFrom)
-					err = fmt.Errorf("internal server error invoking targetgroup:handler:kind %s:%s:%s", grant.TargetGroupFrom, routeResult.Handler.ID, routeResult.Route.Kind)
+					log.Errorw("recovered panic while granting access", "error", r, "target group", grant.TargetKind)
+					err = fmt.Errorf("internal server error invoking targetgroup:handler:kind %s:%s:%s", grant.TargetKind, routeResult.Handler.ID, routeResult.Route.Kind)
 				}
 			}()
 			//set up the arguments to be read by the provider
@@ -107,8 +107,8 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (GrantState,
 		err = func() (err error) {
 			defer func() {
 				if r := recover(); r != nil {
-					log.Errorw("recovered panic while deactivating access", "error", r, "target group", grant.TargetGroupFrom)
-					err = fmt.Errorf("internal server error invoking targetgroup:handler:kind %s:%s:%s", grant.TargetGroupFrom, routeResult.Handler.ID, routeResult.Route.Kind)
+					log.Errorw("recovered panic while deactivating access", "error", r, "target group", grant.TargetKind)
+					err = fmt.Errorf("internal server error invoking targetgroup:handler:kind %s:%s:%s", grant.TargetKind, routeResult.Handler.ID, routeResult.Route.Kind)
 				}
 			}()
 			//set up the arguments to be read by the provider

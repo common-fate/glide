@@ -14,8 +14,8 @@ const (
 // RequestCreated is when the user requests access
 // to something in the Common Fate service.
 type RequestCreated struct {
-	Request        access.Request `json:"request"`
-	RequestorEmail string         `json:"requestorEmail"`
+	Request        access.RequestWithGroupsWithTargets `json:"request"`
+	RequestorEmail string                              `json:"requestorEmail"`
 }
 
 func (RequestCreated) EventType() string {

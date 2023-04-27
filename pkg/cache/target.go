@@ -68,6 +68,7 @@ type Kind struct {
 	Kind      string `json:"kind" dynamodbav:"kind"`
 	Icon      string `json:"icon" dynamodbav:"icon"`
 }
+
 type AccessRule struct {
 	MatchedTargetGroups []string `json:"matchedTargetGroups" dynamodbav:"matchedTargetGroups"`
 }
@@ -97,15 +98,19 @@ func (f *Field) ToAPI() types.TargetField {
 		ValueLabel:       f.ValueLabel,
 	}
 }
+func (t *Kind) ToAPI() types.TargetKind {
+	return types.TargetKind{
+		Icon:      t.Icon,
+		Kind:      t.Kind,
+		Name:      t.Name,
+		Publisher: t.Publisher,
+	}
+}
+
 func (t *Target) ToAPI() types.Target {
 	tar := types.Target{
-		Id: t.ID(),
-		Kind: types.TargetKind{
-			Icon:      t.Kind.Icon,
-			Kind:      t.Kind.Kind,
-			Name:      t.Kind.Name,
-			Publisher: t.Kind.Publisher,
-		},
+		Id:     t.ID(),
+		Kind:   t.Kind.ToAPI(),
 		Fields: []types.TargetField{},
 	}
 	for _, f := range t.Fields {

@@ -126,7 +126,7 @@ func (a *API) UserRequestPreflight(w http.ResponseWriter, r *http.Request) {
 // (POST /api/v1/requests)
 func (a *API) UserPostRequests(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	u := auth.UserFromContext(ctx)
+	user := auth.UserFromContext(ctx)
 
 	var createRequest types.CreateAccessRequestRequest
 	err := apio.DecodeJSONBody(w, r, &createRequest)
@@ -135,31 +135,19 @@ func (a *API) UserPostRequests(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//check preflight exists for user here and return if not found
-	preflight := storage.GetPreflight{
-		ID:     createRequest.PreflightId,
-		UserId: u.ID,
-	}
-
-	_, err = a.DB.Query(ctx, &preflight)
-	if err == ddb.ErrNoItems {
-		apio.Error(ctx, w, &apio.APIError{Err: errors.New("preflight not found"), Status: http.StatusNotFound})
-		return
-	}
-	if err != nil {
-		apio.Error(ctx, w, err)
-		return
-	}
-
 	//request create service takes a preflight request, validates its fields and initiates the granding process
 	//on all of the entitlements in the preflight
-	_, err = a.Access.CreateRequest(ctx, createRequest)
+	result, err := a.Access.CreateRequest(ctx, *user, createRequest)
+	if err == accesssvc.ErrPreflightNotFound {
+		// wrap the error in a 404 status code
+		err = apio.NewRequestError(err, http.StatusNotFound)
+	}
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
 	//do we need to return anything via this api?
-	apio.JSON(ctx, w, nil, http.StatusOK)
+	apio.JSON(ctx, w, result.ToAPI(), http.StatusOK)
 }
 
 func (a *API) UserRevokeRequest(w http.ResponseWriter, r *http.Request, requestID string) {

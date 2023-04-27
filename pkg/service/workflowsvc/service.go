@@ -35,7 +35,7 @@ func (s *Service) Grant(ctx context.Context, group access.GroupWithTargets, subj
 	items := []ddb.Keyer{}
 	for _, target := range group.Targets {
 
-		start, end := group.TimeConstraints.GetInterval(access.WithNow(s.Clk.Now()))
+		start, end := group.RequestedTiming.GetInterval(access.WithNow(s.Clk.Now()))
 		grant := access.Grant{
 			Subject: subject,
 			Start:   start,

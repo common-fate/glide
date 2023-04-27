@@ -120,10 +120,16 @@ func (s *Service) GroupTargets(ctx context.Context, targets []cache.Target) ([]a
 			bestAccessRule = CompareAccessRules(bestAccessRule, *ar.Result)
 
 		}
+
+		t := access.PreflightAccessGroupTarget{
+			Target:        target,
+			TargetGroupID: target.AccessRules[bestAccessRule.ID].MatchedTargetGroups[0],
+		}
 		_, exists := deduplicatedAccessGroups[bestAccessRule.ID]
 		if exists {
 			ag := deduplicatedAccessGroups[bestAccessRule.ID]
-			ag.Targets = append(deduplicatedAccessGroups[bestAccessRule.ID].Targets, target)
+			ag.Targets = append(deduplicatedAccessGroups[bestAccessRule.ID].Targets, t)
+			deduplicatedAccessGroups[bestAccessRule.ID] = ag
 		} else {
 			//create new access group
 
@@ -131,10 +137,10 @@ func (s *Service) GroupTargets(ctx context.Context, targets []cache.Target) ([]a
 				ID:               types.NewAccessGroupID(),
 				AccessRule:       bestAccessRule.ID,
 				RequiresApproval: bestAccessRule.Approval.IsRequired(),
-				Targets:          []cache.Target{},
-				TimeConstraints:  bestAccessRule.TimeConstraints,
+
+				TimeConstraints: bestAccessRule.TimeConstraints,
 			}
-			newAccessGroup.Targets = append(newAccessGroup.Targets, target)
+			newAccessGroup.Targets = append(newAccessGroup.Targets, t)
 
 			deduplicatedAccessGroups[bestAccessRule.ID] = newAccessGroup
 

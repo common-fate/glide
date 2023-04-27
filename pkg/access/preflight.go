@@ -24,14 +24,21 @@ type Preflight struct {
 	UserId    string    `json:"userId" dynamodbav:"userId"`
 }
 
+type PreflightAccessGroupTarget struct {
+	Target        cache.Target `json:"target" dynamodbav:"target"`
+	TargetGroupID string       `json:"targetGroupId" dynamodbav:"targetGroupId"`
+}
 type PreflightAccessGroup struct {
 	ID               string                          `json:"id" dynamodbav:"id"`
 	AccessRule       string                          `json:"accessRule" dynamodbav:"accessRule"`
 	RequiresApproval bool                            `json:"requiresApproval" dynamodbav:"requiresApproval"`
-	Targets          []cache.Target                  `json:"targets" dynamodbav:"targets"`
+	Targets          []PreflightAccessGroupTarget    `json:"targets" dynamodbav:"targets"`
 	TimeConstraints  types.AccessRuleTimeConstraints `json:"timeConstraints" dynamodbav:"timeConstraints"`
 }
 
+func (i *PreflightAccessGroupTarget) ToAPI() types.Target {
+	return i.Target.ToAPI()
+}
 func (i *PreflightAccessGroup) ToAPI() types.PreflightAccessGroup {
 	out := types.PreflightAccessGroup{
 		Id:               i.ID,

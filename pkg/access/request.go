@@ -30,13 +30,13 @@ type Request struct {
 }
 
 type RequestWithGroups struct {
-	Request
-	Groups []Group
+	Request `json:"request"`
+	Groups  []Group `json:"groups"`
 }
 
 type RequestWithGroupsWithTargets struct {
-	Request
-	Groups []GroupWithTargets
+	Request `json:"request"`
+	Groups  []GroupWithTargets `json:"groups"`
 }
 
 type Purpose struct {
