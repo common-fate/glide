@@ -38,7 +38,7 @@ ctx.json(getUserGetUserMock()),
           ctx.status(200, 'Mocked status'),
 ctx.json(getUserGetMeMock()),
         )
-      }),rest.post('*/api/v1/requests/:requestId/review', (_req, res, ctx) => {
+      }),rest.post('*/api/v1/requests/:requestId/review/:groupId', (_req, res, ctx) => {
         return res(
           ctx.delay(1000),
           ctx.status(200, 'Mocked status'),

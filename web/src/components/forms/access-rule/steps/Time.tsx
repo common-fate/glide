@@ -1,4 +1,11 @@
-import { FormControl, FormLabel, Text, VStack } from "@chakra-ui/react";
+import { QuestionIcon } from "@chakra-ui/icons";
+import {
+  FormControl,
+  FormLabel,
+  Text,
+  Tooltip,
+  VStack,
+} from "@chakra-ui/react";
 import React from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import { durationString } from "../../../../utils/durationString";
@@ -32,6 +39,10 @@ export const TimeStep: React.FC = () => {
             Max duration:{"  "}
             {time && durationString(time?.maxDurationSeconds)}
           </Text>
+          <Text textStyle={"Body/Medium"} color="neutrals.600">
+            Suggested duration:{"  "}
+            {time && durationString(time?.reccomdenedDurationSeconds)}
+          </Text>
         </VStack>
       }
     >
@@ -51,6 +62,52 @@ export const TimeStep: React.FC = () => {
             min: 60,
           }}
           name="timeConstraints.maxDurationSeconds"
+          render={({ field: { ref, ...rest } }) => {
+            return (
+              <>
+                <DurationInput
+                  {...rest}
+                  max={sixMonthsMaxInSeconds}
+                  min={60}
+                  defaultValue={3600}
+                >
+                  <Weeks />
+                  <Days />
+                  <Hours />
+                  <Minutes />
+                </DurationInput>
+              </>
+            );
+          }}
+        />
+      </FormControl>
+      <FormControl
+        isInvalid={
+          !!methods.formState.errors.timeConstraints?.reccomdenedDurationSeconds
+        }
+      >
+        <FormLabel
+          display="flex"
+          flexDir="row"
+          htmlFor="timeConstraints.reccomdenedDurationSeconds"
+          alignItems="center"
+        >
+          <Text textStyle={"Body/Medium"}>Recommended Duration </Text>
+          <Tooltip
+            hasArrow={true}
+            label="The default session duration displayed when making an Access Request. Requestors can choose to adjust this on a per-request basis"
+          >
+            <QuestionIcon color="neutrals.800" ml={1} />
+          </Tooltip>
+        </FormLabel>
+        <Controller
+          control={methods.control}
+          rules={{
+            required: "Duration is required.",
+            max: sixMonthsMaxInSeconds,
+            min: 60,
+          }}
+          name="timeConstraints.reccomdenedDurationSeconds"
           render={({ field: { ref, ...rest } }) => {
             return (
               <>

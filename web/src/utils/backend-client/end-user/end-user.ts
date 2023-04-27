@@ -113,10 +113,11 @@ export const useUserGetMe = <TError = ErrorType<void>>(
  */
 export const userReviewRequest = (
     requestId: string,
+    groupId: string,
     reviewRequestBody: ReviewRequestBody,
  options?: SecondParameter<typeof customInstance>) => {
       return customInstance<ReviewResponseResponse>(
-      {url: `/api/v1/requests/${requestId}/review`, method: 'post',
+      {url: `/api/v1/requests/${requestId}/review/${groupId}`, method: 'post',
       headers: {'Content-Type': 'application/json', },
       data: reviewRequestBody
     },
