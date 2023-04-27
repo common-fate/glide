@@ -144,6 +144,13 @@ func (Build) Governance() error {
 	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/governance", "cmd/lambda/governance/handler.go")
 }
 
+func (Build) EventHandler() error {
+	env := map[string]string{
+		"GOOS":   "linux",
+		"GOARCH": "amd64",
+	}
+	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/event-handler", "cmd/lambda/event-handlers/eventhandler/handler.go")
+}
 func (Build) FrontendAWSExports() error {
 	// create the aws-exports.js file if it doesn't exist. This prevents the frontend build from breaking.
 	f := "web/src/utils/aws-exports.js"
@@ -205,7 +212,7 @@ func PackageHealthChecker() error {
 }
 
 func Package() {
-	mg.Deps(PackageBackend, PackageSlackNotifier)
+	mg.Deps(PackageBackend, PackageSlackNotifier, PackageEventHandler)
 	mg.Deps(PackageSyncer, PackageWebhook, PackageGovernance, PackageFrontendDeployer)
 	mg.Deps(PackageCacheSyncer, PackageHealthChecker, PackageTargetGroupGranter)
 }
@@ -244,6 +251,12 @@ func PackageWebhook() error {
 func PackageGovernance() error {
 	mg.Deps(Build.Governance)
 	return sh.Run("zip", "--junk-paths", "bin/governance.zip", "bin/governance")
+}
+
+// PackageEventHandler zips the Go event handler so that it can be deployed to Lambda.
+func PackageEventHandler() error {
+	mg.Deps(Build.EventHandler)
+	return sh.Run("zip", "--junk-paths", "bin/event-handler.zip", "bin/event-handler")
 }
 
 type Deploy mg.Namespace

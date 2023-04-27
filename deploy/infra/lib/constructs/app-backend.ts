@@ -16,6 +16,7 @@ import { IdpSync } from "./idp-sync";
 import { Notifiers } from "./notifiers";
 import { HealthChecker } from "./healthchecker";
 import { TargetGroupGranter } from "./targetgroup-granter";
+import { EventHandler } from "./event-handler";
 import {
   grantAssumeHandlerRole,
   grantAssumeIdentitySyncRole,
@@ -55,6 +56,7 @@ export class AppBackend extends Construct {
   private _dynamoTable: dynamodb.Table;
   private _lambda: lambda.Function;
   private _apigateway: apigateway.LambdaRestApi;
+  private _eventHandler: EventHandler;
   private _notifiers: Notifiers;
   private _idpSync: IdpSync;
   private _cacheSync: CacheSync;
@@ -279,7 +281,11 @@ export class AppBackend extends Construct {
 
     props.eventBus.grantPutEventsTo(this._lambda);
     props.apiGatewayWafAclArn && this.wafAssociation(props.apiGatewayWafAclArn);
-
+    this._eventHandler = new EventHandler(this, "EventHandler", {
+      dynamoTable: this._dynamoTable,
+      eventBus: props.eventBus,
+      eventBusSourceName: props.eventBusSourceName,
+    });
     this._notifiers = new Notifiers(this, "Notifiers", {
       dynamoTable: this._dynamoTable,
       eventBus: props.eventBus,
@@ -371,7 +377,9 @@ export class AppBackend extends Construct {
   getLogGroupName(): string {
     return this._lambda.logGroup.logGroupName;
   }
-
+  getEventHandler(): EventHandler {
+    return this._eventHandler;
+  }
   getNotifiers(): Notifiers {
     return this._notifiers;
   }

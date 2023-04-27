@@ -332,6 +332,7 @@ export class CommonFateStackProd extends cdk.Stack {
       WebhookLogGroupName: appBackend.getWebhookLogGroupName(),
       IDPSyncLogGroupName: appBackend.getIdpSync().getLogGroupName(),
       EventBusLogGroupName: events.getLogGroupName(),
+      EventsHandlerLogGroupName: appBackend.getEventHandler().getLogGroupName(),
       SlackNotifierLogGroupName: appBackend
         .getNotifiers()
         .getSlackLogGroupName(),
