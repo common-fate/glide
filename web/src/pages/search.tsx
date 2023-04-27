@@ -19,6 +19,9 @@ import {
   Textarea,
   Spinner,
   Divider,
+  Icon,
+  Tooltip,
+  HStack,
 } from "@chakra-ui/react";
 import React from "react";
 import { Link, useNavigate } from "react-location";
@@ -35,7 +38,39 @@ import {
 import { Preflight, Target } from "../utils/backend-client/types";
 import { Command as CommandNew } from "../utils/cmdk";
 import { HeaderStatusCell } from "./request/[id]";
-
+function TargetComponent({ target }: { target: Target }) {
+  return (
+    <Flex>
+      <ProviderIcon shortType={target.kind.icon as ShortTypes} />
+      <HStack>
+        {target.fields.map((field, i) => (
+          <Box borderLeftWidth={i > 0 ? 2 : undefined} paddingRight={10}>
+            <Tooltip
+              key={field.id}
+              label={
+                <>
+                  <Box fontWeight="bold">{field.fieldTitle}</Box>
+                  {field.fieldDescription && (
+                    <Box>{field.fieldDescription}</Box>
+                  )}
+                  {field.valueDescription && (
+                    <Box mt={2}>{field.valueDescription}</Box>
+                  )}
+                </>
+              }
+              placement="top"
+            >
+              <Box display="inline-block" verticalAlign="top">
+                <Box>{field.valueLabel}</Box>
+                <Box>{field.value}</Box>
+              </Box>
+            </Tooltip>
+          </Box>
+        ))}
+      </HStack>
+    </Flex>
+  );
+}
 const Search = () => {
   // https://erikmartinjordan.com/navigator-platform-deprecated-alternative
   const isMac = () =>
@@ -65,16 +100,24 @@ const Search = () => {
     }
   });
 
-  const targets = useUserListEntitlements({
+  const targets = useUserListEntitlementTargets(undefined, {
     swr: { refreshInterval: 10000 },
-    request: {
-      baseURL: "http://127.0.0.1:3100",
-      headers: {
-        Prefer: "code=200, example=example_targets",
-      },
-    },
+    // request: {
+    //   baseURL: "http://127.0.0.1:3100",
+    //   headers: {
+    //     Prefer: "code=200, example=example_targets",
+    //   },
+    // },
   });
-
+  const entitlements = useUserListEntitlements({
+    swr: { refreshInterval: 10000 },
+    // request: {
+    //   baseURL: "http://127.0.0.1:3100",
+    //   headers: {
+    //     Prefer: "code=200, example=example_targets",
+    //   },
+    // },
+  });
   const [targetKeyMap, setTargetKeyMap] = React.useState<{
     [key: string]: Target;
   }>({});
@@ -87,11 +130,7 @@ const Search = () => {
     if (!targets.data) return;
     const map: { [key: string]: Target } = {};
     targets.data.targets.forEach((target) => {
-      const key =
-        target.targetGroupFrom.name +
-        " " +
-        target.fields.map((f) => f.value).join(" ");
-      map[key] = target;
+      map[target.id] = target;
     });
     setTargetKeyMap(map);
   }, [targets.data]);
@@ -121,17 +160,17 @@ const Search = () => {
   const handlePreflight = () => {
     submitLoadingToggle.on();
 
-    const entitlementTargerts: string[] = [];
+    const entitlementTargets: string[] = [];
 
     // map over keys and get the ids of the targets
     checked.forEach((key) => {
       const target = targetKeyMap[key];
-      target && entitlementTargerts.push(target?.id);
+      target && entitlementTargets.push(target?.id);
     });
 
     userRequestPreflight(
       {
-        targets: entitlementTargerts,
+        targets: entitlementTargets,
       },
       {
         baseURL: "http://127.0.0.1:3100",
@@ -253,14 +292,14 @@ const Search = () => {
                         {targets.data?.targets.length}&nbsp;total
                       </Flex>
                     </Center>
-                    {[
-                      "aws",
-                      "cloudwatch",
-                      "okta",
-                      "azure",
-                      "github",
-                      "gcp",
-                    ].map((key) => {
+                    {entitlements.data?.entitlements.map((kind) => {
+                      const key =
+                        kind.publisher +
+                        "#" +
+                        kind.name +
+                        "#" +
+                        kind.kind +
+                        "#";
                       return (
                         <Center
                           boxSize="90px"
@@ -280,8 +319,8 @@ const Search = () => {
                           mr={2}
                           as="button"
                         >
-                          <ProviderIcon shortType={key} />
-                          {key}
+                          <ProviderIcon shortType={kind.icon as ShortTypes} />
+                          {kind.kind}
                         </Center>
                       );
                     })}
@@ -309,7 +348,7 @@ const Search = () => {
                           </Center>
                         ) : (
                           targets.data &&
-                          Object.entries(targetKeyMap).map(([key, target]) => {
+                          targets.data.targets.map((target) => {
                             return (
                               <Flex
                                 alignContent="flex-start"
@@ -327,40 +366,12 @@ const Search = () => {
                                   },
                                 }}
                                 pos="relative"
-                                key={key}
-                                value={key}
+                                key={target.id}
+                                // this value is used by the command palette
+                                value={target.id}
                                 as={CommandNew.Item}
                               >
-                                <ProviderIcon
-                                  mr={2}
-                                  shortType={
-                                    target.targetGroupFrom.name as ShortTypes
-                                  }
-                                  // onClick={() => {
-                                  //   console.log("click");
-                                  //   if (checked.includes(key)) {
-                                  //     setChecked(
-                                  //       checked.filter(
-                                  //         (checkedKey) => checkedKey !== key
-                                  //       )
-                                  //     );
-                                  //   } else {
-                                  //     setChecked([...checked, key]);
-                                  //   }
-                                  // }}
-                                />
-                                <Box>
-                                  <Box>{target.fields[0].value}</Box>
-                                  {/* then map over the proceeding fields */}
-                                  <Box color="neutrals.500" minH="1em">
-                                    {target.fields
-                                      .map(
-                                        (field, index) => index && field.value
-                                      )
-                                      .filter((field) => field)
-                                      .join(", ")}
-                                  </Box>
-                                </Box>
+                                <TargetComponent target={target} />
                                 <CheckCircleIcon
                                   id="checked"
                                   position="absolute"
@@ -452,7 +463,7 @@ const Search = () => {
                       borderWidth="1px"
                       rounded="md"
                     >
-                      <HeaderStatusCell group={group} />
+                      {/* <HeaderStatusCell group={group} /> */}
                       <Stack spacing={2}>
                         {group.targets.map((target) => {
                           return (
@@ -464,9 +475,7 @@ const Search = () => {
                               flexDir="row"
                             >
                               <ProviderIcon
-                                shortType={
-                                  target.targetGroupFrom.name as ShortTypes
-                                }
+                                shortType={target.kind.icon as ShortTypes}
                                 mr={2}
                               />
                               <FieldsCodeBlock fields={target.fields} />
