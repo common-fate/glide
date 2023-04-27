@@ -21,7 +21,6 @@ type Preflight struct {
 
 	// CreatedAt is a read-only field after the request has been created.
 	CreatedAt time.Time `json:"createdAt" dynamodbav:"createdAt"`
-	UserId    string    `json:"userId" dynamodbav:"userId"`
 }
 
 type PreflightAccessGroupTarget struct {
@@ -69,7 +68,7 @@ func (i *Preflight) ToAPI() types.Preflight {
 func (i *Preflight) DDBKeys() (ddb.Keys, error) {
 	keys := ddb.Keys{
 		PK: keys.Preflight.PK1,
-		SK: keys.Preflight.SK1(i.ID, i.UserId),
+		SK: keys.Preflight.SK1(i.ID, i.RequestedBy),
 	}
 	return keys, nil
 }

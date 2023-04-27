@@ -256,13 +256,14 @@ const Search = () => {
       userPostRequests({
         preflightId: preflightRes?.id,
         reason: accessReason,
-        groupOptions: [
-          // @TODO: add in group options, after dynamic UI is supported (next scope of work)
-          //   {
-          //     id: preflightRes?.id,
-          //     timing: { startTime: new Date().toISOString() },
-          //   },
-        ],
+        groupOptions: preflightRes.accessGroups.map((g) => {
+          return {
+            id: g.id,
+            timing: {
+              durationSeconds: g.timeConstraints.maxDurationSeconds,
+            },
+          };
+        }),
       })
         .then((res) => {
           console.log(res);
