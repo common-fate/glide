@@ -280,6 +280,15 @@ func (Deploy) CDK() error {
 }
 
 // Dotenv updates the .env file based on the deployed CDK infrastructure
+func AWSExports() error {
+	output, err := ensureCDKOutput()
+	if err != nil {
+		return err
+	}
+	return output.WriteAWSExports()
+}
+
+// Dotenv updates the .env file based on the deployed CDK infrastructure
 func Dotenv() error {
 	// create a .env file if one doesn't exist.
 	if _, err := os.Stat(".env"); errors.Is(err, os.ErrNotExist) {
