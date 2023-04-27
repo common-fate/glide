@@ -34,7 +34,6 @@ func (s *Service) Grant(ctx context.Context, group access.GroupWithTargets, subj
 
 	items := []ddb.Keyer{}
 	for _, target := range group.Targets {
-		// 	start, end := req.GetInterval(access.WithNow(clock.Now()))
 
 		start, end := group.TimeConstraints.GetInterval(access.WithNow(s.Clk.Now()))
 		grant := access.Grant{
@@ -57,6 +56,7 @@ func (s *Service) Grant(ctx context.Context, group access.GroupWithTargets, subj
 		}
 		target.Grant = &grant
 
+		//updates the target and the grant
 		items = append(items, &target)
 
 		err = s.Eventbus.Put(ctx, evt)

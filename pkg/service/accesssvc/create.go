@@ -179,10 +179,16 @@ func (s *Service) CreateRequest(ctx context.Context, createRequest types.CreateA
 		//Appended reviewers onto the Access Group and Group Target objects if exists
 
 		//Now start granting access to the targets within the group
-		s.Workflow.Grant(ctx, groupWithTargets, request.RequestedBy.Email)
-
+		_, err = s.Workflow.Grant(ctx, groupWithTargets, request.RequestedBy.Email)
+		if err != nil {
+			return nil, err
+		}
 	}
 
+	err = s.DB.PutBatch(ctx, items...)
+	if err != nil {
+		return nil, err
+	}
 	//emit request create event
 	err = s.EventPutter.Put(ctx, gevent.RequestCreated{
 		Request:        request,
