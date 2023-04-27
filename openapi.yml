@@ -892,11 +892,16 @@ paths:
       description: Initiates the granting process for a group of requests
       requestBody:
         $ref: "#/components/requestBodies/CreateAccessRequestRequest"
-  "/api/v1/requests/{requestId}/review":
+  "/api/v1/requests/{requestId}/review/{groupId}":
     parameters:
       - schema:
           type: string
         name: requestId
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: groupId
         in: path
         required: true
     post:

@@ -36,10 +36,10 @@ func (m *MockWorkflow) EXPECT() *MockWorkflowMockRecorder {
 }
 
 // Grant mocks base method.
-func (m *MockWorkflow) Grant(arg0 context.Context, arg1 access.Group, arg2 string) ([]access.GroupTarget, error) {
+func (m *MockWorkflow) Grant(arg0 context.Context, arg1 access.GroupWithTargets, arg2 string) ([]access.Grant, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Grant", arg0, arg1, arg2)
-	ret0, _ := ret[0].([]access.GroupTarget)
+	ret0, _ := ret[0].([]access.Grant)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -48,4 +48,19 @@ func (m *MockWorkflow) Grant(arg0 context.Context, arg1 access.Group, arg2 strin
 func (mr *MockWorkflowMockRecorder) Grant(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Grant", reflect.TypeOf((*MockWorkflow)(nil).Grant), arg0, arg1, arg2)
+}
+
+// Revoke mocks base method.
+func (m *MockWorkflow) Revoke(arg0 context.Context, arg1 access.GroupWithTargets, arg2, arg3 string) (*access.Group, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Revoke", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].(*access.Group)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Revoke indicates an expected call of Revoke.
+func (mr *MockWorkflowMockRecorder) Revoke(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Revoke", reflect.TypeOf((*MockWorkflow)(nil).Revoke), arg0, arg1, arg2, arg3)
 }
