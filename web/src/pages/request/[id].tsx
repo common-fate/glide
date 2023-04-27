@@ -86,12 +86,12 @@ const Home = () => {
 
   const request = useUserGetRequest(requestId, {
     swr: { refreshInterval: 10000 },
-    request: {
-      baseURL: "http://127.0.0.1:3100",
-      headers: {
-        Prefer: "code=200, example=ex_1",
-      },
-    },
+    // request: {
+    //   baseURL: "http://127.0.0.1:3100",
+    //   headers: {
+    //     Prefer: "code=200, example=ex_1",
+    //   },
+    // },
   });
 
   // request.data?.accessGroups[0].targets[0]

@@ -24,7 +24,7 @@ func (g *GetRequestWithGroupsWithTargetsForUser) BuildQuery() (*dynamodb.QueryIn
 			":sk1":         &types.AttributeValueMemberS{Value: keys.AccessRequest.SK1(g.RequestID)},
 			":requestedBy": &types.AttributeValueMemberS{Value: g.UserID},
 		},
-		FilterExpression: aws.String("requestedBy = :requestedBy"),
+		FilterExpression: aws.String("requestedBy.id = :requestedBy"),
 	}
 
 	return qi, nil
