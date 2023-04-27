@@ -12,6 +12,7 @@ import {
   Center,
   Code,
   Container,
+  chakra,
   Divider,
   Flex,
   IconButton,
@@ -38,13 +39,23 @@ import {
   PopoverHeader,
   PopoverTrigger,
   Portal,
+  FormLabel,
 } from "@chakra-ui/react";
+import validateFormData from "@rjsf/core/lib/validate";
 import { formatDistance, intervalToDuration } from "date-fns";
 import { useState } from "react";
 import { Helmet } from "react-helmet";
 import { Link, MakeGenerics, useMatch } from "react-location";
 import { AuditLog } from "../../components/AuditLog";
+import {
+  DurationInput,
+  Days,
+  Hours,
+  Minutes,
+  Weeks,
+} from "../../components/DurationInput";
 import FieldsCodeBlock from "../../components/FieldsCodeBlock";
+import { EditPencilIcon } from "../../components/icons/Icons";
 import { ProviderIcon, ShortTypes } from "../../components/icons/providerIcon";
 import { UserLayout } from "../../components/Layout";
 import { StatusCell } from "../../components/StatusCell";
@@ -289,90 +300,6 @@ export const HeaderStatusCell = ({ group }: AccessGroupProps) => {
 
   return null;
 };
-export const ApproveRejectDuration = ({ group }: AccessGroupProps) => {
-  const isReviewer = true;
-  return (
-    <Flex>
-      <Box textAlign="left">
-        <Text textStyle="Body/ExtraSmall" lineHeight="8px" color="neutrals.800">
-          Duration 3hrs
-        </Text>
-        <Popover>
-          <PopoverTrigger>
-            <Button
-              size="sm"
-              textStyle="Body/ExtraSmall"
-              lineHeight="8px"
-              fontSize="12px"
-              color="neutrals.500"
-              variant="link"
-              onClick={(e) => {
-                e.stopPropagation();
-              }}
-            >
-              Edit Duration
-            </Button>
-          </PopoverTrigger>
-          <Portal>
-            <PopoverContent>
-              <PopoverHeader fontWeight="normal">Edit Duration</PopoverHeader>
-              <PopoverArrow />
-              <PopoverCloseButton />
-              <PopoverBody
-                py={8}
-                sx={{
-                  button: {
-                    rounded: "md",
-                  },
-                }}
-              >
-                Duration 3hrs
-                <Button
-                  variant="brandSecondary"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                  }}
-                >
-                  MAX 12hrs
-                </Button>
-                <Button
-                  variant="brandSecondary"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                  }}
-                  leftIcon={<EditIcon />}
-                />
-              </PopoverBody>
-            </PopoverContent>
-          </Portal>
-        </Popover>
-        {durationString(group.time.durationSeconds)}
-      </Box>
-      {isReviewer && (
-        <ButtonGroup ml="auto" variant="brandSecondary" spacing={2}>
-          <Button
-            size="sm"
-            onClick={() => {
-              console.log("approve");
-              // @TODO: add in admin approval API methods
-            }}
-          >
-            Approve
-          </Button>
-          <Button
-            size="sm"
-            onClick={() => {
-              console.log("reject");
-              // @TODO: add in admin approval API methods
-            }}
-          >
-            Reject
-          </Button>
-        </ButtonGroup>
-      )}
-    </Flex>
-  );
-};
 
 export const AccessGroupItem = ({ group }: AccessGroupProps) => {
   // const grants = useUserListRequestAccessGroupGrants(group.id, {
@@ -423,7 +350,6 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
           >
             <AccordionIcon boxSize="6" mr={2} />
             <HeaderStatusCell group={group} />
-
             <ApproveRejectDuration group={group} />
           </AccordionButton>
 
@@ -498,6 +424,178 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
         </ModalContent>
       </Modal>
     </Box>
+  );
+};
+
+// @TODO: sort out state for props.........
+type ApproveRejectDurationProps = {
+  group: RequestAccessGroup | PreflightAccessGroup;
+};
+
+export const ApproveRejectDuration = ({
+  group,
+}: ApproveRejectDurationProps) => {
+  const isReviewer = true;
+
+  const [state, setState] = useState<"default" | "max" | "custom">("default");
+
+  const handleClickMax = () => {
+    setState("max");
+    // TODO: also set the duration to max
+  };
+
+  const handleClickEdit = () => {
+    setState("custom");
+  };
+
+  const handleCancel = () => {
+    setState("default");
+    // todo: ensure new duration is set
+  };
+
+  console.log({ group });
+
+  return (
+    <Flex alignSelf="baseline" flexDir="row" alignItems="center">
+      <Flex h="32px" alignItems="baseline" flexDir="column" mr={4}>
+        <Text textStyle="Body/ExtraSmall" color="neutrals.800">
+          Duration 3hrs
+        </Text>
+        <Popover placement="bottom-start">
+          <PopoverTrigger>
+            <Button
+              pt="4px"
+              size="sm"
+              textStyle="Body/ExtraSmall"
+              fontSize="12px"
+              lineHeight="8px"
+              color="neutrals.500"
+              variant="link"
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+            >
+              Edit Duration
+            </Button>
+          </PopoverTrigger>
+          <Portal>
+            <PopoverContent
+              minW="256px"
+              w="min-content"
+              borderColor="neutrals.300"
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+            >
+              <PopoverHeader fontWeight="normal" borderColor="neutrals.300">
+                Edit Duration
+              </PopoverHeader>
+              <PopoverArrow
+                sx={{
+                  "--popper-arrow-shadow-color": "#E5E5E5",
+                }}
+              />
+              <PopoverCloseButton />
+              <PopoverBody py={8}>
+                {state != "custom" ? (
+                  <Flex
+                    display="flex"
+                    flexDir="row"
+                    alignItems="center"
+                    sx={{
+                      button: {
+                        rounded: "md",
+                        borderColor: "neutrals.300",
+                        color: "neutrals.800",
+                        p: 2,
+                        _active: {
+                          borderColor: "brandBlue.100",
+                          color: "brandBlue.300",
+                          bg: "white",
+                        },
+                      },
+                    }}
+                  >
+                    Duration 3hrs
+                    <Flex ml="auto">
+                      <Button
+                        variant="brandSecondary"
+                        onClick={(e) => {}}
+                        flexDir="column"
+                        fontSize="12px"
+                        lineHeight="12px"
+                        mr={2}
+                        isActive={state === "max"}
+                        onClick={handleClickMax}
+                      >
+                        <chakra.span
+                          display="block"
+                          w="100%"
+                          letterSpacing="1.1px"
+                        >
+                          MAX
+                        </chakra.span>
+                        12hrs
+                      </Button>
+                      <Button
+                        variant="brandSecondary"
+                        onClick={handleClickEdit}
+                        isActive={state === "custom"}
+                        leftIcon={
+                          <EditPencilIcon marginTop="-2px" marginRight="-8px" />
+                        }
+                      />
+                    </Flex>
+                  </Flex>
+                ) : (
+                  <Box>
+                    <Text textStyle="Body/Small">Session Duration</Text>
+                    <Box mt={1}>
+                      <DurationInput
+                        // {...rest}
+                        onChange={() => undefined}
+                        hideUnusedElements={true}
+                        max={600000}
+                        min={60}
+                        defaultValue={3600}
+                      >
+                        <Weeks />
+                        <Days />
+                        <Hours />
+                        <Minutes />
+                      </DurationInput>
+                    </Box>
+                  </Box>
+                )}
+              </PopoverBody>
+            </PopoverContent>
+          </Portal>
+        </Popover>
+        {durationString(group.time.durationSeconds)}
+      </Flex>
+      {isReviewer && (
+        <ButtonGroup ml="auto" variant="brandSecondary" spacing={2}>
+          <Button
+            size="sm"
+            onClick={() => {
+              console.log("approve");
+              // @TODO: add in admin approval API methods
+            }}
+          >
+            Approve
+          </Button>
+          <Button
+            size="sm"
+            onClick={() => {
+              console.log("reject");
+              // @TODO: add in admin approval API methods
+            }}
+          >
+            Reject
+          </Button>
+        </ButtonGroup>
+      )}
+    </Flex>
   );
 };
 
