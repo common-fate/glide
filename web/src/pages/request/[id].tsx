@@ -40,6 +40,8 @@ import {
   PopoverTrigger,
   Portal,
   FormLabel,
+  useBoolean,
+  Select,
 } from "@chakra-ui/react";
 import validateFormData from "@rjsf/core/lib/validate";
 import { formatDistance, intervalToDuration } from "date-fns";
@@ -429,7 +431,7 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
 
 // @TODO: sort out state for props.........
 type ApproveRejectDurationProps = {
-  group: RequestAccessGroup | PreflightAccessGroup;
+  group: RequestAccessGroup;
 };
 
 export const ApproveRejectDuration = ({
@@ -437,31 +439,42 @@ export const ApproveRejectDuration = ({
 }: ApproveRejectDurationProps) => {
   const isReviewer = true;
 
-  const [state, setState] = useState<"default" | "max" | "custom">("default");
-
   const handleClickMax = () => {
-    setState("max");
-    // TODO: also set the duration to max
+    setDurationSeconds(group.accessRule.timeConstraints.maxDurationSeconds);
   };
 
-  const handleClickEdit = () => {
-    setState("custom");
-  };
+  // console.log({ group });
 
-  const handleCancel = () => {
-    setState("default");
-    // todo: ensure new duration is set
-  };
+  // durationSeconds state
+  const [durationSeconds, setDurationSeconds] = useState<number>(
+    group.time.durationSeconds
+  );
 
-  console.log({ group });
+  const [isEditing, setIsEditing] = useBoolean();
 
   return (
-    <Flex alignSelf="baseline" flexDir="row" alignItems="center">
+    <Flex
+      alignSelf="baseline"
+      flexDir="row"
+      alignItems="center"
+      onClick={(e) => {
+        e.stopPropagation();
+      }}
+    >
       <Flex h="32px" alignItems="baseline" flexDir="column" mr={4}>
         <Text textStyle="Body/ExtraSmall" color="neutrals.800">
-          Duration 3hrs
+          {isEditing
+            ? "Custom Duration"
+            : durationSeconds
+            ? durationString(durationSeconds)
+            : "No Duration Set"}
         </Text>
-        <Popover placement="bottom-start">
+        <Popover
+          placement="bottom-start"
+          isOpen={isEditing}
+          onOpen={setIsEditing.on}
+          onClose={setIsEditing.off}
+        >
           <PopoverTrigger>
             <Button
               pt="4px"
@@ -471,9 +484,6 @@ export const ApproveRejectDuration = ({
               lineHeight="8px"
               color="neutrals.500"
               variant="link"
-              onClick={(e) => {
-                e.stopPropagation();
-              }}
             >
               Edit Duration
             </Button>
@@ -483,9 +493,6 @@ export const ApproveRejectDuration = ({
               minW="256px"
               w="min-content"
               borderColor="neutrals.300"
-              onClick={(e) => {
-                e.stopPropagation();
-              }}
             >
               <PopoverHeader fontWeight="normal" borderColor="neutrals.300">
                 Edit Duration
@@ -496,28 +503,22 @@ export const ApproveRejectDuration = ({
                 }}
               />
               <PopoverCloseButton />
-              <PopoverBody py={8}>
-                {state != "custom" ? (
-                  <Flex
-                    display="flex"
-                    flexDir="row"
-                    alignItems="center"
-                    sx={{
-                      button: {
-                        rounded: "md",
-                        borderColor: "neutrals.300",
-                        color: "neutrals.800",
-                        p: 2,
-                        _active: {
-                          borderColor: "brandBlue.100",
-                          color: "brandBlue.300",
-                          bg: "white",
-                        },
-                      },
-                    }}
-                  >
-                    Duration 3hrs
-                    <Flex ml="auto">
+              <PopoverBody py={4}>
+                <Box>
+                  <Box mt={1}>
+                    <DurationInput
+                      // {...rest}
+                      onChange={setDurationSeconds}
+                      value={durationSeconds}
+                      hideUnusedElements={true}
+                      max={group.accessRule.timeConstraints.maxDurationSeconds}
+                      min={60}
+                      defaultValue={group.overrideTiming.durationSeconds}
+                    >
+                      <Weeks />
+                      <Days />
+                      <Hours />
+                      <Minutes />
                       <Button
                         variant="brandSecondary"
                         onClick={(e) => {}}
@@ -525,8 +526,23 @@ export const ApproveRejectDuration = ({
                         fontSize="12px"
                         lineHeight="12px"
                         mr={2}
-                        isActive={state === "max"}
+                        isActive={
+                          durationSeconds ==
+                          group.accessRule.timeConstraints.maxDurationSeconds
+                        }
                         onClick={handleClickMax}
+                        sx={{
+                          w: "50%",
+                          rounded: "md",
+                          borderColor: "neutrals.300",
+                          color: "neutrals.800",
+                          p: 2,
+                          _active: {
+                            borderColor: "brandBlue.100",
+                            color: "brandBlue.300",
+                            bg: "white",
+                          },
+                        }}
                       >
                         <chakra.span
                           display="block"
@@ -535,43 +551,28 @@ export const ApproveRejectDuration = ({
                         >
                           MAX
                         </chakra.span>
-                        12hrs
+                        {durationString(
+                          group.accessRule.timeConstraints.maxDurationSeconds
+                        )}
                       </Button>
-                      <Button
-                        variant="brandSecondary"
-                        onClick={handleClickEdit}
-                        isActive={state === "custom"}
-                        leftIcon={
-                          <EditPencilIcon marginTop="-2px" marginRight="-8px" />
-                        }
-                      />
-                    </Flex>
-                  </Flex>
-                ) : (
-                  <Box>
-                    <Text textStyle="Body/Small">Session Duration</Text>
-                    <Box mt={1}>
-                      <DurationInput
-                        // {...rest}
-                        onChange={() => undefined}
-                        hideUnusedElements={true}
-                        max={600000}
-                        min={60}
-                        defaultValue={3600}
-                      >
-                        <Weeks />
-                        <Days />
-                        <Hours />
-                        <Minutes />
-                      </DurationInput>
-                    </Box>
+                    </DurationInput>
                   </Box>
-                )}
+                </Box>
+                {/*    <Select
+                  mt={8}
+                  size="xs"
+                  variant="brandSecondary"
+                  onChange={(e) => setState(e.target.value)}
+                >
+                  {["default", "max", "custom"].map((option) => (
+                    <option value={option}>{option}</option>
+                  ))}
+                </Select> */}
               </PopoverBody>
             </PopoverContent>
           </Portal>
         </Popover>
-        {durationString(group.time.durationSeconds)}
+        {/* {durationString(durationSeconds)} */}
       </Flex>
       {isReviewer && (
         <ButtonGroup ml="auto" variant="brandSecondary" spacing={2}>
