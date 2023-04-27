@@ -31,22 +31,46 @@ type Service struct {
 }
 
 func (s *Service) Grant(ctx context.Context, group access.GroupWithTargets, subject string) ([]access.GroupTarget, error) {
-	// Contains logic for preparing a grant and emitting events
+
+	items := []ddb.Keyer{}
 	for _, target := range group.Targets {
+		// 	start, end := req.GetInterval(access.WithNow(clock.Now()))
+
+		start, end := group.TimeConstraints.GetInterval(access.WithNow(s.Clk.Now()))
+		grant := access.Grant{
+			Subject: subject,
+			Start:   start,
+			End:     end,
+			Status:  types.RequestAccessGroupTargetStatusAWAITINGSTART,
+		}
+
+		evt := gevent.GrantActivated{
+			Grant: grant,
+		}
 		err := s.Runtime.Grant(ctx, target)
 		if err != nil {
-			return nil, err
+			//override the status here to error
+			grant.Status = types.RequestAccessGroupTargetStatusERROR
+			evt = gevent.GrantActivated{
+				Grant: grant,
+			}
 		}
-		err = s.Eventbus.Put(ctx, gevent.GrantActivated{
-			Grant: *target.Grant,
-		})
+		target.Grant = &grant
+
+		items = append(items, &target)
+
+		err = s.Eventbus.Put(ctx, evt)
 		if err != nil {
 			return nil, err
 		}
 	}
 
+	err := s.DB.PutBatch(ctx, items...)
+	if err != nil {
+		return nil, err
+	}
 	// return grants.Result, nil
-	return nil, nil
+	return group.Targets, nil
 }
 
 // // Revoke attepmts to syncronously revoke access to a request
