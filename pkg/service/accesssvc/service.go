@@ -9,7 +9,6 @@ import (
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/identity"
 	"github.com/common-fate/common-fate/pkg/rule"
-	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 )
 
@@ -18,9 +17,7 @@ type Service struct {
 	Clock       clock.Clock
 	DB          ddb.Storage
 	EventPutter EventPutter
-	AHClient    AHClient
 	Rules       AccessRuleService
-	Workflow    Workflow
 }
 
 type CreateGrantOpts struct {
@@ -46,8 +43,4 @@ type EventPutter interface {
 // AccessRuleService can create and get rules
 type AccessRuleService interface {
 	// RequestArguments(ctx context.Context, accessRuleTarget rule.Target) (map[string]types.RequestArgument, error)
-}
-
-type AHClient interface {
-	types.ClientWithResponsesInterface
 }

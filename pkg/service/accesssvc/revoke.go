@@ -4,8 +4,6 @@ import (
 	"context"
 
 	"github.com/common-fate/common-fate/pkg/access"
-	"github.com/common-fate/common-fate/pkg/auth"
-	"github.com/common-fate/common-fate/pkg/gevent"
 )
 
 // type CreateRequestResult struct {
@@ -27,28 +25,29 @@ import (
 
 func (s *Service) RevokeRequest(ctx context.Context, in access.RequestWithGroupsWithTargets) (*access.Request, error) {
 
-	u := auth.UserFromContext(ctx)
+	// u := auth.UserFromContext(ctx)
 
-	//revoke each group in the request
+	// //revoke each group in the request
 
-	for _, group := range in.Groups {
-		_, err := s.Workflow.Revoke(ctx, group, u.ID, u.Email)
+	// for _, group := range in.Groups {
+	// 	_, err := s.Workflow.Revoke(ctx, group, u.ID, u.Email)
 
-		if err != nil {
-			return nil, err
-		}
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
 
-	}
+	// }
 
-	//emit request group revoke event
-	err := s.EventPutter.Put(ctx, gevent.RequestRevoked{
-		Request: in.Request,
-	})
-	if err != nil {
-		return nil, err
-	}
+	// //emit request group revoke event
+	// err := s.EventPutter.Put(ctx, gevent.RequestRevoked{
+	// 	Request: in.Request,
+	// })
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	return &in.Request, nil
+	// return &in.Request, nil
+	return nil, nil
 
 }
 

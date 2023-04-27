@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/common-fate/common-fate/pkg/api"
+	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
@@ -18,11 +18,21 @@ type EventPutter interface {
 	Put(ctx context.Context, detail gevent.EventTyper) error
 }
 
-// EventHandler provides handler methods for updating items in Db in response to external events such as from teh access handler
+//go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_workflow_service.go -package=mocks . Workflow
+type Workflow interface {
+	Revoke(ctx context.Context, targets access.GroupWithTargets, revokerID string, revokerEmail string) (*access.Request, error)
+	Grant(ctx context.Context, targets access.GroupWithTargets, subject string) ([]access.Grant, error)
+}
+
+// EventHandler provides handler methods for reacting to async actions during the granting process
 type EventHandler struct {
 	db       ddb.Storage
-	Workflow api.Workflow
+	Workflow Workflow
 	Eventbus EventPutter
+}
+
+type EventHandlerOpts struct {
+	db ddb.Storage
 }
 
 func New(ctx context.Context, db ddb.Storage) (*EventHandler, error) {

@@ -66,7 +66,6 @@ type API struct {
 	InternalIdentity   InternalIdentityService
 	TargetService      TargetService
 	HandlerService     HandlerService
-	Workflow           Workflow
 	HealthcheckService HealthcheckService
 	PreflightService   PreflightService
 }
@@ -120,12 +119,6 @@ type TargetService interface {
 type HandlerService interface {
 	RegisterHandler(ctx context.Context, req types.RegisterHandlerRequest) (*handler.Handler, error)
 	DeleteHandler(ctx context.Context, handler *handler.Handler) error
-}
-
-//go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_workflow_service.go -package=mocks . Workflow
-type Workflow interface {
-	Revoke(ctx context.Context, targets access.GroupWithTargets, revokerID string, revokerEmail string) (*access.Request, error)
-	Grant(ctx context.Context, targets access.GroupWithTargets, subject string) ([]access.Grant, error)
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_preflight_service.go -package=mocks . PreflightService
@@ -195,41 +188,15 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 			DB:    db,
 			Clock: clk,
 		},
-		// Access: &accesssvc.Service{
-		// 	Clock:       clk,
-		// 	DB:          db,
-		// 	EventPutter: opts.EventSender,
-		// 	// Cache: &cachesvc.Service{
-		// 	// 	ProviderConfigReader: opts.DeploymentConfig,
-		// 	// 	DB:                   db,
-		// 	// },
-		// 	Rules: &rulesvc.Service{
-		// 		Clock: clk,
-		// 		DB:    db,
-		// 		// Cache: &cachesvc.Service{
-		// 		// 	ProviderConfigReader: opts.DeploymentConfig,
-		// 		// 	DB:                   db,
-		// 		// },
-		// 	},
-		// 	Workflow: &workflowsvc.Service{
-		// 		Runtime: &live.Runtime{
-		// 			StateMachineARN: opts.StateMachineARN,
-		// 			Eventbus:        opts.EventSender,
-		// 			DB:              db,
-		// 			RequestRouter: &requestroutersvc.Service{
-		// 				DB: db,
-		// 			},
-		// 		},
-		// 		DB:       db,
-		// 		Clk:      clk,
-		// 		Eventbus: opts.EventSender,
-		// 	},
-		// },
-
-		// Cache: &cachesvc.Service{
-		// 	ProviderConfigReader: opts.DeploymentConfig,
-		// 	DB:                   db,
-		// },
+		Access: &accesssvc.Service{
+			Clock:       clk,
+			DB:          db,
+			EventPutter: opts.EventSender,
+			Rules: &rulesvc.Service{
+				Clock: clk,
+				DB:    db,
+			},
+		},
 		Rules: &rulesvc.Service{
 			Clock: clk,
 			DB:    db,
@@ -247,19 +214,6 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 			DB:    db,
 			Clock: clk,
 		},
-		// Workflow: &workflowsvc.Service{
-		// 	Runtime: &live.Runtime{
-		// 		StateMachineARN: opts.StateMachineARN,
-		// 		Eventbus:        opts.EventSender,
-		// 		DB:              db,
-		// 		RequestRouter: &requestroutersvc.Service{
-		// 			DB: db,
-		// 		},
-		// 	},
-		// 	DB:       db,
-		// 	Clk:      clk,
-		// 	Eventbus: opts.EventSender,
-		// },
 		HealthcheckService: &healthchecksvc.Service{
 			DB:            db,
 			RuntimeGetter: healthchecksvc.DefaultGetter{},
