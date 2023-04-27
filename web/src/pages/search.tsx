@@ -173,7 +173,7 @@ const Search = () => {
   const [preflightRes, setPreflightRes] = useState<Preflight>();
   const [accessReason, setAccessReason] = useState<string>("");
   const [allTargets, setAllTargets] = useState<Target[]>([]);
-  const [nextToken, setNextToken] = useState<string | undefined>(undefined);
+  const [nextToken, setNextToken] = useState<string | undefined>("initial");
   const [submitLoading, submitLoadingToggle] = useBoolean();
   // EFFECTS
 
@@ -196,13 +196,24 @@ const Search = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const params: UserListEntitlementTargetsParams = { nextToken };
+      const params: UserListEntitlementTargetsParams = {
+        nextToken: nextToken !== "initial" ? nextToken : undefined,
+      };
       const result = await userListEntitlementTargets(params);
       setAllTargets((prevData) => [...prevData, ...result.targets]);
+      setTargetKeyMap((tkm) => {
+        result.targets.forEach((t) => {
+          // the command palette library casts the value to lowercase, so we need to do the same here
+          tkm[t.id.toLowerCase()] = t;
+        });
+        return tkm;
+      });
       setNextToken(result.next);
     };
-    fetchData();
-  }, []);
+    if (nextToken !== undefined) {
+      fetchData();
+    }
+  }, [nextToken]);
 
   // HANDLERS
   const handleSubmit = () => {
@@ -221,17 +232,9 @@ const Search = () => {
       target && entitlementTargets.push(target?.id);
     });
 
-    userRequestPreflight(
-      {
-        targets: entitlementTargets,
-      },
-      {
-        baseURL: "http://127.0.0.1:3100",
-        headers: {
-          Prefer: "code=200, example=ex_1",
-        },
-      }
-    )
+    userRequestPreflight({
+      targets: entitlementTargets,
+    })
       .then((res) => {
         setPreflightRes(res);
         setTabIndex(1);
@@ -250,30 +253,22 @@ const Search = () => {
   const handleRequest = () => {
     preflightRes &&
       // test
-      userPostRequests(
-        {
-          preflightId: preflightRes?.id,
-          reason: accessReason,
-          groupOptions: [
-            // @TODO: add in group options, after dynamic UI is supported (next scope of work)
-            //   {
-            //     id: preflightRes?.id,
-            //     timing: { startTime: new Date().toISOString() },
-            //   },
-          ],
-        },
-        {
-          baseURL: "http://127.0.0.1:3100",
-          headers: {
-            Prefer: "code=200, example=ex_1",
-          },
-        }
-      )
+      userPostRequests({
+        preflightId: preflightRes?.id,
+        reason: accessReason,
+        groupOptions: [
+          // @TODO: add in group options, after dynamic UI is supported (next scope of work)
+          //   {
+          //     id: preflightRes?.id,
+          //     timing: { startTime: new Date().toISOString() },
+          //   },
+        ],
+      })
         .then((res) => {
           console.log(res);
           submitLoadingToggle.on();
           // redirect to request...
-          navigate({ to: `/request/${"REPLACEME"}` });
+          navigate({ to: `/request/${res.id}` });
           // clear state
           setChecked([]);
           setInputValue("");
@@ -399,7 +394,7 @@ const Search = () => {
                             <Spinner />
                           </Center>
                         ) : (
-                          allTargets.map(targetComponent)
+                          allTargets.slice(undefined, 5).map(targetComponent)
                         )}
                       </CommandNew.Group>
                     </Stack>

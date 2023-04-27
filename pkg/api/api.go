@@ -23,6 +23,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/service/handlersvc"
 	"github.com/common-fate/common-fate/pkg/service/healthchecksvc"
 	"github.com/common-fate/common-fate/pkg/service/internalidentitysvc"
+	"github.com/common-fate/common-fate/pkg/service/preflightsvc"
 	"github.com/common-fate/common-fate/pkg/service/rulesvc"
 	"github.com/common-fate/common-fate/pkg/service/targetsvc"
 	"github.com/common-fate/common-fate/pkg/target"
@@ -187,6 +188,10 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 		AdminGroup:       opts.AdminGroup,
 		FrontendURL:      opts.FrontendURL,
 		InternalIdentity: &internalidentitysvc.Service{
+			DB:    db,
+			Clock: clk,
+		},
+		PreflightService: &preflightsvc.Service{
 			DB:    db,
 			Clock: clk,
 		},
