@@ -35,6 +35,7 @@ func main() {
 	eb, err := gevent.NewSender(ctx, gevent.SenderOpts{
 		EventBusARN: cfg.EventBusArn,
 	})
+
 	if err != nil {
 		panic(err)
 	}

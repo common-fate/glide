@@ -285,6 +285,7 @@ export class AppBackend extends Construct {
       dynamoTable: this._dynamoTable,
       eventBus: props.eventBus,
       eventBusSourceName: props.eventBusSourceName,
+      targetGroupGranter: props.targetGroupGranter,
     });
     this._notifiers = new Notifiers(this, "Notifiers", {
       dynamoTable: this._dynamoTable,
