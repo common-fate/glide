@@ -439,24 +439,11 @@ export const ApproveRejectDuration = ({
 }: ApproveRejectDurationProps) => {
   const isReviewer = true;
 
-  const [state, setState] = useState<"default" | "max" | "custom">("default");
-
   const handleClickMax = () => {
-    setState("max");
     setDurationSeconds(group.accessRule.timeConstraints.maxDurationSeconds);
-    // TODO: also set the duration to max
   };
 
-  const handleClickEdit = () => {
-    setState("custom");
-  };
-
-  const handleCancel = () => {
-    setState("default");
-    // todo: ensure new duration is set
-  };
-
-  console.log({ group });
+  // console.log({ group });
 
   // durationSeconds state
   const [durationSeconds, setDurationSeconds] = useState<number>(
@@ -517,28 +504,21 @@ export const ApproveRejectDuration = ({
               />
               <PopoverCloseButton />
               <PopoverBody py={4}>
-                {/* {durationString(durationSeconds)} */}
-                {state != "custom" ? (
-                  <Flex
-                    display="flex"
-                    flexDir="row"
-                    alignItems="center"
-                    sx={{
-                      button: {
-                        w: "50%",
-                        rounded: "md",
-                        borderColor: "neutrals.300",
-                        color: "neutrals.800",
-                        p: 2,
-                        _active: {
-                          borderColor: "brandBlue.100",
-                          color: "brandBlue.300",
-                          bg: "white",
-                        },
-                      },
-                    }}
-                  >
-                    <Flex w="100%">
+                <Box>
+                  <Box mt={1}>
+                    <DurationInput
+                      // {...rest}
+                      onChange={setDurationSeconds}
+                      value={durationSeconds}
+                      hideUnusedElements={true}
+                      max={group.accessRule.timeConstraints.maxDurationSeconds}
+                      min={60}
+                      defaultValue={group.overrideTiming.durationSeconds}
+                    >
+                      <Weeks />
+                      <Days />
+                      <Hours />
+                      <Minutes />
                       <Button
                         variant="brandSecondary"
                         onClick={(e) => {}}
@@ -546,8 +526,23 @@ export const ApproveRejectDuration = ({
                         fontSize="12px"
                         lineHeight="12px"
                         mr={2}
-                        isActive={state === "max"}
+                        isActive={
+                          durationSeconds ==
+                          group.accessRule.timeConstraints.maxDurationSeconds
+                        }
                         onClick={handleClickMax}
+                        sx={{
+                          w: "50%",
+                          rounded: "md",
+                          borderColor: "neutrals.300",
+                          color: "neutrals.800",
+                          p: 2,
+                          _active: {
+                            borderColor: "brandBlue.100",
+                            color: "brandBlue.300",
+                            bg: "white",
+                          },
+                        }}
                       >
                         <chakra.span
                           display="block"
@@ -560,73 +555,10 @@ export const ApproveRejectDuration = ({
                           group.accessRule.timeConstraints.maxDurationSeconds
                         )}
                       </Button>
-                      <Button
-                        variant="brandSecondary"
-                        onClick={handleClickEdit}
-                        isActive={state === "custom"}
-                        leftIcon={
-                          <EditPencilIcon marginTop="-2px" marginRight="-8px" />
-                        }
-                      />
-                    </Flex>
-                  </Flex>
-                ) : (
-                  <Box>
-                    {/* <Text textStyle="Body/Small">Session Duration</Text> */}
-                    <Box mt={1}>
-                      <DurationInput
-                        // {...rest}
-                        onChange={setDurationSeconds}
-                        value={durationSeconds}
-                        hideUnusedElements={true}
-                        max={
-                          group.accessRule.timeConstraints.maxDurationSeconds
-                        }
-                        min={60}
-                        defaultValue={group.overrideTiming.durationSeconds}
-                      >
-                        <Weeks />
-                        <Days />
-                        <Hours />
-                        <Minutes />
-                        <Button
-                          variant="brandSecondary"
-                          onClick={(e) => {}}
-                          flexDir="column"
-                          fontSize="12px"
-                          lineHeight="12px"
-                          mr={2}
-                          isActive={state === "max"}
-                          onClick={handleClickMax}
-                          sx={{
-                            w: "50%",
-                            rounded: "md",
-                            borderColor: "neutrals.300",
-                            color: "neutrals.800",
-                            p: 2,
-                            _active: {
-                              borderColor: "brandBlue.100",
-                              color: "brandBlue.300",
-                              bg: "white",
-                            },
-                          }}
-                        >
-                          <chakra.span
-                            display="block"
-                            w="100%"
-                            letterSpacing="1.1px"
-                          >
-                            MAX
-                          </chakra.span>
-                          {durationString(
-                            group.accessRule.timeConstraints.maxDurationSeconds
-                          )}
-                        </Button>
-                      </DurationInput>
-                    </Box>
+                    </DurationInput>
                   </Box>
-                )}
-                <Select
+                </Box>
+                {/*    <Select
                   mt={8}
                   size="xs"
                   variant="brandSecondary"
@@ -635,7 +567,7 @@ export const ApproveRejectDuration = ({
                   {["default", "max", "custom"].map((option) => (
                     <option value={option}>{option}</option>
                   ))}
-                </Select>
+                </Select> */}
               </PopoverBody>
             </PopoverContent>
           </Portal>
