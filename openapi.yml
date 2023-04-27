@@ -1000,7 +1000,7 @@ paths:
                         approvalMethod: AUTOMATIC
                         accessRule:
                           timeConstraints:
-                            maxDurationSeconds: 60
+                            maxDurationSeconds: 3600
                     requestedBy:
                       id: string
                       firstName: string
@@ -1519,21 +1519,28 @@ components:
       type: object
       description: A request to access something made by an end user in Common Fate.
       x-examples:
-        Example 1:
+        ex_1:
           id: string
           purpose:
             reason: string
           accessGroups:
             - id: string
               requestId: string
-              status: APPROVED
+              status: DECLINED
               time:
-                maxDurationSeconds: 60
+                durationSeconds: 3600
+                startTime: "14:15:22Z"
               overrideTiming:
                 durationSeconds: 0
                 startTime: "14:15:22Z"
               updatedAt: string
               createdAt: string
+              requestedBy:
+                id: string
+                firstName: string
+                lastName: string
+                email: string
+                picture: string
               targets:
                 - id: string
                   requestId: string
@@ -1544,6 +1551,7 @@ components:
                     name: string
                     version: string
                     kind: string
+                  targetGroupIcon: string
                   fields:
                     - id: string
                       fieldTitle: string
@@ -1551,9 +1559,25 @@ components:
                       valueLabel: string
                       valueDescription: string
                       value: string
-                  status: PENDING
-          requestedBy: string
+                  status: PENDING_PROVISIONING
+                  requestedBy:
+                    id: string
+                    firstName: string
+                    lastName: string
+                    email: string
+                    picture: string
+              approvalMethod: AUTOMATIC
+              accessRule:
+                timeConstraints:
+                  maxDurationSeconds: 60
+          requestedBy:
+            id: string
+            firstName: string
+            lastName: string
+            email: string
+            picture: string
           requestedAt: "14:15:22Z"
+          status: CANCELLED
       properties:
         id:
           type: string
