@@ -36,9 +36,10 @@ type AddReviewResult struct {
 func (s *Service) AddReviewAndGrantAccess(ctx context.Context, opts AddReviewOpts) (*AddReviewResult, error) {
 
 	err := s.EventPutter.Put(ctx, gevent.AccessGroupReviewed{
-		AccessGroup:   opts.AccessGroup.Group,
+		AccessGroup:   opts.AccessGroup,
 		ReviewerID:    opts.ReviewerEmail,
 		ReviewerEmail: opts.ReviewerEmail,
+		Outcome:       types.ReviewDecision(opts.Decision),
 	})
 	if err != nil {
 		return nil, err
@@ -65,53 +66,23 @@ func (s *Service) AddReviewAndGrantAccess(ctx context.Context, opts AddReviewOpt
 		access_group.Status = types.RequestAccessGroupStatusAPPROVED
 		access_group.OverrideTiming = opts.OverrideTiming
 
-		_, err := s.Workflow.Grant(ctx, access_group, opts.RequestingUser)
-		if err != nil {
-			return nil, err
-		}
-		// reviewed := types.REVIEWED
-		// access_group.ApprovalMethod = &reviewed
-
-		err = s.EventPutter.Put(ctx, gevent.AccessGroupApproved{
-			AccessGroup:   opts.AccessGroup.Group,
-			ReviewerID:    opts.ReviewerEmail,
-			ReviewerEmail: opts.ReviewerEmail,
-		})
-		if err != nil {
-			return nil, err
-		}
-
 	case access.DecisionDECLINED:
 		access_group.Status = types.RequestAccessGroupStatusDECLINED
-		err := s.EventPutter.Put(ctx, gevent.AccessGroupDeclined{
-			AccessGroup:   opts.AccessGroup.Group,
-			ReviewerID:    opts.ReviewerEmail,
-			ReviewerEmail: opts.ReviewerEmail,
-		})
-		if err != nil {
-			return nil, err
-		}
+
 	}
 	access_group.UpdatedAt = s.Clock.Now()
 
 	items := []ddb.Keyer{}
-
-	// we need to save the Review, the updated Request in the database.
-	// items, err := dbupdate.GetUpdateRequestItems(ctx, s.DB, request, dbupdate.WithReviewers(opts.Reviewers))
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// items = append(items, &r)
 
 	if access_group.OverrideTiming != nil {
 		// audit log event
 		reqEvent := access.NewTimingChangeEvent(access_group.ID, access_group.UpdatedAt, &opts.ReviewerID, access_group.TimeConstraints, *access_group.OverrideTiming)
 		items = append(items, &reqEvent)
 	}
-	// audit log event
-	// reqEvent := access.NewStatusChangeEvent(access_group.ID, access_group.UpdatedAt, &opts.ReviewerID, originalStatus, access_group.Status)
 
-	// items = append(items, &reqEvent)
+	items = append(items, &access_group)
+	items = append(items, &r)
+
 	// store the updated items in the database
 	err = s.DB.PutBatch(ctx, items...)
 	if err != nil {

@@ -9,7 +9,6 @@ const (
 	RequestApprovedType   = "request.approved"
 	RequestCancelInitType = "request.cancel.init"
 	RequestCancelType     = "request.cancel"
-	RequestDeclinedType   = "request.declined"
 )
 
 // RequestCreated is when the user requests access
@@ -53,5 +52,5 @@ type RequestCancelled struct {
 }
 
 func (RequestCancelled) EventType() string {
-	return RequestDeclinedType
+	return RequestCancelType
 }

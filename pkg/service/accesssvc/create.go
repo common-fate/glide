@@ -50,13 +50,6 @@ func (s *Service) CreateRequest(ctx context.Context, createRequest types.CreateA
 
 	now := s.Clock.Now()
 
-	//verify all the groups on the preflight and the requestcreate event
-
-	// groups := map[string]access.PreflightAccessGroup{}
-	// for _, group := range preflight.AccessGroups {
-	// 	groups[group.ID] = group
-	// }
-
 	//count the number of targets
 	var totalTargets int
 	for _, group := range preflight.AccessGroups {
@@ -76,12 +69,22 @@ func (s *Service) CreateRequest(ctx context.Context, createRequest types.CreateA
 		GroupTargetCount: totalTargets,
 	}
 
+	//emit request create event
+
+	err = s.EventPutter.Put(ctx, gevent.RequestCreated{
+		Request:        request,
+		RequestorEmail: request.RequestedBy.Email,
+	})
+	if err != nil {
+		return nil, err
+	}
+
 	//for each access group in the preflight we need to create corresponding access groups
 	//Then create corresponding grants
-	groupWithTargets := access.GroupWithTargets{}
 
 	items := []ddb.Keyer{}
 	for _, access_group := range preflight.AccessGroups {
+
 		// check to see if it valid for instant approval
 
 		//create grants for all entitlements in the group
@@ -109,8 +112,6 @@ func (s *Service) CreateRequest(ctx context.Context, createRequest types.CreateA
 			UpdatedAt:   now,
 		}
 
-		groupWithTargets.Group = ag
-
 		approvers, err := rulesvc.GetApprovers(ctx, s.DB, *ar.Result)
 		if err != nil {
 			return nil, err
@@ -135,8 +136,10 @@ func (s *Service) CreateRequest(ctx context.Context, createRequest types.CreateA
 			items = append(items, &r)
 
 		}
+		//add access group to be saved
 		items = append(items, &ag)
 
+		groupTargets := []access.GroupTarget{}
 		for _, t := range access_group.Targets {
 			groupTarget := access.GroupTarget{
 				ID:              types.NewGroupTargetID(),
@@ -161,15 +164,27 @@ func (s *Service) CreateRequest(ctx context.Context, createRequest types.CreateA
 					},
 				})
 			}
-			groupWithTargets.Targets = append(groupWithTargets.Targets, groupTarget)
 
 			//Add the reviewers to the target groups too
 			for _, u := range reviewers {
 				groupTarget.RequestReviewers = append(groupTarget.RequestReviewers, u.ReviewerID)
 
 			}
+			groupTargets = append(groupTargets, groupTarget)
 			items = append(items, &groupTarget)
 
+		}
+
+		//if approval is not required we want to emit an event to start the granding process for this group
+		if !ar.Result.Approval.IsRequired() {
+			s.EventPutter.Put(ctx, gevent.AccessGroupReviewed{
+				AccessGroup: access.GroupWithTargets{
+					Group:   ag,
+					Targets: groupTargets,
+				},
+
+				Outcome: types.ReviewDecisionAPPROVED,
+			})
 		}
 
 		//At this point we should have provisioned the following
@@ -178,22 +193,9 @@ func (s *Service) CreateRequest(ctx context.Context, createRequest types.CreateA
 		//y GroupTargets sourced from the targets on the access group
 		//Appended reviewers onto the Access Group and Group Target objects if exists
 
-		//Now start granting access to the targets within the group
-		_, err = s.Workflow.Grant(ctx, groupWithTargets, request.RequestedBy.Email)
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	err = s.DB.PutBatch(ctx, items...)
-	if err != nil {
-		return nil, err
-	}
-	//emit request create event
-	err = s.EventPutter.Put(ctx, gevent.RequestCreated{
-		Request:        request,
-		RequestorEmail: request.RequestedBy.Email,
-	})
 	if err != nil {
 		return nil, err
 	}

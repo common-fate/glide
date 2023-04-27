@@ -1,6 +1,9 @@
 package gevent
 
-import "github.com/common-fate/common-fate/pkg/access"
+import (
+	"github.com/common-fate/common-fate/pkg/access"
+	"github.com/common-fate/common-fate/pkg/types"
+)
 
 //new AccessGroup Requests
 
@@ -11,9 +14,12 @@ const (
 )
 
 type AccessGroupReviewed struct {
-	AccessGroup   access.Group `json:"group"`
-	ReviewerID    string       `json:"reviewerId"`
-	ReviewerEmail string       `json:"reviewerEmail"`
+	AccessGroup   access.GroupWithTargets `json:"group"`
+	ReviewerID    string                  `json:"reviewerId"`
+	ReviewerEmail string                  `json:"reviewerEmail"`
+	ReviewType    string                  `json:"reviewType"`
+	Subject       string                  `json:"subject"`
+	Outcome       types.ReviewDecision    `json:"outcome"`
 }
 
 func (AccessGroupReviewed) EventType() string {
@@ -21,9 +27,11 @@ func (AccessGroupReviewed) EventType() string {
 }
 
 type AccessGroupApproved struct {
-	AccessGroup   access.Group `json:"group"`
-	ReviewerID    string       `json:"reviewerId"`
-	ReviewerEmail string       `json:"reviewerEmail"`
+	AccessGroup   access.GroupWithTargets `json:"group"`
+	ReviewerID    string                  `json:"reviewerId"`
+	ReviewerEmail string                  `json:"reviewerEmail"`
+	ReviewType    string                  `json:"reviewType"`
+	Subject       string                  `json:"subject"`
 }
 
 func (AccessGroupApproved) EventType() string {
@@ -31,11 +39,21 @@ func (AccessGroupApproved) EventType() string {
 }
 
 type AccessGroupDeclined struct {
-	AccessGroup   access.Group `json:"group"`
-	ReviewerID    string       `json:"reviewerId"`
-	ReviewerEmail string       `json:"reviewerEmail"`
+	AccessGroup   access.GroupWithTargets `json:"group"`
+	ReviewerID    string                  `json:"reviewerId"`
+	ReviewerEmail string                  `json:"reviewerEmail"`
+	ReviewType    string                  `json:"reviewType"`
+	Subject       string                  `json:"subject"`
 }
 
 func (AccessGroupDeclined) EventType() string {
 	return AccessGroupDeclinedType
+}
+
+// GroupEventPayload is a payload which is common to
+// all group events. It is used to conveniently unmarshal
+// the group payloads in our event handler code.
+type GroupEventPayload struct {
+	Request    access.GroupWithTargets `json:"group"`
+	ReviewerID string                  `json:"reviewerId"`
 }

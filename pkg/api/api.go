@@ -123,8 +123,8 @@ type HandlerService interface {
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_workflow_service.go -package=mocks . Workflow
 type Workflow interface {
-	Revoke(ctx context.Context, targets access.Group, revokerID string, revokerEmail string) (*access.Request, error)
-	Grant(ctx context.Context, targets access.Group, subject string) ([]access.Grant, error)
+	Revoke(ctx context.Context, targets access.GroupWithTargets, revokerID string, revokerEmail string) (*access.Request, error)
+	Grant(ctx context.Context, targets access.GroupWithTargets, subject string) ([]access.Grant, error)
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_preflight_service.go -package=mocks . PreflightService
