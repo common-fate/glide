@@ -3,87 +3,181 @@ import {
   Box,
   Button,
   Center,
-  Code,
   Container,
   Flex,
+  HStack,
   Input,
+  Spinner,
   Stack,
-  Text,
   TabPanel,
   TabPanels,
   Tabs,
-  useBoolean,
-  useDisclosure,
-  useEventListener,
-  chakra,
+  Text,
   Textarea,
-  Spinner,
-  Divider,
-  Icon,
   Tooltip,
-  HStack,
+  useBoolean,
+  useEventListener,
 } from "@chakra-ui/react";
-import React from "react";
-import { Link, useNavigate } from "react-location";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-location";
 import Counter from "../components/Counter";
 import FieldsCodeBlock from "../components/FieldsCodeBlock";
 import { ProviderIcon, ShortTypes } from "../components/icons/providerIcon";
 import { UserLayout } from "../components/Layout";
 import {
+  userListEntitlementTargets,
   userPostRequests,
   userRequestPreflight,
   useUserListEntitlements,
-  useUserListEntitlementTargets,
 } from "../utils/backend-client/default/default";
-import { Preflight, Target } from "../utils/backend-client/types";
+import {
+  Preflight,
+  Target,
+  UserListEntitlementTargetsParams,
+} from "../utils/backend-client/types";
 import { Command as CommandNew } from "../utils/cmdk";
-import { HeaderStatusCell } from "./request/[id]";
-function TargetComponent({ target }: { target: Target }) {
+// CONSTANTS
+const ACTION_KEY_DEFAULT = ["Ctrl", "Control"];
+const ACTION_KEY_APPLE = ["⌘", "Command"];
+
+const targetComponent = (target: Target) => {
   return (
-    <Flex>
-      <ProviderIcon shortType={target.kind.icon as ShortTypes} />
-      <HStack>
-        {target.fields.map((field, i) => (
-          <Box borderLeftWidth={i > 0 ? 2 : undefined} paddingRight={10}>
-            <Tooltip
-              key={field.id}
-              label={
-                <>
-                  <Box fontWeight="bold">{field.fieldTitle}</Box>
-                  {field.fieldDescription && (
-                    <Box>{field.fieldDescription}</Box>
-                  )}
-                  {field.valueDescription && (
-                    <Box mt={2}>{field.valueDescription}</Box>
-                  )}
-                </>
-              }
-              placement="top"
-            >
-              <Box display="inline-block" verticalAlign="top">
-                <Box>{field.valueLabel}</Box>
-                <Box>{field.value}</Box>
-              </Box>
-            </Tooltip>
-          </Box>
-        ))}
-      </HStack>
+    <Flex
+      alignContent="flex-start"
+      p={2}
+      rounded="md"
+      _selected={{
+        "bg": "neutrals.100",
+        "#description": {
+          display: "block",
+        },
+      }}
+      _checked={{
+        "#checked": {
+          display: "block",
+        },
+      }}
+      pos="relative"
+      key={target.id}
+      // this value is used by the command palette
+      value={target.id}
+      as={CommandNew.Item}
+    >
+      <Flex>
+        <ProviderIcon shortType={target.kind.icon as ShortTypes} />
+        <HStack>
+          {target.fields.map((field, i) => (
+            <Box borderLeftWidth={i > 0 ? 2 : undefined} paddingRight={10}>
+              <Tooltip
+                key={field.id}
+                label={
+                  <>
+                    <Box fontWeight="bold">{field.fieldTitle}</Box>
+                    {field.fieldDescription && (
+                      <Box>{field.fieldDescription}</Box>
+                    )}
+                    {field.valueDescription && (
+                      <Box mt={2}>{field.valueDescription}</Box>
+                    )}
+                  </>
+                }
+                placement="top"
+              >
+                <Box display="inline-block" verticalAlign="top">
+                  <Box>{field.valueLabel}</Box>
+                  <Box>{field.value}</Box>
+                </Box>
+              </Tooltip>
+            </Box>
+          ))}
+        </HStack>
+      </Flex>
+      <CheckCircleIcon
+        id="checked"
+        position="absolute"
+        display="none"
+        top={2}
+        right={2}
+        h="12px"
+        w="12px"
+        color={"brandBlue.300"}
+      />
+      {/* @TODO: review me as a part of CF-1028 */}
+      {/* <Box
+      rounded="md"
+      w="24ch"
+      zIndex={9999}
+      pos="absolute"
+      top={4}
+      right={4}
+      id="description"
+      display="none"
+      textStyle="Body/ExtraSmall"
+      p={1}
+    >
+      Admin access to {target.fields[0].value}{" "}
+      account
+    </Box> */}
+      <Box
+        rounded="md"
+        w="24ch"
+        bg="white"
+        border="1px solid"
+        borderColor="neutrals.300"
+        zIndex={9999}
+        pos="absolute"
+        bottom={-4}
+        right={0}
+        id="description"
+        display="none"
+        textStyle="Body/ExtraSmall"
+        p={1}
+      >
+        Admin access to {target.fields[0].value} account
+      </Box>
     </Flex>
   );
-}
+};
+// https://erikmartinjordan.com/navigator-platform-deprecated-alternative
+const isMac = () =>
+  /(Mac|iPhone|iPod|iPad)/i.test(
+    // @ts-ignore
+    navigator?.userAgentData?.platform || navigator?.platform || "unknown"
+  );
+
 const Search = () => {
-  // https://erikmartinjordan.com/navigator-platform-deprecated-alternative
-  const isMac = () =>
-    /(Mac|iPhone|iPod|iPad)/i.test(
-      // @ts-ignore
-      navigator?.userAgentData?.platform || navigator?.platform || "unknown"
-    );
+  // DATA FETCHING
 
-  const ACTION_KEY_DEFAULT = ["Ctrl", "Control"];
-  const ACTION_KEY_APPLE = ["⌘", "Command"];
-  const [actionKey, setActionKey] = React.useState<string[]>(ACTION_KEY_APPLE);
+  const entitlements = useUserListEntitlements({
+    swr: { refreshInterval: 10000 },
+    // request: {
+    //   baseURL: "http://127.0.0.1:3100",
+    //   headers: {
+    //     Prefer: "code=200, example=example_targets",
+    //   },
+    // },
+  });
 
-  React.useEffect(() => {
+  // HOOKS
+  const navigate = useNavigate();
+
+  // STATE
+
+  const [targetKeyMap, setTargetKeyMap] = useState<{
+    [key: string]: Target;
+  }>({});
+  const [inputValue, setInputValue] = useState<string>("");
+  const [checked, setChecked] = useState<string[]>([]);
+  const [actionKey, setActionKey] = useState<string[]>(ACTION_KEY_APPLE);
+  const [tabIndex, setTabIndex] = useState(0);
+  const [preflightRes, setPreflightRes] = useState<Preflight>();
+  const [accessReason, setAccessReason] = useState<string>("");
+  const [allTargets, setAllTargets] = useState<Target[]>([]);
+  const [nextToken, setNextToken] = useState<string | undefined>(undefined);
+  const [submitLoading, submitLoadingToggle] = useBoolean();
+  // EFFECTS
+
+  useEffect(() => {
     if (typeof navigator === "undefined") return;
     if (!isMac()) {
       setActionKey(ACTION_KEY_DEFAULT);
@@ -100,58 +194,17 @@ const Search = () => {
     }
   });
 
-  const targets = useUserListEntitlementTargets(undefined, {
-    swr: { refreshInterval: 10000 },
-    // request: {
-    //   baseURL: "http://127.0.0.1:3100",
-    //   headers: {
-    //     Prefer: "code=200, example=example_targets",
-    //   },
-    // },
-  });
-  const entitlements = useUserListEntitlements({
-    swr: { refreshInterval: 10000 },
-    // request: {
-    //   baseURL: "http://127.0.0.1:3100",
-    //   headers: {
-    //     Prefer: "code=200, example=example_targets",
-    //   },
-    // },
-  });
-  const [targetKeyMap, setTargetKeyMap] = React.useState<{
-    [key: string]: Target;
-  }>({});
+  useEffect(() => {
+    const fetchData = async () => {
+      const params: UserListEntitlementTargetsParams = { nextToken };
+      const result = await userListEntitlementTargets(params);
+      setAllTargets((prevData) => [...prevData, ...result.targets]);
+      setNextToken(result.next);
+    };
+    fetchData();
+  }, []);
 
-  const [inputValue, setInputValue] = React.useState<string>("");
-
-  const [checked, setChecked] = React.useState<string[]>([]);
-
-  React.useEffect(() => {
-    if (!targets.data) return;
-    const map: { [key: string]: Target } = {};
-    targets.data.targets.forEach((target) => {
-      map[target.id] = target;
-    });
-    setTargetKeyMap(map);
-  }, [targets.data]);
-
-  const targetsLoading =
-    targets.isValidating && Object.entries(targetKeyMap).length == 0;
-
-  // @TODO:
-  // Actually use the fixture data, maybe write it with actual values.
-  // Add in page responses etc.
-
-  const navigate = useNavigate();
-
-  const [submitLoading, submitLoadingToggle] = useBoolean();
-
-  // tabIndex
-  const [tabIndex, setTabIndex] = React.useState(0);
-
-  // preflightRes
-  const [preflightRes, setPreflightRes] = React.useState<Preflight>();
-
+  // HANDLERS
   const handleSubmit = () => {
     if (tabIndex == 0) handlePreflight();
     if (tabIndex == 1) handleRequest();
@@ -230,8 +283,6 @@ const Search = () => {
         });
   };
 
-  const [accessReason, setAccessReason] = React.useState<string>("");
-
   return (
     <UserLayout>
       <Container
@@ -246,6 +297,7 @@ const Search = () => {
             <TabPanel>
               <Box minH="200px">
                 <CommandNew
+                  shouldFilter={false}
                   // open={modal.isOpen}
                   // onOpenChange={modal.onToggle}
                   label="Global Command Menu"
@@ -289,7 +341,7 @@ const Search = () => {
                         All resources
                       </Text>
                       <Flex color="neutrals.500">
-                        {targets.data?.targets.length}&nbsp;total
+                        {allTargets.length}&nbsp;total
                       </Flex>
                     </Center>
                     {entitlements.data?.entitlements.map((kind) => {
@@ -342,83 +394,12 @@ const Search = () => {
                       <CommandNew.Group
                       // heading="Permissions"
                       >
-                        {targetsLoading ? (
+                        {allTargets.length === 0 ? (
                           <Center as={CommandNew.Loading} minH="200px">
                             <Spinner />
                           </Center>
                         ) : (
-                          targets.data &&
-                          targets.data.targets.map((target) => {
-                            return (
-                              <Flex
-                                alignContent="flex-start"
-                                p={2}
-                                rounded="md"
-                                _selected={{
-                                  "bg": "neutrals.100",
-                                  "#description": {
-                                    display: "block",
-                                  },
-                                }}
-                                _checked={{
-                                  "#checked": {
-                                    display: "block",
-                                  },
-                                }}
-                                pos="relative"
-                                key={target.id}
-                                // this value is used by the command palette
-                                value={target.id}
-                                as={CommandNew.Item}
-                              >
-                                <TargetComponent target={target} />
-                                <CheckCircleIcon
-                                  id="checked"
-                                  position="absolute"
-                                  display="none"
-                                  top={2}
-                                  right={2}
-                                  h="12px"
-                                  w="12px"
-                                  color={"brandBlue.300"}
-                                />
-                                {/* @TODO: review me as a part of CF-1028 */}
-                                {/* <Box
-                                  rounded="md"
-                                  w="24ch"
-                                  zIndex={9999}
-                                  pos="absolute"
-                                  top={4}
-                                  right={4}
-                                  id="description"
-                                  display="none"
-                                  textStyle="Body/ExtraSmall"
-                                  p={1}
-                                >
-                                  Admin access to {target.fields[0].value}{" "}
-                                  account
-                                </Box> */}
-                                <Box
-                                  rounded="md"
-                                  w="24ch"
-                                  bg="white"
-                                  border="1px solid"
-                                  borderColor="neutrals.300"
-                                  zIndex={9999}
-                                  pos="absolute"
-                                  bottom={-4}
-                                  right={0}
-                                  id="description"
-                                  display="none"
-                                  textStyle="Body/ExtraSmall"
-                                  p={1}
-                                >
-                                  Admin access to {target.fields[0].value}{" "}
-                                  account
-                                </Box>
-                              </Flex>
-                            );
-                          })
+                          allTargets.map(targetComponent)
                         )}
                       </CommandNew.Group>
                     </Stack>
