@@ -78,6 +78,7 @@ func (s *Service) CreateRequest(ctx context.Context, createRequest types.CreateA
 
 	//for each access group in the preflight we need to create corresponding access groups
 	//Then create corresponding grants
+	groupWithTargets := access.GroupWithTargets{}
 
 	items := []ddb.Keyer{}
 	for _, access_group := range preflight.AccessGroups {
@@ -107,6 +108,8 @@ func (s *Service) CreateRequest(ctx context.Context, createRequest types.CreateA
 			CreatedAt:   now,
 			UpdatedAt:   now,
 		}
+
+		groupWithTargets.Group = ag
 
 		approvers, err := rulesvc.GetApprovers(ctx, s.DB, *ar.Result)
 		if err != nil {
@@ -158,6 +161,7 @@ func (s *Service) CreateRequest(ctx context.Context, createRequest types.CreateA
 					},
 				})
 			}
+			groupWithTargets.Targets = append(groupWithTargets.Targets, groupTarget)
 
 			//Add the reviewers to the target groups too
 			for _, u := range reviewers {
@@ -174,8 +178,17 @@ func (s *Service) CreateRequest(ctx context.Context, createRequest types.CreateA
 		//y GroupTargets sourced from the targets on the access group
 		//Appended reviewers onto the Access Group and Group Target objects if exists
 
+		//Now start granting access to the targets within the group
+		_, err = s.Workflow.Grant(ctx, groupWithTargets, request.RequestedBy.Email)
+		if err != nil {
+			return nil, err
+		}
 	}
 
+	err = s.DB.PutBatch(ctx, items...)
+	if err != nil {
+		return nil, err
+	}
 	//emit request create event
 	err = s.EventPutter.Put(ctx, gevent.RequestCreated{
 		Request:        request,

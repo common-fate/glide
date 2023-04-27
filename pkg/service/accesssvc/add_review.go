@@ -118,8 +118,6 @@ func (s *Service) AddReviewAndGrantAccess(ctx context.Context, opts AddReviewOpt
 		return nil, err
 	}
 
-	//TODO: dynano db stream for triggering events on decision outcomes
-
 	res := AddReviewResult{
 		AccessGroup: access_group.Group,
 	}

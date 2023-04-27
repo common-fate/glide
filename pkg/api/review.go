@@ -11,12 +11,11 @@ import (
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
-	"golang.org/x/sync/errgroup"
 )
 
 // Review a request
 // (POST /api/v1/access-group/{id}/review)
-func (a *API) UserReviewRequest(w http.ResponseWriter, r *http.Request, id string) {
+func (a *API) UserReviewRequest(w http.ResponseWriter, r *http.Request, requestId string, groupId string) {
 	ctx := r.Context()
 	var b types.UserReviewRequestJSONRequestBody
 	err := apio.DecodeJSONBody(w, r, &b)
@@ -26,38 +25,19 @@ func (a *API) UserReviewRequest(w http.ResponseWriter, r *http.Request, id strin
 	}
 	user := auth.UserFromContext(ctx)
 
-	// load the access group and the reviewers, so that we can process the review.
-	// this can be done concurrently, so we use an errgroup.
-	g, fetchctx := errgroup.WithContext(ctx)
-
 	var groupWithTargets *access.GroupWithTargets
-	g.Go(func() error {
-		var err error
-		// q := storage.group{ID: id}
-		// _, err = a.DB.Query(ctx, &q)
-		// req = &q.Result.
-		if err == ddb.ErrNoItems {
-			err = apio.NewRequestError(err, http.StatusNotFound)
-		}
-		if err != nil {
-			return err
-		}
 
-		return err
-	})
-
-	reviewers := storage.ListAccessGroupReviewers{AccessGroupId: id}
-	g.Go(func() error {
-		_, err := a.DB.Query(fetchctx, &reviewers)
-		return err
-	})
-
-	err = g.Wait()
-
+	q := storage.GetRequestGroupWithTargetsForReviewer{RequestID: requestId, GroupID: groupId, ReviewerID: user.ID}
+	_, err = a.DB.Query(ctx, &q)
+	groupWithTargets = q.Result
+	if err == ddb.ErrNoItems {
+		err = apio.NewRequestError(err, http.StatusNotFound)
+	}
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
+
 	if groupWithTargets == nil {
 		apio.Error(ctx, w, errors.New("request was nil"))
 		return
@@ -74,10 +54,8 @@ func (a *API) UserReviewRequest(w http.ResponseWriter, r *http.Request, id strin
 		Decision:        access.Decision(b.Decision),
 		ReviewerIsAdmin: user.BelongsToGroup(a.AdminGroup),
 		AccessGroup:     *groupWithTargets,
-		Reviewers:       reviewers.Result,
 		Comment:         b.Comment,
-		// AccessRule:      *rule,
-		OverrideTiming: overrideTiming,
+		OverrideTiming:  overrideTiming,
 	})
 	if err == accesssvc.ErrRequestOverlapsExistingGrant {
 		// wrap the error in a 400 status code

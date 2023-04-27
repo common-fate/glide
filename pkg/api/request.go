@@ -9,6 +9,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/auth"
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 
+	"github.com/common-fate/common-fate/pkg/service/accesssvc"
 	"github.com/common-fate/common-fate/pkg/service/preflightsvc"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
@@ -197,6 +198,32 @@ func (a *API) UserRevokeRequest(w http.ResponseWriter, r *http.Request, requestI
 		return
 	}
 	apio.JSON(ctx, w, nil, http.StatusOK)
+}
+
+func (a *API) UserCancelRequest(w http.ResponseWriter, r *http.Request, requestId string) {
+	ctx := r.Context()
+	uid := auth.UserIDFromContext(ctx)
+
+	err := a.Access.CancelRequest(ctx, accesssvc.CancelRequestOpts{
+		CancellerID: uid,
+		RequestID:   requestId,
+	})
+	if err == ddb.ErrNoItems {
+		err = apio.NewRequestError(err, http.StatusNotFound)
+	}
+	if err == accesssvc.ErrUserNotAuthorized {
+		// wrap the error in a 401 status code
+		err = apio.NewRequestError(err, http.StatusUnauthorized)
+	}
+	if err == accesssvc.ErrRequestCannotBeCancelled {
+		// wrap the error in a 400 status code
+		err = apio.NewRequestError(err, http.StatusBadRequest)
+	}
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	apio.JSON(ctx, w, struct{}{}, http.StatusOK)
 }
 
 // Your GET endpoint
