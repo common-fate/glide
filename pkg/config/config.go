@@ -42,8 +42,11 @@ type NotificationsConfig struct {
 }
 
 type EventHandlerConfig struct {
-	LogLevel    string `env:"LOG_LEVEL,default=info"`
-	DynamoTable string `env:"COMMONFATE_TABLE_NAME,required"`
+	LogLevel        string `env:"LOG_LEVEL,default=info"`
+	DynamoTable     string `env:"COMMONFATE_TABLE_NAME,required"`
+	EventBusArn     string `env:"COMMONFATE_EVENT_BUS_ARN,required"`
+	EventBusSource  string `env:"COMMONFATE_EVENT_BUS_SOURCE,required"`
+	StateMachineARN string `env:"COMMONFATE_GRANTER_V2_STATE_MACHINE_ARN"`
 }
 
 type SyncConfig struct {
