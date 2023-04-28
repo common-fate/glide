@@ -6,9 +6,14 @@ import (
 	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/benbjohnson/clock"
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/gevent"
+	"github.com/common-fate/common-fate/pkg/service/requestroutersvc"
+	"github.com/common-fate/common-fate/pkg/service/workflowsvc"
+	"github.com/common-fate/common-fate/pkg/service/workflowsvc/runtimes/local"
 	"github.com/common-fate/common-fate/pkg/storage"
+	"github.com/common-fate/common-fate/pkg/targetgroupgranter"
 	"github.com/common-fate/ddb"
 	"go.uber.org/zap"
 )
@@ -32,8 +37,39 @@ type EventHandler struct {
 	eventQueue chan gevent.EventTyper
 }
 
+func NewLocalDevEventHandler(ctx context.Context, db ddb.Storage, clk clock.Clock) *EventHandler {
+	eh := &EventHandler{
+		DB:         db,
+		eventQueue: make(chan gevent.EventTyper),
+	}
+	wf := &workflowsvc.Service{
+		Runtime: &local.Runtime{
+			DB: db,
+			Granter: &targetgroupgranter.Granter{
+				DB:          db,
+				EventPutter: eh,
+				RequestRouter: &requestroutersvc.Service{
+					DB: db,
+				},
+			},
+		},
+		DB:       db,
+		Clk:      clk,
+		Eventbus: eh,
+	}
+	eh.Eventbus = eh
+	eh.Workflow = wf
+	go func() {
+		err := eh.startProcessing(ctx)
+		if err != nil {
+			panic(err)
+		}
+	}()
+	return eh
+}
+
 // call StartProcessing to process events from the queue
-func (n *EventHandler) StartProcessing(ctx context.Context) error {
+func (n *EventHandler) startProcessing(ctx context.Context) error {
 	for {
 		event := <-n.eventQueue
 		d, err := json.Marshal(event)
