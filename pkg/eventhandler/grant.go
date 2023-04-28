@@ -44,7 +44,11 @@ func (n *EventHandler) handleGrantExpired(ctx context.Context, detail json.RawMe
 		return err
 	}
 
-	//check to see if all targets are expired or failed and update the requests status to complete
+	grantEvent.Grant.Grant.Status = types.RequestAccessGroupTargetStatusEXPIRED
+	err = n.DB.Put(ctx, &grantEvent.Grant)
+	if err != nil {
+		return err
+	}
 
 	q := storage.GetRequestGroupWithTargets{RequestID: grantEvent.Grant.RequestID, GroupID: grantEvent.Grant.GroupID}
 
@@ -53,31 +57,11 @@ func (n *EventHandler) handleGrantExpired(ctx context.Context, detail json.RawMe
 		return err
 	}
 
-	isComplete := true
-	for _, target := range q.Result.Targets {
-		if target.Grant.Status != types.RequestAccessGroupTargetStatusEXPIRED {
-			isComplete = false
-		}
-		if target.Grant.Status != types.RequestAccessGroupTargetStatusERROR {
-			isComplete = false
-		}
+	err = n.handleRequestStatusChange(ctx, q.Result.RequestID)
+	if err != nil {
+		return err
 	}
 
-	//if all targets grants are complete then update the requests status
-	if isComplete {
-		//update the request status to complete
-		req := storage.GetRequestWithGroupsWithTargets{ID: q.Result.RequestID}
-		_, err = n.DB.Query(ctx, &req)
-		if err != nil {
-			return err
-		}
-		req.Result.Request.RequestStatus = types.COMPLETE
-
-		err = n.DB.Put(ctx, req.Result)
-		if err != nil {
-			return err
-		}
-	}
 	return nil
 }
 

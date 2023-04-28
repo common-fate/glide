@@ -4,6 +4,7 @@ import "github.com/common-fate/common-fate/pkg/access"
 
 const (
 	RequestCreatedType         = "request.created"
+	RequestCompleteType        = "request.complete"
 	RequestRevokeInitiatedType = "request.revoke.initiated"
 	RequestRevokeType          = "request.revoke"
 	RequestCancelInitiatedType = "request.cancel.init"
@@ -19,6 +20,14 @@ type RequestCreated struct {
 
 func (RequestCreated) EventType() string {
 	return RequestCreatedType
+}
+
+type RequestComplete struct {
+	Request access.RequestWithGroupsWithTargets `json:"request"`
+}
+
+func (RequestComplete) EventType() string {
+	return RequestCompleteType
 }
 
 // Request Revoke is omitted when a user revokes a request

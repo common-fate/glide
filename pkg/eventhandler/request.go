@@ -6,6 +6,7 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/common-fate/common-fate/pkg/gevent"
+	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 	"go.uber.org/zap"
@@ -23,6 +24,8 @@ func (n *EventHandler) HandleRequestEvents(ctx context.Context, log *zap.Sugared
 		return n.handleRequestRevokeInitiated(ctx, event.Detail)
 	case gevent.RequestRevokeType:
 		return n.handleRequestRevoked(ctx, event.Detail)
+	case gevent.RequestCompleteType:
+		return n.handleRequestComplete(ctx, event.Detail)
 	}
 	return nil
 }
@@ -59,6 +62,39 @@ func (n *EventHandler) handleRequestCancelled(ctx context.Context, detail json.R
 func (n *EventHandler) handleRequestRevoked(ctx context.Context, detail json.RawMessage) error {
 	var requestEvent gevent.RequestCreated
 	err := json.Unmarshal(detail, &requestEvent)
+	if err != nil {
+		return err
+	}
+	//update the request status to complete
+	req := storage.GetRequestWithGroupsWithTargets{ID: requestEvent.Request.ID}
+	_, err = n.DB.Query(ctx, &req)
+	if err != nil {
+		return err
+	}
+	req.Result.Request.RequestStatus = types.REVOKED
+
+	err = n.DB.Put(ctx, req.Result)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (n *EventHandler) handleRequestComplete(ctx context.Context, detail json.RawMessage) error {
+	var requestEvent gevent.RequestCreated
+	err := json.Unmarshal(detail, &requestEvent)
+	if err != nil {
+		return err
+	}
+	//update the request status to complete
+	req := storage.GetRequestWithGroupsWithTargets{ID: requestEvent.Request.ID}
+	_, err = n.DB.Query(ctx, &req)
+	if err != nil {
+		return err
+	}
+	req.Result.Request.RequestStatus = types.COMPLETE
+
+	err = n.DB.Put(ctx, req.Result)
 	if err != nil {
 		return err
 	}
@@ -124,6 +160,55 @@ func (n *EventHandler) handleRequestRevokeInitiated(ctx context.Context, detail 
 	err = n.DB.PutBatch(ctx, items...)
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+// Passes in a request ID and will handle updating the request status based on its state at any given time
+func (n *EventHandler) handleRequestStatusChange(ctx context.Context, requestId string) error {
+	request := storage.GetRequestWithGroupsWithTargets{ID: requestId}
+	_, err := n.DB.Query(ctx, &request)
+	if err != nil {
+		return err
+	}
+
+	//check if all grants are revoked
+	allRevoked := true
+	for _, group := range request.Result.Groups {
+		for _, target := range group.Targets {
+			if target.Grant.Status != types.RequestAccessGroupTargetStatusREVOKED {
+				allRevoked = false
+				break
+			}
+		}
+	}
+	if allRevoked {
+		err = n.Eventbus.Put(ctx, gevent.RequestRevoked{
+			Request: *request.Result,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	//check if all grants are expired
+	allExpired := true
+	for _, group := range request.Result.Groups {
+		for _, target := range group.Targets {
+			if target.Grant.Status != types.RequestAccessGroupTargetStatusEXPIRED {
+				allExpired = false
+				break
+			}
+		}
+	}
+	//if all grants are expired send out a request completed event
+	if allExpired {
+		err = n.Eventbus.Put(ctx, gevent.RequestComplete{
+			Request: *request.Result,
+		})
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
