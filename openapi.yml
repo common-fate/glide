@@ -1653,6 +1653,7 @@ components:
       enum:
         - CANCELLED
         - REVOKED
+        - REVOKING
         - PENDING
         - COMPLETE
         - ACTIVE

@@ -65,18 +65,7 @@ func (n *EventHandler) handleRequestRevoked(ctx context.Context, detail json.Raw
 	if err != nil {
 		return err
 	}
-	//update the request status to complete
-	req := storage.GetRequestWithGroupsWithTargets{ID: requestEvent.Request.ID}
-	_, err = n.DB.Query(ctx, &req)
-	if err != nil {
-		return err
-	}
-	req.Result.Request.RequestStatus = types.REVOKED
 
-	err = n.DB.Put(ctx, req.Result)
-	if err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -86,18 +75,7 @@ func (n *EventHandler) handleRequestComplete(ctx context.Context, detail json.Ra
 	if err != nil {
 		return err
 	}
-	//update the request status to complete
-	req := storage.GetRequestWithGroupsWithTargets{ID: requestEvent.Request.ID}
-	_, err = n.DB.Query(ctx, &req)
-	if err != nil {
-		return err
-	}
-	req.Result.Request.RequestStatus = types.COMPLETE
 
-	err = n.DB.Put(ctx, req.Result)
-	if err != nil {
-		return err
-	}
 	return nil
 }
 func (n *EventHandler) handleRequestCancelInitiated(ctx context.Context, detail json.RawMessage) error {
@@ -172,22 +150,30 @@ func (n *EventHandler) handleRequestStatusChange(ctx context.Context, requestId 
 		return err
 	}
 
-	//check if all grants are revoked
-	allRevoked := true
-	for _, group := range request.Result.Groups {
-		for _, target := range group.Targets {
-			if target.Grant.Status != types.RequestAccessGroupTargetStatusREVOKED {
-				allRevoked = false
-				break
+	if request.Result.Request.RequestStatus == types.REVOKING {
+		//check if all grants are revoked
+		allRevoked := true
+		for _, group := range request.Result.Groups {
+			for _, target := range group.Targets {
+				if target.Grant.Status != types.RequestAccessGroupTargetStatusREVOKED {
+					allRevoked = false
+					break
+				}
 			}
 		}
-	}
-	if allRevoked {
-		err = n.Eventbus.Put(ctx, gevent.RequestRevoked{
-			Request: *request.Result,
-		})
-		if err != nil {
-			return err
+		if allRevoked {
+			err = n.Eventbus.Put(ctx, gevent.RequestRevoked{
+				Request: *request.Result,
+			})
+			if err != nil {
+				return err
+			}
+			request.Result.Request.RequestStatus = types.COMPLETE
+
+			err = n.DB.Put(ctx, &request.Result.Request)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -199,6 +185,10 @@ func (n *EventHandler) handleRequestStatusChange(ctx context.Context, requestId 
 				allExpired = false
 				break
 			}
+			if target.Grant.Status != types.RequestAccessGroupTargetStatusERROR {
+				allExpired = false
+				break
+			}
 		}
 	}
 	//if all grants are expired send out a request completed event
@@ -206,6 +196,12 @@ func (n *EventHandler) handleRequestStatusChange(ctx context.Context, requestId 
 		err = n.Eventbus.Put(ctx, gevent.RequestComplete{
 			Request: *request.Result,
 		})
+		if err != nil {
+			return err
+		}
+		request.Result.Request.RequestStatus = types.COMPLETE
+
+		err = n.DB.Put(ctx, &request.Result.Request)
 		if err != nil {
 			return err
 		}

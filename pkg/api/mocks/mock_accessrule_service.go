@@ -37,21 +37,6 @@ func (m *MockAccessRuleService) EXPECT() *MockAccessRuleServiceMockRecorder {
 	return m.recorder
 }
 
-// ArchiveAccessRule mocks base method.
-func (m *MockAccessRuleService) ArchiveAccessRule(arg0 context.Context, arg1 string, arg2 rule.AccessRule) (*rule.AccessRule, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ArchiveAccessRule", arg0, arg1, arg2)
-	ret0, _ := ret[0].(*rule.AccessRule)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ArchiveAccessRule indicates an expected call of ArchiveAccessRule.
-func (mr *MockAccessRuleServiceMockRecorder) ArchiveAccessRule(arg0, arg1, arg2 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ArchiveAccessRule", reflect.TypeOf((*MockAccessRuleService)(nil).ArchiveAccessRule), arg0, arg1, arg2)
-}
-
 // CreateAccessRule mocks base method.
 func (m *MockAccessRuleService) CreateAccessRule(arg0 context.Context, arg1 string, arg2 types.CreateAccessRuleRequest) (*rule.AccessRule, error) {
 	m.ctrl.T.Helper()

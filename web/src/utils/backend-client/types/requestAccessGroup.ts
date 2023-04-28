@@ -16,8 +16,8 @@ export interface RequestAccessGroup {
   id: string;
   requestId: string;
   status: RequestAccessGroupStatus;
-  time: RequestAccessGroupTiming;
-  overrideTiming: RequestAccessGroupTiming;
+  requestedTiming: RequestAccessGroupTiming;
+  overrideTiming?: RequestAccessGroupTiming;
   updatedAt: string;
   createdAt: string;
   requestedBy: RequestRequestedBy;

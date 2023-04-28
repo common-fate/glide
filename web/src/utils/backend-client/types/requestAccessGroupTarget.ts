@@ -5,7 +5,7 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
-import type { TargetGroupFrom } from './targetGroupFrom';
+import type { TargetKind } from './targetKind';
 import type { TargetField } from './targetField';
 import type { RequestAccessGroupTargetStatus } from './requestAccessGroupTargetStatus';
 import type { RequestRequestedBy } from './requestRequestedBy';
@@ -18,8 +18,7 @@ export interface RequestAccessGroupTarget {
   requestId: string;
   accessGroupId: string;
   targetGroupId: string;
-  targetGroupFrom: TargetGroupFrom;
-  targetGroupIcon: string;
+  targetKind: TargetKind;
   fields: TargetField[];
   status: RequestAccessGroupTargetStatus;
   requestedBy: RequestRequestedBy;

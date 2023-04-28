@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 
 	access "github.com/common-fate/common-fate/pkg/access"
+	identity "github.com/common-fate/common-fate/pkg/identity"
 	accesssvc "github.com/common-fate/common-fate/pkg/service/accesssvc"
 	types "github.com/common-fate/common-fate/pkg/types"
 	gomock "github.com/golang/mock/gomock"
@@ -67,16 +68,31 @@ func (mr *MockAccessServiceMockRecorder) CancelRequest(arg0, arg1 interface{}) *
 }
 
 // CreateRequest mocks base method.
-func (m *MockAccessService) CreateRequest(arg0 context.Context, arg1 types.CreateAccessRequestRequest) (*access.Request, error) {
+func (m *MockAccessService) CreateRequest(arg0 context.Context, arg1 identity.User, arg2 types.CreateAccessRequestRequest) (*access.RequestWithGroupsWithTargets, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateRequest", arg0, arg1)
-	ret0, _ := ret[0].(*access.Request)
+	ret := m.ctrl.Call(m, "CreateRequest", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*access.RequestWithGroupsWithTargets)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CreateRequest indicates an expected call of CreateRequest.
-func (mr *MockAccessServiceMockRecorder) CreateRequest(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockAccessServiceMockRecorder) CreateRequest(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRequest", reflect.TypeOf((*MockAccessService)(nil).CreateRequest), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRequest", reflect.TypeOf((*MockAccessService)(nil).CreateRequest), arg0, arg1, arg2)
+}
+
+// RevokeRequest mocks base method.
+func (m *MockAccessService) RevokeRequest(arg0 context.Context, arg1 access.RequestWithGroupsWithTargets) (*access.RequestWithGroupsWithTargets, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RevokeRequest", arg0, arg1)
+	ret0, _ := ret[0].(*access.RequestWithGroupsWithTargets)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RevokeRequest indicates an expected call of RevokeRequest.
+func (mr *MockAccessServiceMockRecorder) RevokeRequest(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevokeRequest", reflect.TypeOf((*MockAccessService)(nil).RevokeRequest), arg0, arg1)
 }
