@@ -152,44 +152,11 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (GrantState,
 	switch in.Action {
 	case ACTIVATE:
 		grant.Grant.Status = types.RequestAccessGroupTargetStatusACTIVE
-		evt = &gevent.GrantActivated{Grant: *grant.Grant}
+		evt = &gevent.GrantActivated{Grant: grant}
 	case DEACTIVATE:
 		grant.Grant.Status = types.RequestAccessGroupTargetStatusEXPIRED
-		evt = &gevent.GrantExpired{Grant: *grant.Grant}
+		evt = &gevent.GrantExpired{Grant: grant}
 
-		//check to see if all targets are expired or failed and update the requests status to complete
-
-		q := storage.GetRequestGroupWithTargets{RequestID: grant.RequestID, GroupID: grant.GroupID}
-
-		_, err = g.DB.Query(ctx, &q)
-		if err != nil {
-			return GrantState{}, err
-		}
-		isComplete := true
-		for _, target := range q.Result.Targets {
-			if target.Grant.Status != types.RequestAccessGroupTargetStatusEXPIRED {
-				isComplete = false
-			}
-			if target.Grant.Status != types.RequestAccessGroupTargetStatusERROR {
-				isComplete = false
-			}
-		}
-
-		//if all targets grants are complete then update the requests status
-		if isComplete {
-			//update the request status to complete
-			req := storage.GetRequestWithGroupsWithTargets{ID: grant.RequestID}
-			_, err = g.DB.Query(ctx, &req)
-			if err != nil {
-				return GrantState{}, err
-			}
-			req.Result.Request.RequestStatus = types.COMPLETE
-
-			err = g.DB.Put(ctx, req.Result)
-			if err != nil {
-				return GrantState{}, err
-			}
-		}
 	}
 
 	log.Infow("emitting event", "event", evt, "action", in.Action)

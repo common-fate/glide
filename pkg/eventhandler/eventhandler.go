@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/gevent"
+	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 	"go.uber.org/zap"
@@ -20,7 +21,7 @@ type EventPutter interface {
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_workflow_service.go -package=mocks . Workflow
 type Workflow interface {
-	Revoke(ctx context.Context, group access.GroupWithTargets, revokerID string, revokerEmail string) (*access.Group, error)
+	Revoke(ctx context.Context, group access.GroupWithTargets, revokerID string, revokerEmail string) (*access.GroupWithTargets, error)
 	Grant(ctx context.Context, group access.GroupWithTargets, subject string) ([]access.GroupTarget, error)
 }
 
@@ -145,6 +146,7 @@ func (n *EventHandler) HandleRequestEvents(ctx context.Context, log *zap.Sugared
 		if err != nil {
 			return err
 		}
+		items := []ddb.Keyer{}
 
 		for _, group := range grantEvent.Request.Groups {
 			out, err := n.Workflow.Revoke(ctx, group, grantEvent.RevokerId, grantEvent.RevokerEmail)
@@ -152,11 +154,19 @@ func (n *EventHandler) HandleRequestEvents(ctx context.Context, log *zap.Sugared
 				return err
 			}
 
-			_ = out
-
 			//update status's
+			for _, target := range out.Targets {
+				target.RequestStatus = types.RequestStatus(types.RequestAccessGroupTargetStatusREVOKED)
+				target.Grant.Status = types.RequestAccessGroupTargetStatusREVOKED
+
+				items = append(items, &target)
+			}
 		}
 
+		err = n.DB.PutBatch(ctx, items...)
+		if err != nil {
+			return err
+		}
 		return nil
 	}
 
@@ -205,6 +215,41 @@ func (n *EventHandler) HandleGrantEvent(ctx context.Context, log *zap.SugaredLog
 		err := json.Unmarshal(event.Detail, &grantEvent)
 		if err != nil {
 			return err
+		}
+
+		//check to see if all targets are expired or failed and update the requests status to complete
+
+		q := storage.GetRequestGroupWithTargets{RequestID: grantEvent.Grant.RequestID, GroupID: grantEvent.Grant.GroupID}
+
+		_, err = n.DB.Query(ctx, &q)
+		if err != nil {
+			return err
+		}
+
+		isComplete := true
+		for _, target := range q.Result.Targets {
+			if target.Grant.Status != types.RequestAccessGroupTargetStatusEXPIRED {
+				isComplete = false
+			}
+			if target.Grant.Status != types.RequestAccessGroupTargetStatusERROR {
+				isComplete = false
+			}
+		}
+
+		//if all targets grants are complete then update the requests status
+		if isComplete {
+			//update the request status to complete
+			req := storage.GetRequestWithGroupsWithTargets{ID: q.Result.RequestID}
+			_, err = n.DB.Query(ctx, &req)
+			if err != nil {
+				return err
+			}
+			req.Result.Request.RequestStatus = types.COMPLETE
+
+			err = n.DB.Put(ctx, req.Result)
+			if err != nil {
+				return err
+			}
 		}
 		return nil
 	}

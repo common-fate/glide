@@ -44,14 +44,14 @@ func (s *Service) Grant(ctx context.Context, group access.GroupWithTargets, subj
 		}
 
 		evt := gevent.GrantActivated{
-			Grant: grant,
+			Grant: target,
 		}
 		err := s.Runtime.Grant(ctx, target)
 		if err != nil {
 			//override the status here to error
 			grant.Status = types.RequestAccessGroupTargetStatusERROR
 			evt = gevent.GrantActivated{
-				Grant: grant,
+				Grant: target,
 			}
 		}
 		target.Grant = &grant
@@ -75,7 +75,7 @@ func (s *Service) Grant(ctx context.Context, group access.GroupWithTargets, subj
 
 // // Revoke attepmts to syncronously revoke access to a request
 // // If it is successful, the request is updated in the database, and the updated request is returned from this method
-func (s *Service) Revoke(ctx context.Context, group access.GroupWithTargets, revokerID string, revokerEmail string) (*access.Group, error) {
+func (s *Service) Revoke(ctx context.Context, group access.GroupWithTargets, revokerID string, revokerEmail string) (*access.GroupWithTargets, error) {
 
 	for _, target := range group.Targets {
 
@@ -94,12 +94,12 @@ func (s *Service) Revoke(ctx context.Context, group access.GroupWithTargets, rev
 
 		//emit request group revoke event
 		err = s.Eventbus.Put(ctx, gevent.GrantRevoked{
-			Grant: *target.Grant,
+			Grant: target,
 		})
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	return &group.Group, nil
+	return &group, nil
 }
