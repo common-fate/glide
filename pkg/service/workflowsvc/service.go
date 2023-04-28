@@ -30,28 +30,27 @@ type Service struct {
 	Eventbus EventPutter
 }
 
-func (s *Service) Grant(ctx context.Context, group access.GroupWithTargets, subject string) ([]access.GroupTarget, error) {
-
+func (s *Service) Grant(ctx context.Context, group access.GroupWithTargets) ([]access.GroupTarget, error) {
 	items := []ddb.Keyer{}
 	for _, target := range group.Targets {
-
 		start, end := group.RequestedTiming.GetInterval(access.WithNow(s.Clk.Now()))
 		grant := access.Grant{
-			Subject: subject,
+			Subject: group.RequestedBy.Email,
 			Start:   start,
 			End:     end,
 			Status:  types.RequestAccessGroupTargetStatusAWAITINGSTART,
 		}
-
-		evt := gevent.GrantActivated{
+		var evt gevent.EventTyper
+		evt = gevent.GrantActivated{
 			Grant: target,
 		}
 		err := s.Runtime.Grant(ctx, target)
 		if err != nil {
 			//override the status here to error
 			grant.Status = types.RequestAccessGroupTargetStatusERROR
-			evt = gevent.GrantActivated{
-				Grant: target,
+			evt = gevent.GrantFailed{
+				Grant:  target,
+				Reason: err.Error(),
 			}
 		}
 		target.Grant = &grant
@@ -64,12 +63,10 @@ func (s *Service) Grant(ctx context.Context, group access.GroupWithTargets, subj
 			return nil, err
 		}
 	}
-
 	err := s.DB.PutBatch(ctx, items...)
 	if err != nil {
 		return nil, err
 	}
-	// return grants.Result, nil
 	return group.Targets, nil
 }
 

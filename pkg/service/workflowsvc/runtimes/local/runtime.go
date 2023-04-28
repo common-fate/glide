@@ -29,11 +29,6 @@ type Runtime struct {
 func (r *Runtime) Grant(ctx context.Context, grant access.GroupTarget) error {
 	log := logger.Get(ctx)
 
-	// wait for start
-	if grant.Grant.Start.After(time.Now()) {
-		time.Sleep(time.Until(grant.Grant.Start))
-	}
-
 	// create a channel to communicate with the goroutine
 	revokeChan := make(chan struct{})
 	stateChan := make(chan targetgroupgranter.GrantState)
@@ -53,6 +48,11 @@ func (r *Runtime) Grant(ctx context.Context, grant access.GroupTarget) error {
 	}()
 	// start a new goroutine to handle the grant
 	go func() {
+		// wait for start
+		if grant.Grant.Start.After(time.Now()) {
+			time.Sleep(time.Until(grant.Grant.Start))
+		}
+
 		state, err := r.Granter.HandleRequest(ctx, targetgroupgranter.InputEvent{
 			Action: targetgroupgranter.ACTIVATE,
 			Grant:  grant,

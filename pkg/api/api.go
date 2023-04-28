@@ -174,7 +174,7 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 
 	clk := clock.New()
 	var eventBus gevent.EventPutter
-	if opts.UseLocalEventHandler {
+	if !opts.UseLocalEventHandler {
 		eventBus, err = gevent.NewSender(ctx, gevent.SenderOpts{
 			EventBusARN: opts.EventBusArn,
 		})

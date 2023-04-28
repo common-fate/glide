@@ -27,11 +27,10 @@ func (AccessGroupReviewed) EventType() string {
 }
 
 type AccessGroupApproved struct {
-	AccessGroup   access.GroupWithTargets `json:"group"`
-	ReviewerID    string                  `json:"reviewerId"`
-	ReviewerEmail string                  `json:"reviewerEmail"`
-	ReviewType    string                  `json:"reviewType"`
-	Subject       string                  `json:"subject"`
+	AccessGroup    access.GroupWithTargets                `json:"group"`
+	ApprovalMethod types.RequestAccessGroupApprovalMethod `json:"approvalMethod"`
+	ReviewerID     string                                 `json:"reviewerId"`
+	ReviewerEmail  string                                 `json:"reviewerEmail"`
 }
 
 func (AccessGroupApproved) EventType() string {

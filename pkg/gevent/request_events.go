@@ -3,12 +3,11 @@ package gevent
 import "github.com/common-fate/common-fate/pkg/access"
 
 const (
-	RequestCreatedType    = "request.created"
-	RequestRevokeInitType = "request.revoke.init"
-	RequestRevokeType     = "request.revoke"
-	RequestApprovedType   = "request.approved"
-	RequestCancelInitType = "request.cancel.init"
-	RequestCancelType     = "request.cancel"
+	RequestCreatedType         = "request.created"
+	RequestRevokeInitiatedType = "request.revoke.initiated"
+	RequestRevokeType          = "request.revoke"
+	RequestCancelInitiatedType = "request.cancel.init"
+	RequestCancelType          = "request.cancel"
 )
 
 // RequestCreated is when the user requests access
@@ -23,22 +22,22 @@ func (RequestCreated) EventType() string {
 }
 
 // Request Revoke is omitted when a user revokes a request
-type RequestRevokeInit struct {
+type RequestRevokeInitiated struct {
 	Request      access.RequestWithGroupsWithTargets `json:"request"`
 	RevokerId    string                              `json:"revokerId"`
 	RevokerEmail string                              `json:"revokerEmail"`
 }
 
-func (RequestRevokeInit) EventType() string {
-	return RequestRevokeInitType
+func (RequestRevokeInitiated) EventType() string {
+	return RequestRevokeInitiatedType
 }
 
-type RequestCancelledInit struct {
+type RequestCancelledInitiated struct {
 	Request access.RequestWithGroupsWithTargets `json:"request"`
 }
 
-func (RequestCancelledInit) EventType() string {
-	return RequestCancelInitType
+func (RequestCancelledInitiated) EventType() string {
+	return RequestCancelInitiatedType
 }
 
 type RequestRevoked struct {
