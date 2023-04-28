@@ -25,13 +25,9 @@ import (
 	"github.com/common-fate/common-fate/pkg/service/healthchecksvc"
 	"github.com/common-fate/common-fate/pkg/service/internalidentitysvc"
 	"github.com/common-fate/common-fate/pkg/service/preflightsvc"
-	"github.com/common-fate/common-fate/pkg/service/requestroutersvc"
 	"github.com/common-fate/common-fate/pkg/service/rulesvc"
 	"github.com/common-fate/common-fate/pkg/service/targetsvc"
-	"github.com/common-fate/common-fate/pkg/service/workflowsvc"
-	"github.com/common-fate/common-fate/pkg/service/workflowsvc/runtimes/local"
 	"github.com/common-fate/common-fate/pkg/target"
-	"github.com/common-fate/common-fate/pkg/targetgroupgranter"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 	"github.com/go-chi/chi/v5"
@@ -182,27 +178,7 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 			return nil, err
 		}
 	} else {
-		eh := &eventhandler.EventHandler{
-			DB: db,
-		}
-		wf := &workflowsvc.Service{
-			Runtime: &local.Runtime{
-				DB: db,
-				Granter: &targetgroupgranter.Granter{
-					DB:          db,
-					EventPutter: eh,
-					RequestRouter: &requestroutersvc.Service{
-						DB: db,
-					},
-				},
-			},
-			DB:       db,
-			Clk:      clk,
-			Eventbus: eh,
-		}
-		eh.Eventbus = eh
-		eh.Workflow = wf
-
+		eventBus = eventhandler.NewLocalDevEventHandler(ctx, db, clk)
 	}
 
 	a := API{
