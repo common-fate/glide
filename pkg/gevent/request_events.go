@@ -34,7 +34,7 @@ func (RequestRevokeInit) EventType() string {
 }
 
 type RequestCancelledInit struct {
-	Request access.Request `json:"request"`
+	Request access.RequestWithGroupsWithTargets `json:"request"`
 }
 
 func (RequestCancelledInit) EventType() string {
