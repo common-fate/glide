@@ -145,6 +145,18 @@ func (n *EventHandler) HandleRequestEvents(ctx context.Context, log *zap.Sugared
 		if err != nil {
 			return err
 		}
+
+		for _, group := range grantEvent.Request.Groups {
+			out, err := n.Workflow.Revoke(ctx, group, grantEvent.RevokerId, grantEvent.RevokerEmail)
+			if err != nil {
+				return err
+			}
+
+			_ = out
+
+			//update status's
+		}
+
 		return nil
 	}
 

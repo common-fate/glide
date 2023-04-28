@@ -180,12 +180,12 @@ func (a *API) UserRevokeRequest(w http.ResponseWriter, r *http.Request, requestI
 		req = *q.Result
 	}
 
-	_, err = a.Access.RevokeRequest(ctx, req)
+	result, err := a.Access.RevokeRequest(ctx, req)
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
-	apio.JSON(ctx, w, nil, http.StatusOK)
+	apio.JSON(ctx, w, result.ToAPI(), http.StatusOK)
 }
 
 func (a *API) UserCancelRequest(w http.ResponseWriter, r *http.Request, requestId string) {

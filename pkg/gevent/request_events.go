@@ -24,7 +24,9 @@ func (RequestCreated) EventType() string {
 
 // Request Revoke is omitted when a user revokes a request
 type RequestRevokeInit struct {
-	Request access.Request `json:"request"`
+	Request      access.RequestWithGroupsWithTargets `json:"request"`
+	RevokerId    string                              `json:"revokerId"`
+	RevokerEmail string                              `json:"revokerEmail"`
 }
 
 func (RequestRevokeInit) EventType() string {
@@ -40,7 +42,7 @@ func (RequestCancelledInit) EventType() string {
 }
 
 type RequestRevoked struct {
-	Request access.Request `json:"request"`
+	Request access.RequestWithGroupsWithTargets `json:"request"`
 }
 
 func (RequestRevoked) EventType() string {
@@ -48,7 +50,7 @@ func (RequestRevoked) EventType() string {
 }
 
 type RequestCancelled struct {
-	Request access.Request `json:"request"`
+	Request access.RequestWithGroupsWithTargets `json:"request"`
 }
 
 func (RequestCancelled) EventType() string {
