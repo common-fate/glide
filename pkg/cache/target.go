@@ -77,7 +77,7 @@ type Target struct {
 	Fields      []Field               `json:"fields" dynamodbav:"fields"`
 	AccessRules map[string]AccessRule `json:"accessRules" dynamodbav:"accessRules"`
 	// These are idp group ids that can access this target based on the access rules
-	Groups map[string]struct{} `json:"groups" dynamodbav:"groups"`
+	IDPGroupsWithAccess map[string]struct{} `json:"idpGroupsWithAccess" dynamodbav:"idpGroupsWithAccess"`
 }
 
 func MakeMapStringStruct(elems ...string) map[string]struct{} {

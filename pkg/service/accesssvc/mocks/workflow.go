@@ -36,10 +36,10 @@ func (m *MockWorkflow) EXPECT() *MockWorkflowMockRecorder {
 }
 
 // Grant mocks base method.
-func (m *MockWorkflow) Grant(arg0 context.Context, arg1 access.GroupWithTargets, arg2 string) ([]access.Grant, error) {
+func (m *MockWorkflow) Grant(arg0 context.Context, arg1 access.GroupWithTargets, arg2 string) ([]access.GroupTarget, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Grant", arg0, arg1, arg2)
-	ret0, _ := ret[0].([]access.Grant)
+	ret0, _ := ret[0].([]access.GroupTarget)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

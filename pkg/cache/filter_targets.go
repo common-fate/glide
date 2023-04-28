@@ -80,7 +80,7 @@ func NewFilterTargetsByGroups(groups []string) *FilterTargetsByGroups {
 
 func (tf *FilterTargetsByGroups) Filter(targets []Target) *FilterTargetsByGroups {
 	for _, target := range targets {
-		for group := range target.Groups {
+		for group := range target.IDPGroupsWithAccess {
 			if _, ok := tf.groups[group]; ok {
 				tf.AppendOutput(target)
 				break

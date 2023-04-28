@@ -42,5 +42,5 @@ type EventPutter interface {
 
 // AccessRuleService can create and get rules
 type AccessRuleService interface {
-	// RequestArguments(ctx context.Context, accessRuleTarget rule.Target) (map[string]types.RequestArgument, error)
+	GetApprovers(ctx context.Context, rule rule.AccessRule) ([]string, error)
 }
