@@ -35,6 +35,8 @@ import {
   Target,
   UserListEntitlementTargetsParams,
 } from "../utils/backend-client/types";
+import exampleTargetsJosh from "../../example_targets_josh.json";
+
 import { Command as CommandNew } from "../utils/cmdk";
 // CONSTANTS
 const ACTION_KEY_DEFAULT = ["Ctrl", "Control"];
@@ -60,12 +62,13 @@ const targetComponent = (target: Target) => {
       pos="relative"
       key={target.id}
       // this value is used by the command palette
-      value={target.id}
+      value={keyFromTarget(target)}
       as={CommandNew.Item}
     >
       <Flex>
-        <ProviderIcon shortType={target.kind.icon as ShortTypes} />
-        <HStack>
+        <ProviderIcon mr={2} shortType={target.kind.icon as ShortTypes} />
+        <FieldsCodeBlock fields={target.fields} showTooltips />
+        {/* <HStack>
           {target.fields.map((field, i) => (
             <Box borderLeftWidth={i > 0 ? 2 : undefined} paddingRight={10}>
               <Tooltip
@@ -90,7 +93,7 @@ const targetComponent = (target: Target) => {
               </Tooltip>
             </Box>
           ))}
-        </HStack>
+        </HStack> */}
       </Flex>
       <CheckCircleIcon
         id="checked"
@@ -145,6 +148,9 @@ const isMac = () =>
     navigator?.userAgentData?.platform || navigator?.platform || "unknown"
   );
 
+const keyFromTarget = (target: Target) =>
+  target.kind.name + " " + target.fields.map((field) => field.value).join(", ");
+
 const Search = () => {
   // DATA FETCHING
 
@@ -162,7 +168,6 @@ const Search = () => {
   const navigate = useNavigate();
 
   // STATE
-
   const [targetKeyMap, setTargetKeyMap] = useState<{
     [key: string]: Target;
   }>({});
@@ -204,7 +209,8 @@ const Search = () => {
       setTargetKeyMap((tkm) => {
         result.targets.forEach((t) => {
           // the command palette library casts the value to lowercase, so we need to do the same here
-          tkm[t.id.toLowerCase()] = t;
+          tkm[keyFromTarget(t).toLowerCase()] = t;
+          // tkm[t.id.toLowerCase()] = t;
         });
         return tkm;
       });
