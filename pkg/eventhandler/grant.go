@@ -71,12 +71,36 @@ func (n *EventHandler) handleGrantFailed(ctx context.Context, detail json.RawMes
 	if err != nil {
 		return err
 	}
+
+	q := storage.GetRequestGroupWithTargets{RequestID: grantEvent.Grant.RequestID, GroupID: grantEvent.Grant.GroupID}
+
+	_, err = n.DB.Query(ctx, &q)
+	if err != nil {
+		return err
+	}
+
+	err = n.handleRequestStatusChange(ctx, q.Result.RequestID)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 func (n *EventHandler) handleGrantRevoked(ctx context.Context, detail json.RawMessage) error {
 	var grantEvent gevent.GrantFailed
 	err := json.Unmarshal(detail, &grantEvent)
+	if err != nil {
+		return err
+	}
+
+	q := storage.GetRequestGroupWithTargets{RequestID: grantEvent.Grant.RequestID, GroupID: grantEvent.Grant.GroupID}
+
+	_, err = n.DB.Query(ctx, &q)
+	if err != nil {
+		return err
+	}
+
+	err = n.handleRequestStatusChange(ctx, q.Result.RequestID)
 	if err != nil {
 		return err
 	}
