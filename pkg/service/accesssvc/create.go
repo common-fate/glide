@@ -148,10 +148,10 @@ func (s *Service) CreateRequest(ctx context.Context, user identity.User, createR
 		for i, target := range group.Targets {
 			target.RequestReviewers = out.Request.RequestReviewers
 			group.Targets[i] = target
-			items = append(items, &target)
+			items = append(items, &group.Targets[i])
 		}
 		out.Groups[i] = group
-		items = append(items, &group.Group)
+		items = append(items, &out.Groups[i].Group)
 	}
 	// We also need to consider request history events as well
 

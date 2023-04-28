@@ -1,4 +1,4 @@
-import { ArrowBackIcon, EditIcon } from "@chakra-ui/icons";
+import { ArrowBackIcon } from "@chakra-ui/icons";
 import {
   Accordion,
   AccordionButton,
@@ -10,11 +10,13 @@ import {
   Button,
   ButtonGroup,
   Center,
+  chakra,
   Code,
   Container,
-  chakra,
   Divider,
   Flex,
+  Grid,
+  GridItem,
   IconButton,
   Modal,
   ModalBody,
@@ -22,15 +24,6 @@ import {
   ModalContent,
   ModalHeader,
   ModalOverlay,
-  SkeletonCircle,
-  Skeleton,
-  SkeletonText,
-  Spinner,
-  Stack,
-  Text,
-  useDisclosure,
-  Grid,
-  GridItem,
   Popover,
   PopoverArrow,
   PopoverBody,
@@ -39,34 +32,35 @@ import {
   PopoverHeader,
   PopoverTrigger,
   Portal,
-  FormLabel,
+  Skeleton,
+  SkeletonCircle,
+  SkeletonText,
+  Spinner,
+  Stack,
+  Text,
   useBoolean,
-  Select,
+  useDisclosure,
 } from "@chakra-ui/react";
-import validateFormData from "@rjsf/core/lib/validate";
-import { formatDistance, intervalToDuration } from "date-fns";
+import { intervalToDuration } from "date-fns";
 import { useState } from "react";
 import { Helmet } from "react-helmet";
 import { Link, MakeGenerics, useMatch } from "react-location";
 import { AuditLog } from "../../components/AuditLog";
 import {
-  DurationInput,
   Days,
+  DurationInput,
   Hours,
   Minutes,
   Weeks,
 } from "../../components/DurationInput";
 import FieldsCodeBlock from "../../components/FieldsCodeBlock";
-import { EditPencilIcon } from "../../components/icons/Icons";
 import { ProviderIcon, ShortTypes } from "../../components/icons/providerIcon";
 import { UserLayout } from "../../components/Layout";
 import { StatusCell } from "../../components/StatusCell";
 import { useUserGetRequest } from "../../utils/backend-client/default/default";
 import {
-  PreflightAccessGroup,
   RequestAccessGroup,
   RequestAccessGroupTarget,
-  Target,
 } from "../../utils/backend-client/types";
 import {
   durationString,
@@ -412,7 +406,7 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
           <ModalBody>
             <Box>
               <ProviderIcon
-                shortType={selectedGrant?.targetGroupIcon as ShortTypes}
+                shortType={selectedGrant?.targetKind.icon as ShortTypes}
               />
               <FieldsCodeBlock fields={selectedGrant?.fields || []} />
             </Box>
@@ -447,7 +441,7 @@ export const ApproveRejectDuration = ({
 
   // durationSeconds state
   const [durationSeconds, setDurationSeconds] = useState<number>(
-    group.time.durationSeconds
+    group.requestedTiming.durationSeconds
   );
 
   const [isEditing, setIsEditing] = useBoolean();
@@ -513,7 +507,7 @@ export const ApproveRejectDuration = ({
                       hideUnusedElements={true}
                       max={group.accessRule.timeConstraints.maxDurationSeconds}
                       min={60}
-                      defaultValue={group.overrideTiming.durationSeconds}
+                      defaultValue={group.overrideTiming?.durationSeconds}
                     >
                       <Weeks />
                       <Days />
@@ -521,7 +515,6 @@ export const ApproveRejectDuration = ({
                       <Minutes />
                       <Button
                         variant="brandSecondary"
-                        onClick={(e) => {}}
                         flexDir="column"
                         fontSize="12px"
                         lineHeight="12px"
