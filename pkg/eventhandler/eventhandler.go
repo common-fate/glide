@@ -217,7 +217,7 @@ func (n *EventHandler) HandleRequestEvents(ctx context.Context, log *zap.Sugared
 
 		//after cancelling has finished emit a cancel event where the notification will be sent out
 
-		err = n.Eventbus.Put(ctx, gevent.RequestCancelled{
+		err = n.Eventbus.Put(ctx, &gevent.RequestCancelled{
 			Request: grantEvent.Request,
 		})
 		if err != nil {
