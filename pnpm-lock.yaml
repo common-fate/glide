@@ -100,6 +100,7 @@ importers:
       react-sticky: ^6.0.3
       react-table: ^7.8.0
       react-use: ^17.4.0
+      react-window: ^1.8.9
       rollup-plugin-node-polyfills: ^0.2.1
       source-map-explorer: ^2.5.2
       swr: ^1.3.0
@@ -136,6 +137,7 @@ importers:
       react-sticky: 6.0.3_biqbaboplfbrettd7655fr4n2y
       react-table: 7.8.0_react@18.2.0
       react-use: 17.4.0_biqbaboplfbrettd7655fr4n2y
+      react-window: 1.8.9_biqbaboplfbrettd7655fr4n2y
       swr: 1.3.0_react@18.2.0
     devDependencies:
       '@faker-js/faker': 6.3.1
@@ -12969,6 +12971,19 @@ packages:
       throttle-debounce: 3.0.1
       ts-easing: 0.2.0
       tslib: 2.4.1
+    dev: false
+
+  /react-window/1.8.9_biqbaboplfbrettd7655fr4n2y:
+    resolution: {integrity: sha512-+Eqx/fj1Aa5WnhRfj9dJg4VYATGwIUP2ItwItiJ6zboKWA6EX3lYDAXfGF2hyNqplEprhbtjbipiADEcwQ823Q==}
+    engines: {node: '>8.0.0'}
+    peerDependencies:
+      react: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0 || ^18
+      react-dom: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0 || ^18
+    dependencies:
+      '@babel/runtime': 7.20.1
+      memoize-one: 5.2.1
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
     dev: false
 
   /react/18.2.0:

@@ -18,7 +18,8 @@ import {
   useBoolean,
   useEventListener,
 } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { FixedSizeList as List } from "react-window";
 import { useNavigate } from "react-location";
 import Counter from "../components/Counter";
 import FieldsCodeBlock from "../components/FieldsCodeBlock";
@@ -42,105 +43,6 @@ import { Command as CommandNew } from "../utils/cmdk";
 const ACTION_KEY_DEFAULT = ["Ctrl", "Control"];
 const ACTION_KEY_APPLE = ["⌘", "Command"];
 
-const targetComponent = (target: Target) => {
-  return (
-    <Flex
-      alignContent="flex-start"
-      p={2}
-      rounded="md"
-      _selected={{
-        "bg": "neutrals.100",
-        "#description": {
-          display: "block",
-        },
-      }}
-      _checked={{
-        "#checked": {
-          display: "block",
-        },
-      }}
-      pos="relative"
-      key={target.id}
-      // this value is used by the command palette
-      value={keyFromTarget(target)}
-      as={CommandNew.Item}
-    >
-      <Flex>
-        <ProviderIcon mr={2} shortType={target.kind.icon as ShortTypes} />
-        <FieldsCodeBlock fields={target.fields} showTooltips />
-        {/* <HStack>
-          {target.fields.map((field, i) => (
-            <Box borderLeftWidth={i > 0 ? 2 : undefined} paddingRight={10}>
-              <Tooltip
-                key={field.id}
-                label={
-                  <>
-                    <Box fontWeight="bold">{field.fieldTitle}</Box>
-                    {field.fieldDescription && (
-                      <Box>{field.fieldDescription}</Box>
-                    )}
-                    {field.valueDescription && (
-                      <Box mt={2}>{field.valueDescription}</Box>
-                    )}
-                  </>
-                }
-                placement="top"
-              >
-                <Box display="inline-block" verticalAlign="top">
-                  <Box>{field.valueLabel}</Box>
-                  <Box>{field.value}</Box>
-                </Box>
-              </Tooltip>
-            </Box>
-          ))}
-        </HStack> */}
-      </Flex>
-      <CheckCircleIcon
-        id="checked"
-        position="absolute"
-        display="none"
-        top={2}
-        right={2}
-        h="12px"
-        w="12px"
-        color={"brandBlue.300"}
-      />
-      {/* @TODO: review me as a part of CF-1028 */}
-      {/* <Box
-      rounded="md"
-      w="24ch"
-      zIndex={9999}
-      pos="absolute"
-      top={4}
-      right={4}
-      id="description"
-      display="none"
-      textStyle="Body/ExtraSmall"
-      p={1}
-    >
-      Admin access to {target.fields[0].value}{" "}
-      account
-    </Box> */}
-      <Box
-        rounded="md"
-        w="24ch"
-        bg="white"
-        border="1px solid"
-        borderColor="neutrals.300"
-        zIndex={9999}
-        pos="absolute"
-        bottom={-4}
-        right={0}
-        id="description"
-        display="none"
-        textStyle="Body/ExtraSmall"
-        p={1}
-      >
-        Admin access to {target.fields[0].value} account
-      </Box>
-    </Flex>
-  );
-};
 // https://erikmartinjordan.com/navigator-platform-deprecated-alternative
 const isMac = () =>
   /(Mac|iPhone|iPod|iPad)/i.test(
@@ -149,7 +51,9 @@ const isMac = () =>
   );
 
 const keyFromTarget = (target: Target) =>
-  target.kind.name + " " + target.fields.map((field) => field.value).join(", ");
+  target.kind.name +
+  " " +
+  target.fields.map((field) => field.valueLabel).join(", ");
 
 const Search = () => {
   // DATA FETCHING
@@ -200,26 +104,159 @@ const Search = () => {
   });
 
   useEffect(() => {
-    const fetchData = async () => {
-      const params: UserListEntitlementTargetsParams = {
-        nextToken: nextToken !== "initial" ? nextToken : undefined,
-      };
-      const result = await userListEntitlementTargets(params);
-      setAllTargets((prevData) => [...prevData, ...result.targets]);
+    if (allTargets.length === 0) {
+      setAllTargets(exampleTargetsJosh.targets);
       setTargetKeyMap((tkm) => {
-        result.targets.forEach((t) => {
+        exampleTargetsJosh.targets.forEach((t) => {
           // the command palette library casts the value to lowercase, so we need to do the same here
           tkm[keyFromTarget(t).toLowerCase()] = t;
           // tkm[t.id.toLowerCase()] = t;
         });
         return tkm;
       });
-      setNextToken(result.next);
-    };
-    if (nextToken !== undefined) {
-      fetchData();
     }
+
+    // const fetchData = async () => {
+    //   const params: UserListEntitlementTargetsParams = {
+    //     nextToken: nextToken !== "initial" ? nextToken : undefined,
+    //   };
+    //   const result = await userListEntitlementTargets(params);
+    //   setAllTargets((prevData) => [...prevData, ...result.targets]);
+    //   setTargetKeyMap((tkm) => {
+    //     result.targets.forEach((t) => {
+    //       // the command palette library casts the value to lowercase, so we need to do the same here
+    //       tkm[t.id.toLowerCase()] = t;
+    //     });
+    //     return tkm;
+    //   });
+    //   setNextToken(result.next);
+    // };
+    // if (nextToken !== undefined) {
+    //   fetchData();
+    // }
   }, [nextToken]);
+
+  // filteredItems with slice 100
+  const filteredItems = useMemo(() => {
+    if (allTargets.length === 0 || !allTargets) return [];
+    if (inputValue === "") return allTargets.slice(0, 100);
+    return allTargets
+      .filter((target) => {
+        const key = keyFromTarget(target).toLowerCase();
+        return key.includes(inputValue.toLowerCase());
+      })
+      .slice(0, 100);
+  }, [inputValue, allTargets]);
+
+  const targetComponent = ({
+    index,
+    ...rest
+  }: {
+    index: number;
+    rest: any;
+  }) => {
+    const target = filteredItems[index];
+
+    if (!target) return null;
+
+    return (
+      <Flex
+        alignContent="flex-start"
+        p={2}
+        rounded="md"
+        _selected={{
+          "bg": "neutrals.100",
+          "#description": {
+            display: "block",
+          },
+        }}
+        _checked={{
+          "#checked": {
+            display: "block",
+          },
+        }}
+        pos="relative"
+        key={target.id}
+        // this value is used by the command palette
+        value={keyFromTarget(target)}
+        as={CommandNew.Item}
+      >
+        <Flex>
+          <ProviderIcon mr={2} shortType={target.kind.icon as ShortTypes} />
+          <FieldsCodeBlock fields={target.fields} showTooltips />
+          {/* <HStack>
+            {target.fields.map((field, i) => (
+              <Box borderLeftWidth={i > 0 ? 2 : undefined} paddingRight={10}>
+                <Tooltip
+                  key={field.id}
+                  label={
+                    <>
+                      <Box fontWeight="bold">{field.fieldTitle}</Box>
+                      {field.fieldDescription && (
+                        <Box>{field.fieldDescription}</Box>
+                      )}
+                      {field.valueDescription && (
+                        <Box mt={2}>{field.valueDescription}</Box>
+                      )}
+                    </>
+                  }
+                  placement="top"
+                >
+                  <Box display="inline-block" verticalAlign="top">
+                    <Box>{field.valueLabel}</Box>
+                    <Box>{field.value}</Box>
+                  </Box>
+                </Tooltip>
+              </Box>
+            ))}
+          </HStack> */}
+        </Flex>
+        <CheckCircleIcon
+          id="checked"
+          position="absolute"
+          display="none"
+          top={2}
+          right={2}
+          h="12px"
+          w="12px"
+          color={"brandBlue.300"}
+        />
+        {/* @TODO: review me as a part of CF-1028 */}
+        {/* <Box
+        rounded="md"
+        w="24ch"
+        zIndex={9999}
+        pos="absolute"
+        top={4}
+        right={4}
+        id="description"
+        display="none"
+        textStyle="Body/ExtraSmall"
+        p={1}
+      >
+        Admin access to {target.fields[0].value}{" "}
+        account
+      </Box> */}
+        <Box
+          rounded="md"
+          w="24ch"
+          bg="white"
+          border="1px solid"
+          borderColor="neutrals.300"
+          zIndex={9999}
+          pos="absolute"
+          bottom={-4}
+          right={0}
+          id="description"
+          display="none"
+          textStyle="Body/ExtraSmall"
+          p={1}
+        >
+          Admin access to {target.fields[0].value} account
+        </Box>
+      </Flex>
+    );
+  };
 
   // HANDLERS
   const handleSubmit = () => {
@@ -252,8 +289,6 @@ const Search = () => {
       .finally(() => {
         submitLoadingToggle.off();
       });
-
-    // navigate({ to: "/search2" });
   };
 
   const handleRequest = () => {
@@ -389,6 +424,7 @@ const Search = () => {
                       borderColor="neutrals.300"
                       p={1}
                       pt={2}
+                      overflowY="scroll"
                     >
                       <Center as={CommandNew.Empty} minH="200px">
                         No results found.
@@ -396,14 +432,28 @@ const Search = () => {
                       <CommandNew.Group
                       // heading="Permissions"
                       >
-                        {allTargets.length === 0 ? (
+                        {/* {allTargets.length === 0 ? (
                           <Center as={CommandNew.Loading} minH="200px">
                             <Spinner />
                           </Center>
                         ) : (
                           allTargets.slice(undefined, 5).map(targetComponent)
+                        )} */}
+                        {allTargets.length === 0 && (
+                          <Center as={CommandNew.Loading} minH="200px">
+                            <Spinner />
+                          </Center>
                         )}
+                        <List
+                          height={400}
+                          itemCount={filteredItems.length}
+                          itemSize={35}
+                          width="100%"
+                        >
+                          {targetComponent}
+                        </List>
                       </CommandNew.Group>
+                      <Text>Filter len: {filteredItems.length}</Text>
                     </Stack>
                   </CommandNew.List>
                 </CommandNew>
