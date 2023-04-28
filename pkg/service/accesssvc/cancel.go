@@ -7,7 +7,6 @@ import (
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
-	"github.com/common-fate/ddb"
 )
 
 type CancelRequestOpts struct {
@@ -36,19 +35,9 @@ func (s *Service) CancelRequest(ctx context.Context, opts CancelRequestOpts) err
 		return ErrRequestCannotBeCancelled
 	}
 
-	//update all status's
-	items := []ddb.Keyer{}
-	req.RequestStatus = types.CANCELLED
-	items = append(items, &req)
-
-	// for _, group := range requestGet.Result.Groups {
-	// 	group.Status = types.requests
-	// }
-
-	s.EventPutter.Put(ctx, gevent.RequestCancelledInit{
-		Request: requestGet.Result.Request,
+	return s.EventPutter.Put(ctx, gevent.RequestCancelledInit{
+		Request: *requestGet.Result,
 	})
-	return s.DB.PutBatch(ctx, items...)
 }
 
 // // users can cancel their own requests.

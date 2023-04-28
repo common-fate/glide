@@ -196,6 +196,33 @@ func (n *EventHandler) HandleRequestEvents(ctx context.Context, log *zap.Sugared
 		if err != nil {
 			return err
 		}
+
+		items := []ddb.Keyer{}
+
+		//handle changing status's of request, and targets
+		grantEvent.Request.RequestStatus = types.CANCELLED
+		items = append(items, &grantEvent.Request)
+
+		for _, group := range grantEvent.Request.Groups {
+			for _, target := range group.Targets {
+				target.RequestStatus = types.CANCELLED
+				items = append(items, &target)
+			}
+		}
+
+		err = n.DB.PutBatch(ctx, items...)
+		if err != nil {
+			return err
+		}
+
+		//after cancelling has finished emit a cancel event where the notification will be sent out
+
+		err = n.Eventbus.Put(ctx, &gevent.RequestCancelled{
+			Request: grantEvent.Request,
+		})
+		if err != nil {
+			return err
+		}
 		return nil
 	}
 	if event.DetailType == gevent.RequestCancelType {
