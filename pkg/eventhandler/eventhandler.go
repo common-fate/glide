@@ -32,6 +32,17 @@ type EventHandler struct {
 	Eventbus EventPutter
 }
 
+// Put allows the event handler to be used in place of the event putter interface in development
+func (n *EventHandler) Put(ctx context.Context, detail gevent.EventTyper) error {
+	d, err := json.Marshal(detail)
+	if err != nil {
+		return err
+	}
+	return n.HandleEvent(ctx, events.CloudWatchEvent{
+		DetailType: detail.EventType(),
+		Detail:     d,
+	})
+}
 func (n *EventHandler) HandleEvent(ctx context.Context, event events.CloudWatchEvent) (err error) {
 	log := zap.S().With("event", event)
 	log.Info("received event from eventbridge")

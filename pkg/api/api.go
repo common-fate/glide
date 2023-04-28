@@ -12,6 +12,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/auth"
 	"github.com/common-fate/common-fate/pkg/deploy"
+	"github.com/common-fate/common-fate/pkg/eventhandler"
 	"github.com/common-fate/common-fate/pkg/gconfig"
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/handler"
@@ -24,9 +25,13 @@ import (
 	"github.com/common-fate/common-fate/pkg/service/healthchecksvc"
 	"github.com/common-fate/common-fate/pkg/service/internalidentitysvc"
 	"github.com/common-fate/common-fate/pkg/service/preflightsvc"
+	"github.com/common-fate/common-fate/pkg/service/requestroutersvc"
 	"github.com/common-fate/common-fate/pkg/service/rulesvc"
 	"github.com/common-fate/common-fate/pkg/service/targetsvc"
+	"github.com/common-fate/common-fate/pkg/service/workflowsvc"
+	"github.com/common-fate/common-fate/pkg/service/workflowsvc/runtimes/local"
 	"github.com/common-fate/common-fate/pkg/target"
+	"github.com/common-fate/common-fate/pkg/targetgroupgranter"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 	"github.com/go-chi/chi/v5"
@@ -134,7 +139,7 @@ var _ types.ServerInterface = &API{}
 type Opts struct {
 	Log                    *zap.SugaredLogger
 	ProviderRegistryClient registry_types.ClientWithResponsesInterface
-	EventSender            *gevent.Sender
+	UseLocalEventHandler   bool
 	IdentitySyncer         auth.IdentitySyncer
 	DeploymentConfig       deploy.DeployConfigReader
 	DynamoTable            string
@@ -145,6 +150,7 @@ type Opts struct {
 	IDPType                string
 	AdminGroupID           string
 	FrontendURL            string
+	EventBusArn            string
 }
 
 // New creates a new API.
@@ -167,9 +173,35 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 	}
 
 	clk := clock.New()
+	var eventBus gevent.EventPutter
+	if opts.UseLocalEventHandler {
+		eventBus, err = gevent.NewSender(ctx, gevent.SenderOpts{
+			EventBusARN: opts.EventBusArn,
+		})
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		eh := &eventhandler.EventHandler{
+			DB: db,
+		}
+		wf := &workflowsvc.Service{
+			Runtime: &local.Runtime{
+				Granter: &targetgroupgranter.Granter{
+					DB:          db,
+					EventPutter: eh,
+					RequestRouter: &requestroutersvc.Service{
+						DB: db,
+					},
+				},
+			},
+			DB:       db,
+			Clk:      clk,
+			Eventbus: eh,
+		}
+		eh.Eventbus = eh
+		eh.Workflow = wf
 
-	if err != nil {
-		return nil, err
 	}
 
 	a := API{
@@ -187,7 +219,7 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 		Access: &accesssvc.Service{
 			Clock:       clk,
 			DB:          db,
-			EventPutter: opts.EventSender,
+			EventPutter: eventBus,
 			Rules: &rulesvc.Service{
 				Clock: clk,
 				DB:    db,

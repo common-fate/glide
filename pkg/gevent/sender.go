@@ -9,6 +9,10 @@ import (
 	"github.com/common-fate/common-fate/pkg/cfaws"
 )
 
+type EventPutter interface {
+	Put(ctx context.Context, detail EventTyper) error
+}
+
 // EventSender provides methods to submit events to a Common Fate EventBridge bus.
 type Sender struct {
 	client      *eventbridge.Client

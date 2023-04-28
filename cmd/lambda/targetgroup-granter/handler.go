@@ -8,6 +8,7 @@ import (
 
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/common-fate/pkg/config"
+	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/service/requestroutersvc"
 	"github.com/common-fate/common-fate/pkg/targetgroupgranter"
 	"github.com/common-fate/ddb"
@@ -25,12 +26,19 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	eventBus, err := gevent.NewSender(ctx, gevent.SenderOpts{
+		EventBusARN: cfg.EventBusArn,
+	})
+	if err != nil {
+		panic(err)
+	}
+
 	granter := targetgroupgranter.Granter{
-		Cfg: cfg,
-		DB:  db,
+		DB: db,
 		RequestRouter: &requestroutersvc.Service{
 			DB: db,
 		},
+		EventPutter: eventBus,
 	}
 	log, err := logger.Build(cfg.LogLevel)
 	if err != nil {
