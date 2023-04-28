@@ -31,6 +31,14 @@ type GroupTarget struct {
 	RequestReviewers []string `json:"requestReviewers" dynamodbav:"requestReviewers, set"`
 }
 
+func (g *GroupTarget) FieldsToMap() map[string]string {
+	args := make(map[string]string)
+	for _, field := range g.Fields {
+		args[field.ID] = field.Value.Value
+	}
+	return args
+}
+
 type Grant struct {
 	// The user email
 	Subject string                               `json:"subject" dynamodbav:"subject"`

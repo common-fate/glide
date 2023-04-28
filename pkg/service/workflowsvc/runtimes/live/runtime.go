@@ -116,18 +116,12 @@ func (r *Runtime) Revoke(ctx context.Context, grantID string) error {
 			return err
 		}
 
-		//set up the arguments to be read by the provider
-		args := map[string]string{}
-		for _, field := range input.Grant.Fields {
-			args[field.FieldTitle] = field.Value.Value
-		}
-
 		//call the provider revoke
 		req := msg.Revoke{
 			Subject: input.Grant.RequestedBy.Email,
 			Target: msg.Target{
 				Kind:      routeResult.Route.Kind,
-				Arguments: args,
+				Arguments: input.Grant.FieldsToMap(),
 			},
 			Request: msg.AccessRequest{
 				ID: grantID,

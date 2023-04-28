@@ -36,9 +36,16 @@ func (n *EventHandler) handleRequestCreated(ctx context.Context, detail json.Raw
 	if err != nil {
 		return err
 	}
-
-	for _, group := range requestEvent.Request.Groups {
-		if group.AccessRuleSnapshot.Approval.IsRequired() {
+	for _, g := range requestEvent.Request.Groups {
+		group := g
+		if !group.AccessRuleSnapshot.Approval.IsRequired() {
+			group.Status = types.RequestAccessGroupStatusAPPROVED
+			auto := types.AUTOMATIC
+			group.ApprovalMethod = &auto
+			err = n.DB.Put(ctx, &group)
+			if err != nil {
+				return err
+			}
 			err = n.Eventbus.Put(ctx, gevent.AccessGroupApproved{
 				AccessGroup:    group,
 				ApprovalMethod: types.AUTOMATIC,
@@ -46,8 +53,10 @@ func (n *EventHandler) handleRequestCreated(ctx context.Context, detail json.Raw
 			if err != nil {
 				return err
 			}
+
 		}
 	}
+
 	return nil
 }
 

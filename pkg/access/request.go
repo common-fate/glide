@@ -39,6 +39,39 @@ type RequestWithGroupsWithTargets struct {
 	Groups  []GroupWithTargets `json:"groups"`
 }
 
+func (r *RequestWithGroupsWithTargets) AllGroupsReviewed() bool {
+	allApproved := true
+	for _, group := range r.Groups {
+		if group.ApprovalMethod != nil {
+			allApproved = false
+		}
+	}
+	return allApproved
+}
+func (r *RequestWithGroupsWithTargets) UpdateStatus(status types.RequestStatus) {
+	r.RequestStatus = status
+	for i, g := range r.Groups {
+		g.RequestStatus = status
+		for i, t := range g.Targets {
+			t.RequestStatus = status
+			g.Targets[i] = t
+		}
+		r.Groups[i] = g
+	}
+}
+
+func (r *RequestWithGroupsWithTargets) DBItems() []ddb.Keyer {
+	var items []ddb.Keyer
+	items = append(items, r)
+	for i := range r.Groups {
+		items = append(items, &r.Groups[i])
+		for j := range r.Groups[i].Targets {
+			items = append(items, &r.Groups[i].Targets[j])
+		}
+	}
+	return items
+}
+
 type Purpose struct {
 	Reason *string `json:"reason" dynamodbav:"reason"`
 }

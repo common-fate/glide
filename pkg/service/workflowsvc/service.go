@@ -31,39 +31,32 @@ type Service struct {
 }
 
 func (s *Service) Grant(ctx context.Context, group access.GroupWithTargets) ([]access.GroupTarget, error) {
-	items := []ddb.Keyer{}
-	for _, target := range group.Targets {
-		start, end := group.RequestedTiming.GetInterval(access.WithNow(s.Clk.Now()))
-		grant := access.Grant{
+	start, end := group.RequestedTiming.GetInterval(access.WithNow(s.Clk.Now()))
+	for i, target := range group.Targets {
+		target.Grant = &access.Grant{
 			Subject: group.RequestedBy.Email,
 			Start:   start,
 			End:     end,
 			Status:  types.RequestAccessGroupTargetStatusAWAITINGSTART,
 		}
-		var evt gevent.EventTyper
-		evt = gevent.GrantActivated{
-			Grant: target,
-		}
 		err := s.Runtime.Grant(ctx, target)
 		if err != nil {
 			//override the status here to error
-			grant.Status = types.RequestAccessGroupTargetStatusERROR
-			evt = gevent.GrantFailed{
+			target.Grant.Status = types.RequestAccessGroupTargetStatusERROR
+			evt := gevent.GrantFailed{
 				Grant:  target,
 				Reason: err.Error(),
 			}
+			err = s.Eventbus.Put(ctx, evt)
+			if err != nil {
+				return nil, err
+			}
 		}
-		target.Grant = &grant
 
-		//updates the target and the grant
-		items = append(items, &target)
+		group.Targets[i] = target
 
-		err = s.Eventbus.Put(ctx, evt)
-		if err != nil {
-			return nil, err
-		}
 	}
-	err := s.DB.PutBatch(ctx, items...)
+	err := s.DB.PutBatch(ctx, group.DBItems()...)
 	if err != nil {
 		return nil, err
 	}

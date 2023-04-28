@@ -40,19 +40,16 @@ type EventHandler struct {
 func NewLocalDevEventHandler(ctx context.Context, db ddb.Storage, clk clock.Clock) *EventHandler {
 	eh := &EventHandler{
 		DB:         db,
-		eventQueue: make(chan gevent.EventTyper),
+		eventQueue: make(chan gevent.EventTyper, 100),
 	}
 	wf := &workflowsvc.Service{
-		Runtime: &local.Runtime{
-			DB: db,
-			Granter: &targetgroupgranter.Granter{
-				DB:          db,
-				EventPutter: eh,
-				RequestRouter: &requestroutersvc.Service{
-					DB: db,
-				},
+		Runtime: local.NewRuntime(db, &targetgroupgranter.Granter{
+			DB:          db,
+			EventPutter: eh,
+			RequestRouter: &requestroutersvc.Service{
+				DB: db,
 			},
-		},
+		}),
 		DB:       db,
 		Clk:      clk,
 		Eventbus: eh,
@@ -105,7 +102,7 @@ func (n *EventHandler) HandleEvent(ctx context.Context, event events.CloudWatchE
 			return err
 		}
 
-	} else if strings.HasPrefix(event.DetailType, "group") {
+	} else if strings.HasPrefix(event.DetailType, "accessGroup") {
 		err = n.HandleAccessGroupEvents(ctx, log, event)
 		if err != nil {
 			return err

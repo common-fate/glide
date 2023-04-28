@@ -82,17 +82,11 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (GrantState,
 					err = fmt.Errorf("internal server error invoking targetgroup:handler:kind %s:%s:%s", grant.TargetKind, routeResult.Handler.ID, routeResult.Route.Kind)
 				}
 			}()
-			//set up the arguments to be read by the provider
-			args := map[string]string{}
-			for _, field := range in.Grant.Fields {
-				args[field.FieldTitle] = field.Value.Value
-			}
-
 			req := msg.Grant{
 				Subject: string(grant.RequestedBy.Email),
 				Target: msg.Target{
 					Kind:      routeResult.Route.Kind,
-					Arguments: args,
+					Arguments: grant.FieldsToMap(),
 				},
 				Request: msg.AccessRequest{
 					ID: grant.ID,
@@ -110,17 +104,12 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (GrantState,
 					err = fmt.Errorf("internal server error invoking targetgroup:handler:kind %s:%s:%s", grant.TargetKind, routeResult.Handler.ID, routeResult.Route.Kind)
 				}
 			}()
-			//set up the arguments to be read by the provider
-			args := map[string]string{}
-			for _, field := range in.Grant.Fields {
-				args[field.FieldTitle] = field.Value.Value
-			}
 
 			req := msg.Revoke{
 				Subject: string(grant.RequestedBy.Email),
 				Target: msg.Target{
 					Kind:      routeResult.Route.Kind,
-					Arguments: args,
+					Arguments: grant.FieldsToMap(),
 				},
 				Request: msg.AccessRequest{
 					ID: grant.ID,
@@ -167,6 +156,7 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (GrantState,
 		Grant: grant,
 	}
 
+	// Should be fine, it there is potential that
 	items = append(items, &grant)
 
 	if grantResponse != nil {
@@ -175,9 +165,7 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (GrantState,
 			Instructions:  grantResponse.AccessInstructions,
 			GroupTargetID: grant.TargetGroupID,
 		}
-
 		items = append(items, &instructions)
-
 		//Save the new grant status and the instructions
 		err = g.DB.PutBatch(ctx, items...)
 		// If there is an error writing instructions, don't return the error.

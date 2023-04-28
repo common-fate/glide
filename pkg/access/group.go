@@ -39,6 +39,14 @@ type GroupWithTargets struct {
 	Targets []GroupTarget `json:"targets"`
 }
 
+func (r *GroupWithTargets) DBItems() []ddb.Keyer {
+	var items []ddb.Keyer
+	items = append(items, &r.Group)
+	for i := range r.Targets {
+		items = append(items, &r.Targets[i])
+	}
+	return items
+}
 func (g *GroupWithTargets) ToAPI() types.RequestAccessGroup {
 	out := types.RequestAccessGroup{
 		Id:              g.ID,

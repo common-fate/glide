@@ -18,9 +18,9 @@ func (n *EventHandler) HandleAccessGroupEvents(ctx context.Context, log *zap.Sug
 	case gevent.AccessGroupReviewedType:
 		err = n.handleReviewEvent(ctx, event.Detail)
 	case gevent.AccessGroupApprovedType:
-		err = n.handleReviewApproveEvent(ctx, event.Detail)
+		err = n.handleAccessGroupApprovedEvent(ctx, event.Detail)
 	case gevent.AccessGroupDeclinedType:
-		err = n.handleReviewDeclineEvent(ctx, event.Detail)
+		err = n.handleAccessGroupDeclinedDeclinedEvent(ctx, event.Detail)
 
 	}
 	if err != nil {
@@ -61,7 +61,8 @@ func (n *EventHandler) handleReviewEvent(ctx context.Context, detail json.RawMes
 	return nil
 }
 
-func (n *EventHandler) handleReviewApproveEvent(ctx context.Context, detail json.RawMessage) error {
+// the group will already be marked as approved here
+func (n *EventHandler) handleAccessGroupApprovedEvent(ctx context.Context, detail json.RawMessage) error {
 	//if approved start the granting flow
 	var groupEvent gevent.AccessGroupApproved
 	err := json.Unmarshal(detail, &groupEvent)
@@ -76,30 +77,17 @@ func (n *EventHandler) handleReviewApproveEvent(ctx context.Context, detail json
 
 	items := []ddb.Keyer{}
 
-	// 	if all groups are approved update requets status, save to ddb
+	// 	if all groups are reviewed update request status to active, save to ddb
 	// Then start the grant workflows
-
-	// // check for auto approvals
-	allApproved := true
-	for _, group := range request.Groups {
-
-		if group.AccessRuleSnapshot.Approval.IsRequired() && group.Status != types.RequestAccessGroupStatusAPPROVED {
-			allApproved = false
+	if request.AllGroupsReviewed() {
+		request.UpdateStatus(types.ACTIVE)
+		items = append(items, request.DBItems()...)
+		err = n.DB.PutBatch(ctx, items...)
+		if err != nil {
+			return err
 		}
 	}
-	if allApproved {
-		request.Request.RequestStatus = types.ACTIVE
-		items = append(items, &request.Request)
-	}
 
-	//update the group status
-	groupEvent.AccessGroup.Status = types.RequestAccessGroupStatusAPPROVED
-	items = append(items, &groupEvent.AccessGroup)
-
-	err = n.DB.PutBatch(ctx, items...)
-	if err != nil {
-		return err
-	}
 	_, err = n.Workflow.Grant(ctx, groupEvent.AccessGroup)
 	if err != nil {
 		return err
@@ -108,7 +96,7 @@ func (n *EventHandler) handleReviewApproveEvent(ctx context.Context, detail json
 
 }
 
-func (n *EventHandler) handleReviewDeclineEvent(ctx context.Context, detail json.RawMessage) error {
+func (n *EventHandler) handleAccessGroupDeclinedDeclinedEvent(ctx context.Context, detail json.RawMessage) error {
 	//update the group status
 	var grantEvent gevent.AccessGroupDeclined
 	err := json.Unmarshal(detail, &grantEvent)

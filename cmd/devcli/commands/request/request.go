@@ -9,12 +9,8 @@ import (
 	"github.com/common-fate/common-fate/pkg/eventhandler"
 	"github.com/common-fate/common-fate/pkg/service/accesssvc"
 	"github.com/common-fate/common-fate/pkg/service/preflightsvc"
-	"github.com/common-fate/common-fate/pkg/service/requestroutersvc"
 	"github.com/common-fate/common-fate/pkg/service/rulesvc"
-	"github.com/common-fate/common-fate/pkg/service/workflowsvc"
-	"github.com/common-fate/common-fate/pkg/service/workflowsvc/runtimes/local"
 	"github.com/common-fate/common-fate/pkg/storage"
-	"github.com/common-fate/common-fate/pkg/targetgroupgranter"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 	"github.com/joho/godotenv"
@@ -42,27 +38,7 @@ var submitCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-		eh := &eventhandler.EventHandler{
-			DB: db,
-		}
-		wf := &workflowsvc.Service{
-			Runtime: &local.Runtime{
-				DB: db,
-				Granter: &targetgroupgranter.Granter{
-					DB:          db,
-					EventPutter: eh,
-					RequestRouter: &requestroutersvc.Service{
-						DB: db,
-					},
-				},
-			},
-			DB:       db,
-			Clk:      clk,
-			Eventbus: eh,
-		}
-		eh.Eventbus = eh
-		eh.Workflow = wf
-
+		eh := eventhandler.NewLocalDevEventHandler(ctx, db, clk)
 		accsvc := &accesssvc.Service{
 			Clock:       clk,
 			DB:          db,
@@ -103,7 +79,7 @@ var submitCommand = cli.Command{
 			GroupOptions: []types.CreateAccessRequestGroupOptions{
 				{
 					Id:     pre.AccessGroups[0].ID,
-					Timing: types.RequestAccessGroupTiming{DurationSeconds: 60 * 10}, // 10 minutes
+					Timing: types.RequestAccessGroupTiming{DurationSeconds: 5}, // 10 minutes
 				},
 			},
 		})

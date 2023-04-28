@@ -26,6 +26,14 @@ type Runtime struct {
 	grantsRevokeChansM sync.Mutex
 }
 
+func NewRuntime(db ddb.Storage, granter *targetgroupgranter.Granter) *Runtime {
+	return &Runtime{
+		DB:                db,
+		Granter:           granter,
+		grantsRevokeChans: make(map[string]grantWorkflow),
+	}
+}
+
 func (r *Runtime) Grant(ctx context.Context, grant access.GroupTarget) error {
 	log := logger.Get(ctx)
 
@@ -129,18 +137,12 @@ func (r *Runtime) Revoke(ctx context.Context, grantID string) error {
 		return err
 	}
 
-	//set up the arguments to be read by the provider
-	args := map[string]string{}
-	for _, field := range grantWorkflow.grant.Fields {
-		args[field.FieldTitle] = field.Value.Value
-	}
-
 	//call the provider revoke
 	req := msg.Revoke{
 		Subject: grantWorkflow.grant.RequestedBy.Email,
 		Target: msg.Target{
 			Kind:      routeResult.Route.Kind,
-			Arguments: args,
+			Arguments: grantWorkflow.grant.FieldsToMap(),
 		},
 		Request: msg.AccessRequest{
 			ID: grantID,
