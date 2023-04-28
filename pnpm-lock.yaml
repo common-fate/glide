@@ -73,6 +73,7 @@ importers:
       '@types/react-helmet': ^6.1.5
       '@types/react-sticky': ^6.0.4
       '@types/react-table': ^7.7.11
+      '@types/react-window': ^1.8.5
       '@typescript-eslint/eslint-plugin': 5.33.0
       '@typescript-eslint/parser': ^5.34.0
       '@vitejs/plugin-react': ^1.3.2
@@ -120,6 +121,7 @@ importers:
       '@radix-ui/react-dialog': 1.0.3_2zx2umvpluuhvlq44va5bta2da
       '@rjsf/chakra-ui': 4.2.3_vz77z4pqcgjetnfkqsbubxwycm
       '@rjsf/core': 4.2.3_react@18.2.0
+      '@types/react-window': 1.8.5
       axios: 0.27.2
       cmdk: 0.2.0_2zx2umvpluuhvlq44va5bta2da
       command-score: 0.1.2
@@ -5578,7 +5580,7 @@ packages:
       - encoding
     dev: false
 
-  /@react-native-community/cli-plugin-metro/10.2.2_@babel+core@7.20.2:
+  /@react-native-community/cli-plugin-metro/10.2.2:
     resolution: {integrity: sha512-sTGjZlD3OGqbF9v1ajwUIXhGmjw9NyJ/14Lo0sg7xH8Pv4qUd5ZvQ6+DWYrQn3IKFUMfGFWYyL81ovLuPylrpw==}
     dependencies:
       '@react-native-community/cli-server-api': 10.1.1
@@ -5588,12 +5590,11 @@ packages:
       metro: 0.73.9
       metro-config: 0.73.9
       metro-core: 0.73.9
-      metro-react-native-babel-transformer: 0.73.9_@babel+core@7.20.2
+      metro-react-native-babel-transformer: 0.73.9
       metro-resolver: 0.73.9
       metro-runtime: 0.73.9
       readline: 1.3.0
     transitivePeerDependencies:
-      - '@babel/core'
       - bufferutil
       - encoding
       - supports-color
@@ -5641,7 +5642,7 @@ packages:
       joi: 17.9.1
     dev: false
 
-  /@react-native-community/cli/10.2.2_@babel+core@7.20.2:
+  /@react-native-community/cli/10.2.2:
     resolution: {integrity: sha512-aZVcVIqj+OG6CrliR/Yn8wHxrvyzbFBY9cj7n0MvRw/P54QUru2nNqUTSSbqv0Qaa297yHJbe6kFDojDMSTM8Q==}
     engines: {node: '>=14'}
     hasBin: true
@@ -5651,7 +5652,7 @@ packages:
       '@react-native-community/cli-debugger-ui': 10.0.0
       '@react-native-community/cli-doctor': 10.2.2
       '@react-native-community/cli-hermes': 10.2.0
-      '@react-native-community/cli-plugin-metro': 10.2.2_@babel+core@7.20.2
+      '@react-native-community/cli-plugin-metro': 10.2.2
       '@react-native-community/cli-server-api': 10.1.1
       '@react-native-community/cli-tools': 10.1.1
       '@react-native-community/cli-types': 10.0.0
@@ -5664,7 +5665,6 @@ packages:
       prompts: 2.4.2
       semver: 6.3.0
     transitivePeerDependencies:
-      - '@babel/core'
       - bufferutil
       - encoding
       - supports-color
@@ -5911,7 +5911,7 @@ packages:
       '@types/json-schema': 7.0.11
       ajv: 8.11.2
       ajv-errors: 3.0.0_ajv@8.11.2
-      ajv-formats: 2.1.1_ajv@8.11.2
+      ajv-formats: 2.1.1
       es-aggregate-error: 1.0.9
       jsonpath-plus: 7.1.0
       lodash: 4.17.21
@@ -5949,7 +5949,7 @@ packages:
       ajv: 8.11.2
       ajv-draft-04: 1.0.0_ajv@8.11.2
       ajv-errors: 3.0.0_ajv@8.11.2
-      ajv-formats: 2.1.1_ajv@8.11.2
+      ajv-formats: 2.1.1
       lodash: 4.17.21
       tslib: 2.4.1
     transitivePeerDependencies:
@@ -6039,7 +6039,7 @@ packages:
       '@stoplight/types': 13.8.0
       '@types/json-schema': 7.0.11
       ajv: 8.11.2
-      ajv-formats: 2.1.1_ajv@8.11.2
+      ajv-formats: 2.1.1
       json-schema-traverse: 1.0.0
       lodash: 4.17.21
       tslib: 2.4.1
@@ -6277,6 +6277,12 @@ packages:
 
   /@types/react-transition-group/4.4.5:
     resolution: {integrity: sha512-juKD/eiSM3/xZYzjuzH6ZwpP+/lejltmiS3QEzV/vmb/Q8+HfDmxu+Baga8UEMGBqV88Nbg4l2hY/K2DkyaLLA==}
+    dependencies:
+      '@types/react': 18.0.25
+    dev: false
+
+  /@types/react-window/1.8.5:
+    resolution: {integrity: sha512-V9q3CvhC9Jk9bWBOysPGaWy/Z0lxYcTXLtLipkt2cnRj1JOSFNF7wqGpkScSXMgBwC+fnVRg/7shwgddBG5ICw==}
     dependencies:
       '@types/react': 18.0.25
     dev: false
@@ -6639,10 +6645,8 @@ packages:
       ajv: 8.11.2
     dev: true
 
-  /ajv-formats/2.1.1_ajv@8.11.2:
+  /ajv-formats/2.1.1:
     resolution: {integrity: sha512-Wx0Kx52hxE7C18hkMEggYlEifqWZtYaRgouJor+WMdPnQyEK13vgEWyVNup7SoeeoLMsr4kf5h6dOW11I15MUA==}
-    peerDependencies:
-      ajv: ^8.0.0
     peerDependenciesMeta:
       ajv:
         optional: true
@@ -11204,10 +11208,8 @@ packages:
       uglify-es: 3.3.9
     dev: false
 
-  /metro-react-native-babel-preset/0.73.9_@babel+core@7.20.2:
+  /metro-react-native-babel-preset/0.73.9:
     resolution: {integrity: sha512-AoD7v132iYDV4K78yN2OLgTPwtAKn0XlD2pOhzyBxiI8PeXzozhbKyPV7zUOJUPETj+pcEVfuYj5ZN/8+bhbCw==}
-    peerDependencies:
-      '@babel/core': '*'
     dependencies:
       '@babel/core': 7.20.2
       '@babel/plugin-proposal-async-generator-functions': 7.20.7_@babel+core@7.20.2
@@ -11251,16 +11253,14 @@ packages:
       - supports-color
     dev: false
 
-  /metro-react-native-babel-transformer/0.73.9_@babel+core@7.20.2:
+  /metro-react-native-babel-transformer/0.73.9:
     resolution: {integrity: sha512-DSdrEHuQ22ixY7DyipyKkIcqhOJrt5s6h6X7BYJCP9AMUfXOwLe2biY3BcgJz5GOXv8/Akry4vTCvQscVS1otQ==}
-    peerDependencies:
-      '@babel/core': '*'
     dependencies:
       '@babel/core': 7.20.2
       babel-preset-fbjs: 3.4.0_@babel+core@7.20.2
       hermes-parser: 0.8.0
       metro-babel-transformer: 0.73.9
-      metro-react-native-babel-preset: 0.73.9_@babel+core@7.20.2
+      metro-react-native-babel-preset: 0.73.9
       metro-source-map: 0.73.9
       nullthrows: 1.1.1
     transitivePeerDependencies:
@@ -11381,7 +11381,7 @@ packages:
       metro-inspector-proxy: 0.73.9
       metro-minify-terser: 0.73.9
       metro-minify-uglify: 0.73.9
-      metro-react-native-babel-preset: 0.73.9_@babel+core@7.20.2
+      metro-react-native-babel-preset: 0.73.9
       metro-resolver: 0.73.9
       metro-runtime: 0.73.9
       metro-source-map: 0.73.9
@@ -12721,14 +12721,14 @@ packages:
       react-native: '>=0.56'
     dependencies:
       fast-base64-decode: 1.0.0
-      react-native: 0.71.7_2kanbrbrvaki6p2dctejrbhpm4
+      react-native: 0.71.7_rks6uwhpjqvcfuaiyz2mgf3k6u
     dev: false
 
   /react-native-gradle-plugin/0.71.17:
     resolution: {integrity: sha512-OXXYgpISEqERwjSlaCiaQY6cTY5CH6j73gdkWpK0hedxtiWMWgH+i5TOi4hIGYitm9kQBeyDu+wim9fA8ROFJA==}
     dev: false
 
-  /react-native/0.71.7_2kanbrbrvaki6p2dctejrbhpm4:
+  /react-native/0.71.7_rks6uwhpjqvcfuaiyz2mgf3k6u:
     resolution: {integrity: sha512-Id6iRLS581fJMFGbBl1jP5uSmjExtGOvw5Gvh7694zISXjsRAsFMmU+izs0pyCLqDBoHK7y4BT7WGPGw693nYw==}
     engines: {node: '>=14'}
     hasBin: true
@@ -12736,7 +12736,7 @@ packages:
       react: 18.2.0 || ^18
     dependencies:
       '@jest/create-cache-key-function': 29.5.0
-      '@react-native-community/cli': 10.2.2_@babel+core@7.20.2
+      '@react-native-community/cli': 10.2.2
       '@react-native-community/cli-platform-android': 10.2.0
       '@react-native-community/cli-platform-ios': 10.2.1
       '@react-native/assets': 1.0.0
@@ -12751,7 +12751,7 @@ packages:
       jest-environment-node: 29.5.0
       jsc-android: 250231.0.0
       memoize-one: 5.2.1
-      metro-react-native-babel-transformer: 0.73.9_@babel+core@7.20.2
+      metro-react-native-babel-transformer: 0.73.9
       metro-runtime: 0.73.9
       metro-source-map: 0.73.9
       mkdirp: 0.5.6
@@ -12771,7 +12771,6 @@ packages:
       whatwg-fetch: 3.6.2
       ws: 6.2.2
     transitivePeerDependencies:
-      - '@babel/core'
       - '@babel/preset-env'
       - bufferutil
       - encoding

@@ -19,7 +19,11 @@ import {
   useEventListener,
 } from "@chakra-ui/react";
 import { useEffect, useMemo, useState } from "react";
-import { FixedSizeList as List } from "react-window";
+import {
+  FixedSizeList as List,
+  FixedSizeListProps,
+  ListChildComponentProps,
+} from "react-window";
 import { useNavigate } from "react-location";
 import Counter from "../components/Counter";
 import FieldsCodeBlock from "../components/FieldsCodeBlock";
@@ -148,19 +152,17 @@ const Search = () => {
       .slice(0, 100);
   }, [inputValue, allTargets]);
 
-  const targetComponent = ({
+  const targetComponent: React.FC<ListChildComponentProps> = ({
     index,
-    ...rest
-  }: {
-    index: number;
-    rest: any;
+    style,
   }) => {
     const target = filteredItems[index];
 
-    if (!target) return null;
+    if (!target) return <></>;
 
     return (
       <Flex
+        style={style}
         alignContent="flex-start"
         p={2}
         rounded="md"
