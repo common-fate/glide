@@ -187,6 +187,7 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 		}
 		wf := &workflowsvc.Service{
 			Runtime: &local.Runtime{
+				DB: db,
 				Granter: &targetgroupgranter.Granter{
 					DB:          db,
 					EventPutter: eh,
