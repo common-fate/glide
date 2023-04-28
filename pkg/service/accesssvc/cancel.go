@@ -35,7 +35,7 @@ func (s *Service) CancelRequest(ctx context.Context, opts CancelRequestOpts) err
 		return ErrRequestCannotBeCancelled
 	}
 
-	return s.EventPutter.Put(ctx, gevent.RequestCancelledInit{
+	return s.EventPutter.Put(ctx, gevent.RequestCancelledInitiated{
 		Request: *requestGet.Result,
 	})
 }
