@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/types"
+	"github.com/common-fate/ddb"
 	"go.uber.org/zap"
 )
 
@@ -62,54 +63,44 @@ func (n *EventHandler) handleReviewEvent(ctx context.Context, detail json.RawMes
 
 func (n *EventHandler) handleReviewApproveEvent(ctx context.Context, detail json.RawMessage) error {
 	//if approved start the granting flow
-	var gropuEvent gevent.AccessGroupApproved
-	err := json.Unmarshal(detail, &gropuEvent)
+	var groupEvent gevent.AccessGroupApproved
+	err := json.Unmarshal(detail, &groupEvent)
 	if err != nil {
 		return err
 	}
-	request, err := n.GetRequestFromDatabase(ctx, gropuEvent.AccessGroup.RequestID)
+	request, err := n.GetRequestFromDatabase(ctx, groupEvent.AccessGroup.RequestID)
 	if err != nil {
 		return err
-	}
-	// // check for auto approvals
-	// allApproved := true
-	// for _, group := range request.Groups {
-	// 	if group.AccessRuleSnapshot.Approval.IsRequired() {
-	// 		allApproved = false
-	// 	}
-	// }
-	// if allApproved {
-	// 	request.RequestStatus = types.ACTIVE
-	// }
-	// items := []ddb.Keyer{&request.Request}
-	// for i, group := range request.Groups {
-	// 	if !group.AccessRuleSnapshot.Approval.IsRequired() {
-	// 		group.Status = types.RequestAccessGroupStatusAPPROVED
-	// 		auto := types.AUTOMATIC
-	// 		group.ApprovalMethod = &auto
-	// 	}
-	// 	group.RequestStatus = request.RequestStatus
-	// 	for j, target := range group.Targets {
-	// 		target.RequestStatus = request.RequestStatus
-	// 		group.Targets[j] = target
-	// 		items = append(items, &target)
-	// 	}
-	// 	items = append(items, &group.Group)
-	// 	request.Groups[i] = group
-	// }
 
-	// err = n.DB.PutBatch(ctx, items...)
-	// if err != nil {
-	// 	return err
-	// }
+	}
+
+	items := []ddb.Keyer{}
+
+	// 	if all groups are approved update requets status, save to ddb
+	// Then start the grant workflows
+
+	// // check for auto approvals
+	allApproved := true
+	for _, group := range request.Groups {
+
+		if group.AccessRuleSnapshot.Approval.IsRequired() && group.Status != types.RequestAccessGroupStatusAPPROVED {
+			allApproved = false
+		}
+	}
+	if allApproved {
+		request.Request.RequestStatus = types.ACTIVE
+		items = append(items, &request.Request)
+	}
 
 	//update the group status
-	grantEvent.AccessGroup.Status = types.RequestAccessGroupStatusAPPROVED
-	err = n.DB.Put(ctx, &grantEvent.AccessGroup.Group)
+	groupEvent.AccessGroup.Status = types.RequestAccessGroupStatusAPPROVED
+	items = append(items, &groupEvent.AccessGroup)
+
+	err = n.DB.PutBatch(ctx, items...)
 	if err != nil {
 		return err
 	}
-	_, err = n.Workflow.Grant(ctx, grantEvent.AccessGroup)
+	_, err = n.Workflow.Grant(ctx, groupEvent.AccessGroup)
 	if err != nil {
 		return err
 	}
