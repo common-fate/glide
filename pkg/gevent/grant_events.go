@@ -16,7 +16,7 @@ const (
 // 'Activated' means that the assignment to the
 // resource was completed successfully.
 type GrantActivated struct {
-	Grant access.Grant `json:"grant"`
+	Grant access.GroupTarget `json:"grant"`
 }
 
 func (GrantActivated) EventType() string {
@@ -29,7 +29,7 @@ func (GrantActivated) EventType() string {
 // resource was removed successfully, at the
 // time that the grant was supposed to end.
 type GrantExpired struct {
-	Grant access.Grant `json:"grant"`
+	Grant access.GroupTarget `json:"grant"`
 }
 
 func (GrantExpired) EventType() string {
@@ -49,7 +49,7 @@ func (GrantExpired) EventType() string {
 // the user from the Okta group which they were granted
 // access to), this event will not be emitted.
 type GrantRevoked struct {
-	Grant access.Grant `json:"grant"`
+	Grant access.GroupTarget `json:"grant"`
 	// the commonfate internal id of the actor who revoked the grant
 	Actor string `json:"actor"`
 	// the email address of the actor who revoked the grant

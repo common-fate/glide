@@ -30,15 +30,6 @@ type Runtime struct {
 
 func (r *Runtime) Grant(ctx context.Context, grant access.GroupTarget) error {
 
-	return r.grantTargetGroup(ctx, grant)
-
-}
-func (r *Runtime) Revoke(ctx context.Context, grantID string) error {
-
-	return r.revokeTargetGroup(ctx, grantID)
-
-}
-func (r *Runtime) grantTargetGroup(ctx context.Context, grant access.GroupTarget) error {
 	cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 	if err != nil {
 		return err
@@ -63,28 +54,15 @@ func (r *Runtime) grantTargetGroup(ctx context.Context, grant access.GroupTarget
 	return err
 
 }
-
-func BuildExecutionARN(stateMachineARN string, grantID string) string {
-
-	splitARN := strings.Split(stateMachineARN, ":")
-
-	//position 5 is the location of the arn type
-	splitARN[5] = "execution"
-	splitARN = append(splitARN, grantID)
-
-	return strings.Join(splitARN, ":")
-
-}
-
-func (r *Runtime) revokeTargetGroup(ctx context.Context, grantID string) error {
-	//we can grab all this from the execution input for the step function we will use this as the source of truth
+func (r *Runtime) Revoke(ctx context.Context, grantID string) error {
+	// we can grab all this from the execution input for the step function we will use this as the source of truth
 	c, err := aws_config.LoadDefaultConfig(ctx)
 	if err != nil {
 		return err
 	}
 	sfnClient := sfn.NewFromConfig(c)
 
-	//build the execution ARN
+	// build the execution ARN
 	exeARN := BuildExecutionARN(r.StateMachineARN, grantID)
 
 	out, err := sfnClient.DescribeExecution(ctx, &sfn.DescribeExecutionInput{ExecutionArn: aws.String(exeARN)})
@@ -92,7 +70,7 @@ func (r *Runtime) revokeTargetGroup(ctx context.Context, grantID string) error {
 		return err
 	}
 
-	//build the previous grant from the execution input
+	// build the previous grant from the execution input
 	var input targetgroupgranter.WorkflowInput
 
 	err = json.Unmarshal([]byte(*out.Input), &input)
@@ -100,7 +78,7 @@ func (r *Runtime) revokeTargetGroup(ctx context.Context, grantID string) error {
 		return err
 	}
 
-	//if the state function is in the active state then we will stop the execution
+	// if the state function is in the active state then we will stop the execution
 	statefn, err := sfnClient.GetExecutionHistory(ctx, &sfn.GetExecutionHistoryInput{ExecutionArn: &exeARN})
 	if err != nil {
 		return err
@@ -123,7 +101,7 @@ func (r *Runtime) revokeTargetGroup(ctx context.Context, grantID string) error {
 	}
 	lastState := statefn.Events[len(statefn.Events)-1]
 
-	//if the state of the grant is in the active state
+	// if the state of the grant is in the active state
 	if lastState.Type == "WaitStateEntered" && *lastState.StateEnteredEventDetails.Name == "Wait for Window End" {
 
 		// Pull the state from the output of the activate step so it can be used when revoking access
@@ -169,4 +147,17 @@ func (r *Runtime) revokeTargetGroup(ctx context.Context, grantID string) error {
 	}
 
 	return nil
+
+}
+
+func BuildExecutionARN(stateMachineARN string, grantID string) string {
+
+	splitARN := strings.Split(stateMachineARN, ":")
+
+	//position 5 is the location of the arn type
+	splitARN[5] = "execution"
+	splitARN = append(splitARN, grantID)
+
+	return strings.Join(splitARN, ":")
+
 }

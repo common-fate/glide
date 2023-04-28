@@ -32,19 +32,18 @@ func (s *Service) RevokeRequest(ctx context.Context, in access.RequestWithGroups
 	//before emitting the event to start revoking we want to make sure the request is valid to be revoked
 
 	//check that all the groups have grants attached
-
-	canRevokeRequest := true
+	var canRevokeRequest bool
 	for _, group := range in.Groups {
 		for _, target := range group.Targets {
 			if target.Grant == nil {
-				canRevokeRequest = false
+				continue
 			}
 
 			grantCanRevoke := target.Grant.Status == types.RequestAccessGroupTargetStatusACTIVE ||
 				target.Grant.Status == types.RequestAccessGroupTargetStatusPENDINGPROVISIONING
 
-			if !grantCanRevoke || target.Grant.End.Before(s.Clock.Now()) {
-				canRevokeRequest = false
+			if grantCanRevoke || target.Grant.End.After(s.Clock.Now()) {
+				canRevokeRequest = true
 			}
 		}
 	}
