@@ -195,7 +195,7 @@ func generateDistinctTargets(in resourceAccessRuleMapping, accessRules []rule.Ac
 						MatchedTargetGroups: []string{targetGroupID},
 					}},
 					// assign the groups
-					Groups: cache.MakeMapStringStruct(arMap[arID].Groups...),
+					IDPGroupsWithAccess: cache.MakeMapStringStruct(arMap[arID].Groups...),
 				}
 
 				// @TODO populate all the data for field type
@@ -216,8 +216,8 @@ func generateDistinctTargets(in resourceAccessRuleMapping, accessRules []rule.Ac
 					a.MatchedTargetGroups = append(a.MatchedTargetGroups, v.MatchedTargetGroups...)
 					t.AccessRules[k] = a
 				}
-				for k := range o.Groups {
-					t.Groups[k] = struct{}{}
+				for k := range o.IDPGroupsWithAccess {
+					t.IDPGroupsWithAccess[k] = struct{}{}
 				}
 				out[t.ID()] = t
 			}

@@ -24,7 +24,7 @@ type Request struct {
 	GroupTargetCount int         `json:"groupTargetCount" dynamodbav:"groupTargetCount"`
 	Purpose          Purpose     `json:"purpose" dynamodbav:"purpose"`
 	RequestedBy      RequestedBy `json:"requestedBy" dynamodbav:"requestedBy"`
-	RequestedAt      time.Time   `json:"requestedAt" dynamodbav:"requestedAt"`
+	CreatedAt        time.Time   `json:"createdAt" dynamodbav:"createdAt"`
 	// request reviewers are users who have one or more groups to review on the request as a whole
 	RequestReviewers []string `json:"requestReviewers" dynamodbav:"requestReviewers, set"`
 }
@@ -53,7 +53,7 @@ func (r *RequestWithGroupsWithTargets) ToAPI() types.Request {
 		ID:          r.ID,
 		Status:      r.RequestStatus,
 		Purpose:     r.Purpose.ToAPI(),
-		RequestedAt: r.RequestedAt,
+		RequestedAt: r.CreatedAt,
 		// @TODO denormalise the user onto the request
 		RequestedBy:  types.RequestRequestedBy(r.RequestedBy),
 		AccessGroups: []types.RequestAccessGroup{},

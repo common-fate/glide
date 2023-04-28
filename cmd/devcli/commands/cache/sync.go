@@ -30,7 +30,7 @@ var syncCommand = cli.Command{
 	Description: "Sync cache",
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
-
+		_ = godotenv.Load()
 		db, err := ddb.New(ctx, os.Getenv("COMMONFATE_TABLE_NAME"))
 		if err != nil {
 			return err
@@ -72,7 +72,7 @@ var targetsCommand = cli.Command{
 		ctx := c.Context
 		_ = godotenv.Load()
 
-		db, err := ddb.New(ctx, "common-fate-josh-7")
+		db, err := ddb.New(ctx, os.Getenv("COMMONFATE_TABLE_NAME"))
 		if err != nil {
 			return err
 		}

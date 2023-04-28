@@ -7,7 +7,6 @@ import (
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/identity"
-	"github.com/common-fate/common-fate/pkg/service/rulesvc"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
@@ -46,12 +45,13 @@ func (s *Service) CreateRequest(ctx context.Context, user identity.User, createR
 			FirstName: user.FirstName,
 			LastName:  user.LastName,
 		},
-		RequestedAt:      now,
+		CreatedAt:        now,
 		GroupTargetCount: totalTargets,
 		RequestStatus:    types.PENDING,
 	}
 	out := access.RequestWithGroupsWithTargets{
 		Request: request,
+		Groups:  []access.GroupWithTargets{},
 	}
 	//for each access group in the preflight we need to create corresponding access groups
 	//Then create corresponding grants
@@ -85,7 +85,7 @@ func (s *Service) CreateRequest(ctx context.Context, user identity.User, createR
 			RequestStatus:      request.RequestStatus,
 		}
 
-		approvers, err := rulesvc.GetApprovers(ctx, s.DB, *ar.Result)
+		approvers, err := s.Rules.GetApprovers(ctx, *ar.Result)
 		if err != nil {
 			return nil, err
 		}
@@ -100,12 +100,13 @@ func (s *Service) CreateRequest(ctx context.Context, user identity.User, createR
 			}
 		}
 		groupWithTargets := access.GroupWithTargets{
-			Group: accessGroup,
+			Group:   accessGroup,
+			Targets: []access.GroupTarget{},
 		}
 		for _, preflightAccessGroupTarget := range preflightAccessGroup.Targets {
 			groupTarget := access.GroupTarget{
 				ID:            types.NewGroupTargetID(),
-				GroupID:       preflightAccessGroup.ID,
+				GroupID:       accessGroup.ID,
 				RequestID:     request.ID,
 				RequestedBy:   request.RequestedBy,
 				CreatedAt:     now,

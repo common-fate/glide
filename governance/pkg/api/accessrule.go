@@ -132,10 +132,11 @@ func (a *API) GovArchiveAccessRule(w http.ResponseWriter, r *http.Request, ruleI
 		return
 	}
 
-	c, err := a.Rules.ArchiveAccessRule(ctx, "bot_governance_api", *q.Result)
-	if err != nil {
-		apio.Error(ctx, w, err)
-		return
-	}
-	apio.JSON(ctx, w, c.ToAPI(), http.StatusOK)
+	// @TODO replace this with delete access rule
+	// c, err := a.Rules.ArchiveAccessRule(ctx, "bot_governance_api", *q.Result)
+	// if err != nil {
+	// 	apio.Error(ctx, w, err)
+	// 	return
+	// }
+	// apio.JSON(ctx, w, c.ToAPI(), http.StatusOK)
 }
