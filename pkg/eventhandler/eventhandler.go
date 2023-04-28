@@ -26,21 +26,34 @@ type Workflow interface {
 
 // EventHandler provides handler methods for reacting to async actions during the granting process
 type EventHandler struct {
-	DB       ddb.Storage
-	Workflow Workflow
-	Eventbus EventPutter
+	DB         ddb.Storage
+	Workflow   Workflow
+	Eventbus   EventPutter
+	eventQueue chan gevent.EventTyper
+}
+
+// call StartProcessing to process events from the queue
+func (n *EventHandler) StartProcessing(ctx context.Context) error {
+	for {
+		event := <-n.eventQueue
+		d, err := json.Marshal(event)
+		if err != nil {
+			return err
+		}
+		err = n.HandleEvent(ctx, events.CloudWatchEvent{
+			DetailType: event.EventType(),
+			Detail:     d,
+		})
+		if err != nil {
+			return err
+		}
+	}
 }
 
 // Put allows the event handler to be used in place of the event putter interface in development
 func (n *EventHandler) Put(ctx context.Context, detail gevent.EventTyper) error {
-	d, err := json.Marshal(detail)
-	if err != nil {
-		return err
-	}
-	return n.HandleEvent(ctx, events.CloudWatchEvent{
-		DetailType: detail.EventType(),
-		Detail:     d,
-	})
+	n.eventQueue <- detail
+	return nil
 }
 func (n *EventHandler) HandleEvent(ctx context.Context, event events.CloudWatchEvent) (err error) {
 	log := zap.S().With("event", event)

@@ -202,6 +202,12 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 		}
 		eh.Eventbus = eh
 		eh.Workflow = wf
+		go func() {
+			err = eh.StartProcessing(ctx)
+			if err != nil {
+				panic(err)
+			}
+		}()
 
 	}
 
