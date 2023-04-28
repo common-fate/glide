@@ -10,7 +10,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/common-fate/common-fate/pkg/access"
-	"github.com/common-fate/common-fate/pkg/config"
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/handler"
 	"github.com/common-fate/common-fate/pkg/service/requestroutersvc"
@@ -18,10 +17,14 @@ import (
 	"github.com/common-fate/common-fate/pkg/types"
 )
 
+//go:generate go run github.com/golang/mock/mockgen -destination=mocks/eventputter.go -package=mocks . EventPutter
+type EventPutter interface {
+	Put(ctx context.Context, detail gevent.EventTyper) error
+}
 type Granter struct {
-	Cfg           config.TargetGroupGranterConfig
 	DB            ddb.Storage
 	RequestRouter *requestroutersvc.Service
+	EventPutter   EventPutter
 }
 type WorkflowInput struct {
 	Grant access.GroupTarget `json:"grant"`
@@ -67,11 +70,7 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (GrantState,
 	if err != nil {
 		return GrantState{}, err
 	}
-	_ = runtime
-	eventsBus, err := gevent.NewSender(ctx, gevent.SenderOpts{EventBusARN: g.Cfg.EventBusArn})
-	if err != nil {
-		return GrantState{}, err
-	}
+
 	var grantResponse *msg.GrantResponse
 	switch in.Action {
 	case ACTIVATE:
@@ -140,7 +139,7 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (GrantState,
 		log.Errorf("error while handling granter event", "error", err.Error(), "event", in)
 		grant.Grant.Status = types.RequestAccessGroupTargetStatusERROR
 
-		eventErr := eventsBus.Put(ctx, gevent.GrantFailed{Grant: grant, Reason: err.Error()})
+		eventErr := g.EventPutter.Put(ctx, gevent.GrantFailed{Grant: grant, Reason: err.Error()})
 		if eventErr != nil {
 			return GrantState{}, errors.Wrapf(err, "failed to emit event, emit error: %s", eventErr.Error())
 		}
@@ -193,7 +192,7 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (GrantState,
 	}
 
 	log.Infow("emitting event", "event", evt, "action", in.Action)
-	err = eventsBus.Put(ctx, evt)
+	err = g.EventPutter.Put(ctx, evt)
 	if err != nil {
 		return GrantState{}, err
 	}
