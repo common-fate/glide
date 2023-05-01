@@ -1,6 +1,7 @@
+// @ts-ignore
+
 import * as RadixDialog from "@radix-ui/react-dialog";
 import * as React from "react";
-import commandScore from "command-score";
 
 type Children = { children?: React.ReactNode };
 type DivProps = React.HTMLAttributes<HTMLDivElement>;
@@ -136,7 +137,7 @@ const VALID_ITEM_SELECTOR = `${ITEM_SELECTOR}:not([aria-disabled="true"])`;
 const SELECT_EVENT = `cmdk-item-select`;
 const VALUE_ATTR = `data-value`;
 const defaultFilter: CommandProps["filter"] = (value, search) =>
-  commandScore(value, search);
+  value.localeCompare(search);
 
 // @ts-ignore
 const CommandContext = React.createContext<Context>(undefined);

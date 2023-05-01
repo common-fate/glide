@@ -271,7 +271,7 @@ const Rules = () => {
             : rules.accessRules.map((r, i) => (
                 <Link
                   style={{ display: "flex" }}
-                  to={"/access/request/" + r.id}
+                  to={"/access/requests/" + r.id}
                   key={r.id}
                 >
                   <Box
@@ -481,7 +481,7 @@ const UserAccessCard: React.FC<
 //           ? favorites.favorites.map((r, i) => (
 //               <Link
 //                 style={{ display: "flex" }}
-//                 to={"/access/request/" + r.ruleId + "?favorite=" + r.id}
+//                 to={"/access/requests/" + r.ruleId + "?favorite=" + r.id}
 //                 key={r.id}
 //               >
 //                 <Box

@@ -3,7 +3,10 @@ import format from "date-fns/format";
 import { useMemo } from "react";
 import { MakeGenerics, useNavigate, useSearch } from "react-location";
 import { Column } from "react-table";
-import { Request, RequestStatus } from "../../utils/backend-client/types";
+import {
+  Request,
+  UserListReviewsStatus,
+} from "../../utils/backend-client/types";
 import { usePaginatorApi } from "../../utils/usePaginatorApi";
 
 import { useUserListReviews } from "../../utils/backend-client/default/default";
@@ -13,7 +16,7 @@ import { TableRenderer } from "./TableRenderer";
 
 type MyLocationGenerics = MakeGenerics<{
   Search: {
-    status?: Lowercase<RequestStatus>;
+    status?: Lowercase<UserListReviewsStatus>;
   };
 }>;
 
@@ -23,12 +26,14 @@ export const UserReviewsTable = () => {
 
   const { status } = search;
 
-  // const [status, setStatus] = useState<RequestStatus | undefined>();
+  // const [status, setStatus] = useState<UserListReviewsStatus | undefined>();
 
   const paginator = usePaginatorApi<typeof useUserListReviews>({
     swrHook: useUserListReviews,
     hookProps: {
-      status: status ? (status.toUpperCase() as RequestStatus) : undefined,
+      status: status
+        ? (status.toUpperCase() as UserListReviewsStatus)
+        : undefined,
     },
     swrProps: { swr: { refreshInterval: 10000 } },
   });
@@ -93,7 +98,7 @@ export const UserReviewsTable = () => {
       //   accessor: "status",
       //   Header: "Status",
       //   Cell: (props) => {
-      //     return <RequestStatusDisplay request={props.row.original} />;
+      //     return <UserListReviewsStatusDisplay request={props.row.original} />;
       //   },
       // },
     ],
@@ -108,11 +113,11 @@ export const UserReviewsTable = () => {
             navigate({
               search: (old) => ({
                 ...old,
-                status: s?.toLowerCase() as Lowercase<RequestStatus>,
+                status: s?.toLowerCase() as Lowercase<UserListReviewsStatus>,
               }),
             })
           }
-          status={status?.toUpperCase() as RequestStatus}
+          status={status?.toUpperCase() as UserListReviewsStatus}
         />
       </Flex>
       {TableRenderer<Request>({

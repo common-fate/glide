@@ -53,7 +53,7 @@ const AcessRulesMobileModal = (props: Props) => {
   //                     <Text textStyle="Body/SmallBold" color="neutrals.700">
   //                       {r.name}
   //                     </Text>
-  //                     <Link to={"/access/request/" + r.id} key={r.id}>
+  //                     <Link to={"/access/requests/" + r.id} key={r.id}>
   //                       <Button mt={4} variant="brandSecondary" size="sm">
   //                         Request
   //                       </Button>

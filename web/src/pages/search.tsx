@@ -288,7 +288,7 @@ const Search = () => {
           console.log(res);
           submitLoadingToggle.on();
           // redirect to request...
-          navigate({ to: `/request/${res.id}` });
+          navigate({ to: `/requests/${res.id}` });
           // clear state
           setChecked([]);
           setInputValue("");
