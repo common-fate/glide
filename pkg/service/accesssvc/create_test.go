@@ -154,10 +154,10 @@ func TestCreateRequest(t *testing.T) {
 			}
 
 			// Overwrite all the IDs
-			got.ID = ""
+			got.Request.ID = ""
 			for i, g := range got.Groups {
-				g.ID = ""
-				g.RequestID = ""
+				g.Group.ID = ""
+				g.Group.RequestID = ""
 				for i, t := range g.Targets {
 					t.ID = ""
 					t.RequestID = ""

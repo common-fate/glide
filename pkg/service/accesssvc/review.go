@@ -38,12 +38,12 @@ func (s *Service) Review(ctx context.Context, user identity.User, isAdmin bool, 
 		group = q.Result
 	}
 	// A user cannot review their own request
-	if user.ID == group.RequestedBy.ID {
+	if user.ID == group.Group.RequestedBy.ID {
 		return ErrAccesGroupNotFoundOrNoAccessToReview
 	}
 	// is group already reviewed?
 	// if it is, then reject this review
-	if group.Status != types.RequestAccessGroupStatusPENDINGAPPROVAL {
+	if group.Group.Status != types.RequestAccessGroupStatusPENDINGAPPROVAL {
 		return ErrAccessGroupAlreadyReviewed
 	}
 
@@ -55,7 +55,7 @@ func (s *Service) Review(ctx context.Context, user identity.User, isAdmin bool, 
 		overrideTiming = &ot
 	}
 	groupCopy := *group
-	groupCopy.OverrideTiming = overrideTiming
+	groupCopy.Group.OverrideTiming = overrideTiming
 	overlaps, err := s.TestOverlap(ctx, groupCopy)
 	if err != nil {
 		return err
@@ -74,7 +74,7 @@ func (s *Service) Review(ctx context.Context, user identity.User, isAdmin bool, 
 
 func (s *Service) TestOverlap(ctx context.Context, groupToTest access.GroupWithTargets) (bool, error) {
 	upcomingRequestsForUser := storage.ListRequestWithGroupsWithTargetsForUserAndPastUpcoming{
-		UserID:       groupToTest.RequestedBy.ID,
+		UserID:       groupToTest.Group.RequestedBy.ID,
 		PastUpcoming: keys.AccessRequestPastUpcomingUPCOMING,
 	}
 	err := s.DB.All(ctx, &upcomingRequestsForUser)
@@ -85,7 +85,7 @@ func (s *Service) TestOverlap(ctx context.Context, groupToTest access.GroupWithT
 }
 
 func (s *Service) testOverlap(upcomingTargets []access.RequestWithGroupsWithTargets, groupToTest access.GroupWithTargets) bool {
-	groupToTestStart, groupToTestEnd := groupToTest.GetInterval(access.WithNow(s.Clock.Now()))
+	groupToTestStart, groupToTestEnd := groupToTest.Group.GetInterval(access.WithNow(s.Clock.Now()))
 	groupTargetCacheIDMap := make(map[string]access.GroupTarget)
 	for _, target := range groupToTest.Targets {
 		groupTargetCacheIDMap[target.TargetCacheID] = target
@@ -93,9 +93,9 @@ func (s *Service) testOverlap(upcomingTargets []access.RequestWithGroupsWithTarg
 	for _, request := range upcomingTargets {
 		for _, group := range request.Groups {
 			// for each group which is approved
-			if group.Status == types.RequestAccessGroupStatusAPPROVED {
+			if group.Group.Status == types.RequestAccessGroupStatusAPPROVED {
 				// Check whether the timing window of the upcoming group overlaps the group to test
-				upcomingStart, upcomingEnd := group.GetInterval(access.WithNow(s.Clock.Now()))
+				upcomingStart, upcomingEnd := group.Group.GetInterval(access.WithNow(s.Clock.Now()))
 				if (groupToTestStart.Before(upcomingEnd) || groupToTestStart.Equal(upcomingEnd)) && (groupToTestEnd.After(upcomingStart) || groupToTestEnd.Equal(upcomingStart)) {
 					// now check wether any of the targets overlap
 					for _, target := range group.Targets {

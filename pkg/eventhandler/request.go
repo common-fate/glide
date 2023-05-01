@@ -38,11 +38,11 @@ func (n *EventHandler) handleRequestCreated(ctx context.Context, detail json.Raw
 	}
 	for _, g := range requestEvent.Request.Groups {
 		group := g
-		if !group.AccessRuleSnapshot.Approval.IsRequired() {
-			group.Status = types.RequestAccessGroupStatusAPPROVED
+		if !group.Group.AccessRuleSnapshot.Approval.IsRequired() {
+			group.Group.Status = types.RequestAccessGroupStatusAPPROVED
 			auto := types.AUTOMATIC
-			group.ApprovalMethod = &auto
-			err = n.DB.Put(ctx, &group)
+			group.Group.ApprovalMethod = &auto
+			err = n.DB.Put(ctx, &group.Group)
 			if err != nil {
 				return err
 			}
@@ -96,8 +96,8 @@ func (n *EventHandler) handleRequestCancelInitiated(ctx context.Context, detail 
 	items := []ddb.Keyer{}
 
 	//handle changing status's of request, and targets
-	requestEvent.Request.RequestStatus = types.CANCELLED
-	items = append(items, &requestEvent.Request)
+	requestEvent.Request.Request.RequestStatus = types.CANCELLED
+	items = append(items, &requestEvent.Request.Request)
 
 	for _, group := range requestEvent.Request.Groups {
 		for _, target := range group.Targets {
@@ -130,17 +130,9 @@ func (n *EventHandler) handleRequestRevokeInitiated(ctx context.Context, detail 
 	items := []ddb.Keyer{}
 
 	for _, group := range requestEvent.Request.Groups {
-		out, err := n.Workflow.Revoke(ctx, group, requestEvent.Revoker.ID, requestEvent.Revoker.Email)
+		err := n.Workflow.Revoke(ctx, group.Group.RequestID, group.Group.ID, requestEvent.Revoker.ID, requestEvent.Revoker.Email)
 		if err != nil {
 			return err
-		}
-
-		//update status's
-		for _, target := range out.Targets {
-			target.RequestStatus = types.RequestStatus(types.RequestAccessGroupTargetStatusREVOKED)
-			target.Grant.Status = types.RequestAccessGroupTargetStatusREVOKED
-
-			items = append(items, &target)
 		}
 	}
 

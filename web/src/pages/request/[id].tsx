@@ -57,7 +57,11 @@ import FieldsCodeBlock from "../../components/FieldsCodeBlock";
 import { ProviderIcon, ShortTypes } from "../../components/icons/providerIcon";
 import { UserLayout } from "../../components/Layout";
 import { StatusCell } from "../../components/StatusCell";
-import { useUserGetRequest } from "../../utils/backend-client/default/default";
+import {
+  useUserGetRequest,
+  useUserListRequests,
+} from "../../utils/backend-client/default/default";
+import { userReviewRequest } from "../../utils/backend-client/end-user/end-user";
 import {
   RequestAccessGroup,
   RequestAccessGroupTarget,
@@ -574,6 +578,9 @@ export const ApproveRejectDuration = ({
             onClick={() => {
               console.log("approve");
               // @TODO: add in admin approval API methods
+              userReviewRequest(group.requestId, group.id, {
+                decision: "APPROVED",
+              });
             }}
           >
             Approve
@@ -583,6 +590,9 @@ export const ApproveRejectDuration = ({
             onClick={() => {
               console.log("reject");
               // @TODO: add in admin approval API methods
+              userReviewRequest(group.requestId, group.id, {
+                decision: "DECLINED",
+              });
             }}
           >
             Reject

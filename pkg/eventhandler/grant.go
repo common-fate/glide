@@ -55,7 +55,7 @@ func (n *EventHandler) handleGrantExpired(ctx context.Context, detail json.RawMe
 		return err
 	}
 
-	err = n.handleRequestStatusChange(ctx, q.Result.RequestID)
+	err = n.handleRequestStatusChange(ctx, q.Result.Group.RequestID)
 	if err != nil {
 		return err
 	}
@@ -77,7 +77,7 @@ func (n *EventHandler) handleGrantFailed(ctx context.Context, detail json.RawMes
 		return err
 	}
 
-	err = n.handleRequestStatusChange(ctx, q.Result.RequestID)
+	err = n.handleRequestStatusChange(ctx, q.Result.Group.RequestID)
 	if err != nil {
 		return err
 	}
@@ -98,7 +98,7 @@ func (n *EventHandler) handleGrantRevoked(ctx context.Context, detail json.RawMe
 		return err
 	}
 
-	err = n.handleRequestStatusChange(ctx, q.Result.RequestID)
+	err = n.handleRequestStatusChange(ctx, q.Result.Group.RequestID)
 	if err != nil {
 		return err
 	}

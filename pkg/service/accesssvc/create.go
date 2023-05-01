@@ -144,7 +144,7 @@ func (s *Service) CreateRequest(ctx context.Context, user identity.User, createR
 	}
 	items = append(items, &out.Request)
 	for i, group := range out.Groups {
-		group.RequestReviewers = out.Request.RequestReviewers
+		group.Group.RequestReviewers = out.Request.RequestReviewers
 		for i, target := range group.Targets {
 			target.RequestReviewers = out.Request.RequestReviewers
 			group.Targets[i] = target

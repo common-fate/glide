@@ -30,7 +30,7 @@ func (n *EventHandler) handleReviewEvent(ctx context.Context, detail json.RawMes
 	if err != nil {
 		return err
 	}
-	group, err := n.GetGroupFromDatabase(ctx, groupEvent.AccessGroup.RequestID, groupEvent.AccessGroup.ID)
+	group, err := n.GetGroupFromDatabase(ctx, groupEvent.AccessGroup.Group.RequestID, groupEvent.AccessGroup.Group.ID)
 	if err != nil {
 		return err
 
@@ -40,28 +40,28 @@ func (n *EventHandler) handleReviewEvent(ctx context.Context, detail json.RawMes
 	// This step prevents race conditions.
 	// Reviews are processed in the order they are submitted due to the event handler having a provisioned concurrency limit of 1
 	log := logger.Get(ctx)
-	if group.Status != types.RequestAccessGroupStatusPENDINGAPPROVAL {
+	if group.Group.Status != types.RequestAccessGroupStatusPENDINGAPPROVAL {
 		log.Infow("Ignoring review for group which has already been reviewed", "reviewEvent", groupEvent)
 	}
 	reviewed := types.REVIEWED
-	group.ApprovalMethod = &reviewed
-	group.UpdatedAt = time.Now()
-	group.Status = types.RequestAccessGroupStatusAPPROVED
+	group.Group.ApprovalMethod = &reviewed
+	group.Group.UpdatedAt = time.Now()
+	group.Group.Status = types.RequestAccessGroupStatusAPPROVED
 	if groupEvent.Review.Decision == types.ReviewDecisionDECLINED {
-		group.Status = types.RequestAccessGroupStatusDECLINED
+		group.Group.Status = types.RequestAccessGroupStatusDECLINED
 	}
-	err = n.DB.Put(ctx, group)
+	err = n.DB.Put(ctx, &group.Group)
 	if err != nil {
 		return err
 	}
 
 	if groupEvent.Review.Decision == types.ReviewDecisionAPPROVED {
 		return n.Eventbus.Put(ctx, gevent.AccessGroupApproved{
-			AccessGroup: groupEvent.AccessGroup,
+			AccessGroup: *group,
 		})
 	} else {
 		return n.Eventbus.Put(ctx, gevent.AccessGroupDeclined{
-			AccessGroup: groupEvent.AccessGroup,
+			AccessGroup: *group,
 		})
 	}
 }
@@ -74,7 +74,7 @@ func (n *EventHandler) handleAccessGroupApprovedEvent(ctx context.Context, detai
 	if err != nil {
 		return err
 	}
-	request, err := n.GetRequestFromDatabase(ctx, groupEvent.AccessGroup.RequestID)
+	request, err := n.GetRequestFromDatabase(ctx, groupEvent.AccessGroup.Group.RequestID)
 	if err != nil {
 		return err
 	}
@@ -89,7 +89,7 @@ func (n *EventHandler) handleAccessGroupApprovedEvent(ctx context.Context, detai
 		}
 	}
 
-	_, err = n.Workflow.Grant(ctx, groupEvent.AccessGroup)
+	_, err = n.Workflow.Grant(ctx, groupEvent.AccessGroup.Group.RequestID, groupEvent.AccessGroup.Group.ID)
 	return err
 
 }
@@ -101,7 +101,7 @@ func (n *EventHandler) handleAccessGroupDeclinedDeclinedEvent(ctx context.Contex
 	if err != nil {
 		return err
 	}
-	request, err := n.GetRequestFromDatabase(ctx, groupEvent.AccessGroup.RequestID)
+	request, err := n.GetRequestFromDatabase(ctx, groupEvent.AccessGroup.Group.RequestID)
 	if err != nil {
 		return err
 	}

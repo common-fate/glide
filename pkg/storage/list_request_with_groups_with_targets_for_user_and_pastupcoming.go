@@ -12,7 +12,7 @@ import (
 type ListRequestWithGroupsWithTargetsForUserAndPastUpcoming struct {
 	UserID       string
 	PastUpcoming keys.AccessRequestPastUpcoming
-	Result       []access.RequestWithGroupsWithTargets
+	Result       []access.RequestWithGroupsWithTargets `ddb:"result"`
 }
 
 func (g *ListRequestWithGroupsWithTargetsForUserAndPastUpcoming) BuildQuery() (*dynamodb.QueryInput, error) {

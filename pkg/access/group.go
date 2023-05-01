@@ -35,7 +35,7 @@ type Group struct {
 }
 
 type GroupWithTargets struct {
-	Group   `json:"group"`
+	Group   Group         `json:"group"`
 	Targets []GroupTarget `json:"targets"`
 }
 
@@ -49,18 +49,18 @@ func (r *GroupWithTargets) DBItems() []ddb.Keyer {
 }
 func (g *GroupWithTargets) ToAPI() types.RequestAccessGroup {
 	out := types.RequestAccessGroup{
-		Id:              g.ID,
-		RequestId:       g.RequestID,
-		Status:          g.Status,
-		RequestedTiming: g.RequestedTiming.ToAPI(),
+		Id:              g.Group.ID,
+		RequestId:       g.Group.RequestID,
+		Status:          g.Group.Status,
+		RequestedTiming: g.Group.RequestedTiming.ToAPI(),
 		Targets:         []types.RequestAccessGroupTarget{},
-		ApprovalMethod:  g.ApprovalMethod,
-		CreatedAt:       g.CreatedAt,
-		UpdatedAt:       g.UpdatedAt,
-		RequestedBy:     types.RequestRequestedBy(g.RequestedBy),
+		ApprovalMethod:  g.Group.ApprovalMethod,
+		CreatedAt:       g.Group.CreatedAt,
+		UpdatedAt:       g.Group.UpdatedAt,
+		RequestedBy:     types.RequestRequestedBy(g.Group.RequestedBy),
 	}
-	if g.OverrideTiming != nil {
-		ot := g.OverrideTiming.ToAPI()
+	if g.Group.OverrideTiming != nil {
+		ot := g.Group.OverrideTiming.ToAPI()
 		out.OverrideTiming = &ot
 	}
 	for _, target := range g.Targets {

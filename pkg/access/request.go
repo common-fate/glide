@@ -29,19 +29,14 @@ type Request struct {
 	RequestReviewers []string `json:"requestReviewers" dynamodbav:"requestReviewers, set"`
 }
 
-type RequestWithGroups struct {
-	Request `json:"request"`
-	Groups  []Group `json:"groups"`
-}
-
 type RequestWithGroupsWithTargets struct {
-	Request `json:"request"`
+	Request Request            `json:"request"`
 	Groups  []GroupWithTargets `json:"groups"`
 }
 
 func (r *RequestWithGroupsWithTargets) AllGroupsReviewed() bool {
 	for _, group := range r.Groups {
-		if group.ApprovalMethod != nil {
+		if group.Group.ApprovalMethod == nil {
 			return false
 		}
 	}
@@ -49,16 +44,16 @@ func (r *RequestWithGroupsWithTargets) AllGroupsReviewed() bool {
 }
 func (r *RequestWithGroupsWithTargets) AllGroupsDeclined() bool {
 	for _, group := range r.Groups {
-		if group.Status != types.RequestAccessGroupStatusDECLINED {
+		if group.Group.Status != types.RequestAccessGroupStatusDECLINED {
 			return false
 		}
 	}
 	return true
 }
 func (r *RequestWithGroupsWithTargets) UpdateStatus(status types.RequestStatus) {
-	r.RequestStatus = status
+	r.Request.RequestStatus = status
 	for i, g := range r.Groups {
-		g.RequestStatus = status
+		g.Group.RequestStatus = status
 		for i, t := range g.Targets {
 			t.RequestStatus = status
 			g.Targets[i] = t
@@ -69,9 +64,9 @@ func (r *RequestWithGroupsWithTargets) UpdateStatus(status types.RequestStatus) 
 
 func (r *RequestWithGroupsWithTargets) DBItems() []ddb.Keyer {
 	var items []ddb.Keyer
-	items = append(items, r)
+	items = append(items, &r.Request)
 	for i := range r.Groups {
-		items = append(items, &r.Groups[i])
+		items = append(items, &r.Groups[i].Group)
 		for j := range r.Groups[i].Targets {
 			items = append(items, &r.Groups[i].Targets[j])
 		}
@@ -90,12 +85,12 @@ func (p Purpose) ToAPI() types.RequestPurpose {
 }
 func (r *RequestWithGroupsWithTargets) ToAPI() types.Request {
 	out := types.Request{
-		ID:          r.ID,
-		Status:      r.RequestStatus,
-		Purpose:     r.Purpose.ToAPI(),
-		RequestedAt: r.CreatedAt,
+		ID:          r.Request.ID,
+		Status:      r.Request.RequestStatus,
+		Purpose:     r.Request.Purpose.ToAPI(),
+		RequestedAt: r.Request.CreatedAt,
 		// @TODO denormalise the user onto the request
-		RequestedBy:  types.RequestRequestedBy(r.RequestedBy),
+		RequestedBy:  types.RequestRequestedBy(r.Request.RequestedBy),
 		AccessGroups: []types.RequestAccessGroup{},
 	}
 	for _, group := range r.Groups {

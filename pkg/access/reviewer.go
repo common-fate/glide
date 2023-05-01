@@ -23,12 +23,7 @@ type Notifications struct {
 func (r *Reviewer) DDBKeys() (ddb.Keys, error) {
 	keys := ddb.Keys{
 		PK: keys.RequestReviewer.PK1,
-		// SK:     keys.RequestReviewer.SK1(r.AccessGroup.ID, r.ReviewerID),
-		// GSI1PK: keys.RequestReviewer.GSI1PK(r.ReviewerID),
-		// GSI1SK: keys.RequestReviewer.GSI1SK(r.AccessGroup.ID),
-		// GSI2PK: keys.RequestReviewer.GSI2PK(r.ReviewerID),
-		// GSI2SK: keys.RequestReviewer.GSI2SK(string(r.AccessGroup.Status), r.AccessGroup.ID),
+		SK: keys.RequestReviewer.SK1(r.RequestID, r.ReviewerID),
 	}
-
 	return keys, nil
 }

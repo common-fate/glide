@@ -16,7 +16,7 @@ func UnmarshalRequestGroup(items []map[string]types.AttributeValue) (*access.Gro
 		return nil, ddb.ErrNoItems
 	}
 	var result access.GroupWithTargets
-	err := attributevalue.UnmarshalMap(items[0], &result)
+	err := attributevalue.UnmarshalMap(items[0], &result.Group)
 	if err != nil {
 		return nil, err
 	}
@@ -38,7 +38,7 @@ func UnmarshalRequest(items []map[string]types.AttributeValue) (*access.RequestW
 		return nil, ddb.ErrNoItems
 	}
 	var result access.RequestWithGroupsWithTargets
-	err := attributevalue.UnmarshalMap(items[0], &result)
+	err := attributevalue.UnmarshalMap(items[0], &result.Request)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +49,10 @@ func UnmarshalRequest(items []map[string]types.AttributeValue) (*access.RequestW
 		// items will come out in order, groups first, then targets
 		// The process here is to assert which type the item is, then unmarshal it to the correct type.
 		// targets need to be assigned onto the correct group struct, so we use a map to track them
-		if !strings.Contains((v["SK"].(*types.AttributeValueMemberS).Value), keys.AccessRequestGroupTargetKey) {
+		sk := v["SK"]
+		skval, ok := sk.(*types.AttributeValueMemberS)
+		_ = ok
+		if !strings.Contains(skval.Value, keys.AccessRequestGroupTargetKey) {
 			var g access.Group
 			err := attributevalue.UnmarshalMap(v, &g)
 			if err != nil {
@@ -97,7 +100,7 @@ func UnmarshalRequests(items []map[string]types.AttributeValue) ([]access.Reques
 			request.Groups = append(request.Groups, grp)
 		}
 
-		if foundTargetCount != request.GroupTargetCount {
+		if foundTargetCount != request.Request.GroupTargetCount {
 			// The full request must have been paginated, so instead of saving it, use the last target from the last full request as the pagination key.
 			if lastTargetForLastCompleteRequest != nil {
 				keys, err := lastTargetForLastCompleteRequest.DDBKeys()
@@ -130,7 +133,7 @@ func UnmarshalRequests(items []map[string]types.AttributeValue) ([]access.Reques
 				}
 			}
 			// it is a request
-			err := attributevalue.UnmarshalMap(item, &request)
+			err := attributevalue.UnmarshalMap(item, &request.Request)
 			if err != nil {
 				return nil, nil, err
 			}
@@ -172,43 +175,8 @@ func UnmarshalRequestsBottomToTop(items []map[string]types.AttributeValue) ([]ac
 	}
 
 	var result []access.RequestWithGroupsWithTargets
-	var request *access.RequestWithGroupsWithTargets
 	groups := make(map[string]access.GroupWithTargets)
 
-	completeUnmarshallingRequest := func() (map[string]types.AttributeValue, error) {
-		// check if request is nil, if it is, then we need to paginate with the key of the last rull request
-		if request == nil {
-			if len(result) == 0 {
-				return nil, errors.New("failed to unmarshal requests, this could happen if the data for the request exceeds the 1mb limit for a ddb query")
-			}
-			keys, err := result[len(result)-1].DDBKeys()
-			if err != nil {
-				return nil, err
-			}
-			return map[string]types.AttributeValue{
-				"PK": &types.AttributeValueMemberS{Value: keys.PK},
-				"SK": &types.AttributeValueMemberS{Value: keys.SK},
-			}, nil
-		}
-
-		var foundTargetCount int
-		for _, grp := range groups {
-			foundTargetCount += len(grp.Targets)
-			request.Groups = append(request.Groups, grp)
-		}
-
-		if foundTargetCount != request.GroupTargetCount {
-			// Something is seriously wrong :( there is a malformed request
-			// this error condition would probably be quite bad
-			// could also be an issue in dev environments if test data fails to be well formed
-			return nil, errors.New("failed to unmarshal requests, this could happen if the data for the request exceeds the 1mb limit for a ddb query")
-		}
-
-		result = append(result, *request)
-		request = nil
-		groups = make(map[string]access.GroupWithTargets)
-		return nil, nil
-	}
 	for _, item := range items {
 		if strings.Contains((item["SK"].(*types.AttributeValueMemberS).Value), keys.AccessRequestGroupTargetKey) {
 			// it is a target
@@ -234,21 +202,29 @@ func UnmarshalRequestsBottomToTop(items []map[string]types.AttributeValue) ([]ac
 		} else {
 			// it is a request
 			var r access.RequestWithGroupsWithTargets
-			err := attributevalue.UnmarshalMap(item, &r)
+			err := attributevalue.UnmarshalMap(item, &r.Request)
 			if err != nil {
 				return nil, nil, err
 			}
-			request = &r
-			o, err := completeUnmarshallingRequest()
-			if err != nil {
-				return nil, o, err
-			}
+			result = append(result, r)
+			groups = make(map[string]access.GroupWithTargets)
 		}
+	}
 
+	if len(groups) != 0 {
+		if len(result) != 0 {
+			keys, err := result[len(result)-1].Request.DDBKeys()
+			if err != nil {
+				return nil, nil, err
+			}
+			return result, map[string]types.AttributeValue{
+				"PK": &types.AttributeValueMemberS{Value: keys.PK},
+				"SK": &types.AttributeValueMemberS{Value: keys.SK},
+			}, nil
+		} else {
+			return nil, nil, errors.New("failed to unmarshal requests, this could happen if the data for the request exceeds the 1mb limit for a ddb query")
+		}
 	}
-	pagination, err := completeUnmarshallingRequest()
-	if err != nil {
-		return nil, nil, err
-	}
-	return result, pagination, nil
+
+	return result, nil, nil
 }

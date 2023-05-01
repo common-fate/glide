@@ -25,8 +25,8 @@ type EventPutter interface {
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_workflow_service.go -package=mocks . Workflow
 type Workflow interface {
-	Revoke(ctx context.Context, group access.GroupWithTargets, revokerID string, revokerEmail string) (*access.GroupWithTargets, error)
-	Grant(ctx context.Context, group access.GroupWithTargets) ([]access.GroupTarget, error)
+	Revoke(ctx context.Context, requestID string, groupID string, revokerID string, revokerEmail string) error
+	Grant(ctx context.Context, requestID string, groupID string) ([]access.GroupTarget, error)
 }
 
 // EventHandler provides handler methods for reacting to async actions during the granting process

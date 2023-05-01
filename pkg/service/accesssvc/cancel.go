@@ -50,7 +50,7 @@ func canCancel(opts CancelRequestOpts, request access.Request) bool {
 func isCancellable(request access.RequestWithGroupsWithTargets) bool {
 	var isCancellable bool
 	for _, group := range request.Groups {
-		isCancellable = group.Status == types.RequestAccessGroupStatusPENDINGAPPROVAL
+		isCancellable = group.Group.Status == types.RequestAccessGroupStatusPENDINGAPPROVAL
 
 	}
 	return isCancellable

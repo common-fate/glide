@@ -76,7 +76,7 @@ func (a *API) UserListRequests(w http.ResponseWriter, r *http.Request, params ty
 func (a *API) UserGetRequest(w http.ResponseWriter, r *http.Request, requestId string) {
 	ctx := r.Context()
 	u := auth.UserFromContext(ctx)
-	q := storage.GetRequestWithGroupsWithTargetsForUser{UserID: u.ID, RequestID: requestId}
+	q := storage.GetRequestWithGroupsWithTargetsForUserOrReviewer{UserID: u.ID, RequestID: requestId}
 	_, err := a.DB.Query(ctx, &q)
 	if err == ddb.ErrNoItems {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusNotFound))
@@ -167,7 +167,7 @@ func (a *API) UserRevokeRequest(w http.ResponseWriter, r *http.Request, requestI
 		return
 	}
 	// user can revoke their own request and admins can revoke any request
-	if q.Result.RequestedBy.Email == u.ID || isAdmin {
+	if q.Result.Request.RequestedBy.Email == u.ID || isAdmin {
 		req = *q.Result
 	} else { // reviewers can revoke reviewable requests
 		p := storage.GetRequestReviewer{RequestID: requestID, ReviewerID: u.Email}
