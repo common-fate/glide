@@ -4,11 +4,11 @@ import "github.com/common-fate/common-fate/pkg/access"
 
 const (
 	RequestCreatedType         = "request.created"
-	RequestCompleteType        = "request.complete"
+	RequestCompleteType        = "request.completed"
 	RequestRevokeInitiatedType = "request.revoke.initiated"
-	RequestRevokeType          = "request.revoke"
-	RequestCancelInitiatedType = "request.cancel.init"
-	RequestCancelType          = "request.cancel"
+	RequestRevokeCompletedType = "request.revoke.completed"
+	RequestCancelInitiatedType = "request.cancel.initiated"
+	RequestCancelCompletedType = "request.cancel.completed"
 )
 
 // RequestCreated is when the user requests access
@@ -52,7 +52,7 @@ type RequestRevoked struct {
 }
 
 func (RequestRevoked) EventType() string {
-	return RequestRevokeType
+	return RequestRevokeCompletedType
 }
 
 type RequestCancelled struct {
@@ -60,5 +60,5 @@ type RequestCancelled struct {
 }
 
 func (RequestCancelled) EventType() string {
-	return RequestCancelType
+	return RequestCancelCompletedType
 }

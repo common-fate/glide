@@ -18,14 +18,14 @@ func (n *EventHandler) HandleRequestEvents(ctx context.Context, log *zap.Sugared
 		return n.handleRequestCreated(ctx, event.Detail)
 	case gevent.RequestCancelInitiatedType:
 		return n.handleRequestCancelInitiated(ctx, event.Detail)
-	case gevent.RequestCancelType:
-		return n.handleRequestCancelled(ctx, event.Detail)
 	case gevent.RequestRevokeInitiatedType:
 		return n.handleRequestRevokeInitiated(ctx, event.Detail)
-	case gevent.RequestRevokeType:
-		return n.handleRequestRevoked(ctx, event.Detail)
-	case gevent.RequestCompleteType:
-		return n.handleRequestComplete(ctx, event.Detail)
+		// case gevent.RequestCancelType:
+		// 	return n.handleRequestCancelled(ctx, event.Detail)
+		// case gevent.RequestRevokeType:
+		// 	return n.handleRequestRevoked(ctx, event.Detail)
+		// case gevent.RequestCompleteType:
+		// 	return n.handleRequestComplete(ctx, event.Detail)
 	}
 	return nil
 }
@@ -60,33 +60,33 @@ func (n *EventHandler) handleRequestCreated(ctx context.Context, detail json.Raw
 	return nil
 }
 
-func (n *EventHandler) handleRequestCancelled(ctx context.Context, detail json.RawMessage) error {
-	var requestEvent gevent.RequestCancelled
-	err := json.Unmarshal(detail, &requestEvent)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-func (n *EventHandler) handleRequestRevoked(ctx context.Context, detail json.RawMessage) error {
-	var requestEvent gevent.RequestCreated
-	err := json.Unmarshal(detail, &requestEvent)
-	if err != nil {
-		return err
-	}
+// func (n *EventHandler) handleRequestCancelled(ctx context.Context, detail json.RawMessage) error {
+// 	var requestEvent gevent.RequestCancelled
+// 	err := json.Unmarshal(detail, &requestEvent)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }
+// func (n *EventHandler) handleRequestRevoked(ctx context.Context, detail json.RawMessage) error {
+// 	var requestEvent gevent.RequestCreated
+// 	err := json.Unmarshal(detail, &requestEvent)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
-func (n *EventHandler) handleRequestComplete(ctx context.Context, detail json.RawMessage) error {
-	var requestEvent gevent.RequestCreated
-	err := json.Unmarshal(detail, &requestEvent)
-	if err != nil {
-		return err
-	}
+// func (n *EventHandler) handleRequestComplete(ctx context.Context, detail json.RawMessage) error {
+// 	var requestEvent gevent.RequestCreated
+// 	err := json.Unmarshal(detail, &requestEvent)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	return nil
-}
+//		return nil
+//	}
 func (n *EventHandler) handleRequestCancelInitiated(ctx context.Context, detail json.RawMessage) error {
 	var requestEvent gevent.RequestCancelledInitiated
 	err := json.Unmarshal(detail, &requestEvent)
