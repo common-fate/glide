@@ -9,9 +9,12 @@ import (
 	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/accesshandler/pkg/types/ahmocks"
 	"github.com/common-fate/common-fate/pkg/cache"
+	"github.com/common-fate/common-fate/pkg/identity"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/service/rulesvc/mocks"
+	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
+	"github.com/common-fate/ddb"
 	"github.com/common-fate/ddb/ddbmock"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -26,9 +29,11 @@ func TestUpdateAccessRule(t *testing.T) {
 		givenUpdateBody types.CreateAccessRuleRequest
 		wantErr         error
 		want            *rule.AccessRule
+		wantGetUser     identity.User
+		wantGetUserErr  error
 	}
 
-	in := types.CreateAccessRuleRequest{}
+	// in := types.CreateAccessRuleRequest{}
 
 	ruleID := "override"
 	versionID := types.NewVersionID()
@@ -44,9 +49,9 @@ func TestUpdateAccessRule(t *testing.T) {
 	- UpdateOpts.UpdateRequest
 	*/
 	mockRule := rule.AccessRule{
-		ID:       ruleID,
-		Approval: rule.Approval{Users: *in.Approval.Users, Groups: *in.Approval.Groups},
-		Status:   rule.ACTIVE,
+		ID: ruleID,
+		// Approval: rule.Approval{Users: *in.Approval.Users, Groups: *in.Approval.Groups},
+		Status: rule.ACTIVE,
 		Metadata: rule.AccessRuleMetadata{
 			CreatedAt: now,
 			CreatedBy: userID,
@@ -63,7 +68,7 @@ func TestUpdateAccessRule(t *testing.T) {
 
 	mockRuleUpdateBody := types.CreateAccessRuleRequest{
 		Approval: types.ApproverConfig{
-			Users: &[]string{"user1", "user2"},
+			Users: &[]string{"user1"},
 		},
 		Name:        "changing the name",
 		Description: "changing the description name",
@@ -82,7 +87,8 @@ func TestUpdateAccessRule(t *testing.T) {
 	want := rule.AccessRule{
 		ID: ruleID,
 		Approval: rule.Approval{
-			Users: *mockRuleUpdateBody.Approval.Users,
+			Users:  *mockRuleUpdateBody.Approval.Users,
+			Groups: []string{},
 		},
 		Status:      rule.ACTIVE,
 		Description: mockRuleUpdateBody.Description,
@@ -119,15 +125,30 @@ func TestUpdateAccessRule(t *testing.T) {
 			givenRule:       mockRule,
 			givenUpdateBody: mockRuleUpdateBody,
 			want:            &want,
+			wantGetUser: identity.User{
+				ID: "user1",
+			},
+			wantGetUserErr: nil,
+		},
+		{
+			name:            "no approving user found",
+			givenUserID:     userID,
+			givenRule:       mockRule,
+			givenUpdateBody: mockRuleUpdateBody,
+			want:            &want,
+			wantGetUser: identity.User{
+				ID: "user1",
+			},
+			wantGetUserErr: ddb.ErrNoItems,
 		},
 	}
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 
-			dbc := ddbmock.Client{
-				PutBatchErr: tc.wantErr,
-			}
+			db := ddbmock.New(t)
+
+			db.MockQueryWithErr(&storage.GetUser{Result: &tc.wantGetUser}, tc.wantGetUserErr)
 			clk := clock.NewMock()
 			ctrl := gomock.NewController(t)
 
@@ -142,7 +163,7 @@ func TestUpdateAccessRule(t *testing.T) {
 
 			s := Service{
 				Clock:    clk,
-				DB:       &dbc,
+				DB:       db,
 				AHClient: m,
 				Cache:    cm,
 			}
