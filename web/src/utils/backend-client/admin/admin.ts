@@ -34,6 +34,7 @@ import type {
   ListHandlersResponseResponse,
   RegisterHandlerRequestBody,
   TargetGroup,
+  ListTargetGroupResourceResponse,
   ListTargetGroupResponseResponse,
   CreateTargetGroupRequestBody,
   TargetRoute,
@@ -45,25 +46,17 @@ import type { ErrorType } from '../../custom-instance'
 
 
   
-  // eslint-disable-next-line
-  type SecondParameter<T extends (...args: any) => any> = T extends (
-  config: any,
-  args: infer P,
-) => any
-  ? P
-  : never;
-
-/**
+  /**
  * Returns the version information
  * @summary Get deployment version details
  */
 export const adminGetDeploymentVersion = (
     
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<DeploymentVersionResponseResponse>(
       {url: `/api/v1/admin/deployment/version`, method: 'get'
     },
-      options);
+      );
     }
   
 
@@ -74,15 +67,15 @@ export type AdminGetDeploymentVersionQueryResult = NonNullable<Awaited<ReturnTyp
 export type AdminGetDeploymentVersionQueryError = ErrorType<unknown>
 
 export const useAdminGetDeploymentVersion = <TError = ErrorType<unknown>>(
-  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminGetDeploymentVersion>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminGetDeploymentVersion>>, TError> & { swrKey?: Key, enabled?: boolean },  }
 
   ) => {
 
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
+  const {swr: swrOptions} = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false
     const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminGetDeploymentVersionKey() : null);
-  const swrFn = () => adminGetDeploymentVersion(requestOptions);
+  const swrFn = () => adminGetDeploymentVersion();
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
@@ -98,12 +91,12 @@ export const useAdminGetDeploymentVersion = <TError = ErrorType<unknown>>(
  */
 export const adminListAccessRules = (
     params?: AdminListAccessRulesParams,
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<ListAccessRulesResponseResponse>(
       {url: `/api/v1/admin/access-rules`, method: 'get',
         params
     },
-      options);
+      );
     }
   
 
@@ -114,15 +107,15 @@ export type AdminListAccessRulesQueryResult = NonNullable<Awaited<ReturnType<typ
 export type AdminListAccessRulesQueryError = ErrorType<ErrorResponseResponse>
 
 export const useAdminListAccessRules = <TError = ErrorType<ErrorResponseResponse>>(
- params?: AdminListAccessRulesParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminListAccessRules>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+ params?: AdminListAccessRulesParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminListAccessRules>>, TError> & { swrKey?: Key, enabled?: boolean },  }
 
   ) => {
 
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
+  const {swr: swrOptions} = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false
     const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminListAccessRulesKey(params) : null);
-  const swrFn = () => adminListAccessRules(params, requestOptions);
+  const swrFn = () => adminListAccessRules(params, );
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
@@ -138,13 +131,13 @@ export const useAdminListAccessRules = <TError = ErrorType<ErrorResponseResponse
  */
 export const adminCreateAccessRule = (
     createAccessRuleRequestBody: CreateAccessRuleRequestBody,
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<AccessRule>(
       {url: `/api/v1/admin/access-rules`, method: 'post',
       headers: {'Content-Type': 'application/json', },
       data: createAccessRuleRequestBody
     },
-      options);
+      );
     }
   
 
@@ -154,11 +147,11 @@ export const adminCreateAccessRule = (
  */
 export const adminGetAccessRule = (
     ruleId: string,
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<AccessRule>(
       {url: `/api/v1/admin/access-rules/${ruleId}`, method: 'get'
     },
-      options);
+      );
     }
   
 
@@ -169,15 +162,15 @@ export type AdminGetAccessRuleQueryResult = NonNullable<Awaited<ReturnType<typeo
 export type AdminGetAccessRuleQueryError = ErrorType<ErrorResponseResponse>
 
 export const useAdminGetAccessRule = <TError = ErrorType<ErrorResponseResponse>>(
- ruleId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminGetAccessRule>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+ ruleId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminGetAccessRule>>, TError> & { swrKey?: Key, enabled?: boolean },  }
 
   ) => {
 
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
+  const {swr: swrOptions} = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false && !!(ruleId)
     const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminGetAccessRuleKey(ruleId) : null);
-  const swrFn = () => adminGetAccessRule(ruleId, requestOptions);
+  const swrFn = () => adminGetAccessRule(ruleId, );
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
@@ -194,13 +187,13 @@ export const useAdminGetAccessRule = <TError = ErrorType<ErrorResponseResponse>>
 export const adminUpdateAccessRule = (
     ruleId: string,
     createAccessRuleRequestBody: CreateAccessRuleRequestBody,
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<AccessRule>(
       {url: `/api/v1/admin/access-rules/${ruleId}`, method: 'put',
       headers: {'Content-Type': 'application/json', },
       data: createAccessRuleRequestBody
     },
-      options);
+      );
     }
   
 
@@ -210,12 +203,12 @@ export const adminUpdateAccessRule = (
  */
 export const adminListRequests = (
     params?: AdminListRequestsParams,
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<ListRequestsResponseResponse>(
       {url: `/api/v1/admin/requests`, method: 'get',
         params
     },
-      options);
+      );
     }
   
 
@@ -226,15 +219,15 @@ export type AdminListRequestsQueryResult = NonNullable<Awaited<ReturnType<typeof
 export type AdminListRequestsQueryError = ErrorType<unknown>
 
 export const useAdminListRequests = <TError = ErrorType<unknown>>(
- params?: AdminListRequestsParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminListRequests>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+ params?: AdminListRequestsParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminListRequests>>, TError> & { swrKey?: Key, enabled?: boolean },  }
 
   ) => {
 
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
+  const {swr: swrOptions} = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false
     const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminListRequestsKey(params) : null);
-  const swrFn = () => adminListRequests(params, requestOptions);
+  const swrFn = () => adminListRequests(params, );
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
@@ -251,13 +244,13 @@ export const useAdminListRequests = <TError = ErrorType<unknown>>(
 export const adminUpdateUser = (
     userId: string,
     adminUpdateUserBody: AdminUpdateUserBody,
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<User>(
       {url: `/api/v1/admin/users/${userId}`, method: 'post',
       headers: {'Content-Type': 'application/json', },
       data: adminUpdateUserBody
     },
-      options);
+      );
     }
   
 
@@ -267,12 +260,12 @@ export const adminUpdateUser = (
  */
 export const adminListUsers = (
     params?: AdminListUsersParams,
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<ListUserResponseResponse>(
       {url: `/api/v1/admin/users`, method: 'get',
         params
     },
-      options);
+      );
     }
   
 
@@ -283,15 +276,15 @@ export type AdminListUsersQueryResult = NonNullable<Awaited<ReturnType<typeof ad
 export type AdminListUsersQueryError = ErrorType<unknown>
 
 export const useAdminListUsers = <TError = ErrorType<unknown>>(
- params?: AdminListUsersParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminListUsers>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+ params?: AdminListUsersParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminListUsers>>, TError> & { swrKey?: Key, enabled?: boolean },  }
 
   ) => {
 
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
+  const {swr: swrOptions} = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false
     const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminListUsersKey(params) : null);
-  const swrFn = () => adminListUsers(params, requestOptions);
+  const swrFn = () => adminListUsers(params, );
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
@@ -307,13 +300,13 @@ export const useAdminListUsers = <TError = ErrorType<unknown>>(
  */
 export const adminCreateUser = (
     createUserRequestBody: CreateUserRequestBody,
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<User>(
       {url: `/api/v1/admin/users`, method: 'post',
       headers: {'Content-Type': 'application/json', },
       data: createUserRequestBody
     },
-      options);
+      );
     }
   
 
@@ -323,12 +316,12 @@ export const adminCreateUser = (
  */
 export const adminListGroups = (
     params?: AdminListGroupsParams,
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<ListGroupsResponseResponse>(
       {url: `/api/v1/admin/groups`, method: 'get',
         params
     },
-      options);
+      );
     }
   
 
@@ -339,15 +332,15 @@ export type AdminListGroupsQueryResult = NonNullable<Awaited<ReturnType<typeof a
 export type AdminListGroupsQueryError = ErrorType<unknown>
 
 export const useAdminListGroups = <TError = ErrorType<unknown>>(
- params?: AdminListGroupsParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminListGroups>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+ params?: AdminListGroupsParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminListGroups>>, TError> & { swrKey?: Key, enabled?: boolean },  }
 
   ) => {
 
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
+  const {swr: swrOptions} = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false
     const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminListGroupsKey(params) : null);
-  const swrFn = () => adminListGroups(params, requestOptions);
+  const swrFn = () => adminListGroups(params, );
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
@@ -363,13 +356,13 @@ export const useAdminListGroups = <TError = ErrorType<unknown>>(
  */
 export const adminCreateGroup = (
     createGroupRequestBody: CreateGroupRequestBody,
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<Group>(
       {url: `/api/v1/admin/groups`, method: 'post',
       headers: {'Content-Type': 'application/json', },
       data: createGroupRequestBody
     },
-      options);
+      );
     }
   
 
@@ -379,11 +372,11 @@ export const adminCreateGroup = (
  */
 export const adminGetGroup = (
     groupId: string,
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<Group>(
       {url: `/api/v1/admin/groups/${groupId}`, method: 'get'
     },
-      options);
+      );
     }
   
 
@@ -394,15 +387,15 @@ export type AdminGetGroupQueryResult = NonNullable<Awaited<ReturnType<typeof adm
 export type AdminGetGroupQueryError = ErrorType<unknown>
 
 export const useAdminGetGroup = <TError = ErrorType<unknown>>(
- groupId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminGetGroup>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+ groupId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminGetGroup>>, TError> & { swrKey?: Key, enabled?: boolean },  }
 
   ) => {
 
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
+  const {swr: swrOptions} = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false && !!(groupId)
     const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminGetGroupKey(groupId) : null);
-  const swrFn = () => adminGetGroup(groupId, requestOptions);
+  const swrFn = () => adminGetGroup(groupId, );
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
@@ -419,13 +412,13 @@ export const useAdminGetGroup = <TError = ErrorType<unknown>>(
 export const adminUpdateGroup = (
     groupId: string,
     createGroupRequestBody: CreateGroupRequestBody,
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<Group>(
       {url: `/api/v1/admin/groups/${groupId}`, method: 'put',
       headers: {'Content-Type': 'application/json', },
       data: createGroupRequestBody
     },
-      options);
+      );
     }
   
 
@@ -435,11 +428,11 @@ export const adminUpdateGroup = (
  */
 export const adminDeleteGroup = (
     groupId: string,
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<void>(
       {url: `/api/v1/admin/groups/${groupId}`, method: 'delete'
     },
-      options);
+      );
     }
   
 
@@ -449,11 +442,11 @@ export const adminDeleteGroup = (
  */
 export const adminSyncIdentity = (
     
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<void>(
       {url: `/api/v1/admin/identity/sync`, method: 'post'
     },
-      options);
+      );
     }
   
 
@@ -463,11 +456,11 @@ export const adminSyncIdentity = (
  */
 export const adminGetIdentityConfiguration = (
     
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<IdentityConfigurationResponseResponse>(
       {url: `/api/v1/admin/identity`, method: 'get'
     },
-      options);
+      );
     }
   
 
@@ -478,15 +471,15 @@ export type AdminGetIdentityConfigurationQueryResult = NonNullable<Awaited<Retur
 export type AdminGetIdentityConfigurationQueryError = ErrorType<ErrorResponseResponse>
 
 export const useAdminGetIdentityConfiguration = <TError = ErrorType<ErrorResponseResponse>>(
-  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminGetIdentityConfiguration>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminGetIdentityConfiguration>>, TError> & { swrKey?: Key, enabled?: boolean },  }
 
   ) => {
 
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
+  const {swr: swrOptions} = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false
     const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminGetIdentityConfigurationKey() : null);
-  const swrFn = () => adminGetIdentityConfiguration(requestOptions);
+  const swrFn = () => adminGetIdentityConfiguration();
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
@@ -501,11 +494,11 @@ export const useAdminGetIdentityConfiguration = <TError = ErrorType<ErrorRespons
  */
 export const adminGetHandler = (
     id: string,
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<TGHandler>(
       {url: `/api/v1/admin/handlers/${id}`, method: 'get'
     },
-      options);
+      );
     }
   
 
@@ -516,15 +509,15 @@ export type AdminGetHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof a
 export type AdminGetHandlerQueryError = ErrorType<ErrorResponseResponse>
 
 export const useAdminGetHandler = <TError = ErrorType<ErrorResponseResponse>>(
- id: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminGetHandler>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+ id: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminGetHandler>>, TError> & { swrKey?: Key, enabled?: boolean },  }
 
   ) => {
 
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
+  const {swr: swrOptions} = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false && !!(id)
     const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminGetHandlerKey(id) : null);
-  const swrFn = () => adminGetHandler(id, requestOptions);
+  const swrFn = () => adminGetHandler(id, );
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
@@ -539,11 +532,11 @@ export const useAdminGetHandler = <TError = ErrorType<ErrorResponseResponse>>(
  */
 export const adminDeleteHandler = (
     id: string,
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<AdminDeleteHandler204>(
       {url: `/api/v1/admin/handlers/${id}`, method: 'delete'
     },
-      options);
+      );
     }
   
 
@@ -552,11 +545,11 @@ export const adminDeleteHandler = (
  */
 export const adminListHandlers = (
     
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<ListHandlersResponseResponse>(
       {url: `/api/v1/admin/handlers`, method: 'get'
     },
-      options);
+      );
     }
   
 
@@ -567,15 +560,15 @@ export type AdminListHandlersQueryResult = NonNullable<Awaited<ReturnType<typeof
 export type AdminListHandlersQueryError = ErrorType<ErrorResponseResponse>
 
 export const useAdminListHandlers = <TError = ErrorType<ErrorResponseResponse>>(
-  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminListHandlers>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminListHandlers>>, TError> & { swrKey?: Key, enabled?: boolean },  }
 
   ) => {
 
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
+  const {swr: swrOptions} = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false
     const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminListHandlersKey() : null);
-  const swrFn = () => adminListHandlers(requestOptions);
+  const swrFn = () => adminListHandlers();
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
@@ -590,13 +583,13 @@ export const useAdminListHandlers = <TError = ErrorType<ErrorResponseResponse>>(
  */
 export const adminRegisterHandler = (
     registerHandlerRequestBody: RegisterHandlerRequestBody,
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<TGHandler>(
       {url: `/api/v1/admin/handlers`, method: 'post',
       headers: {'Content-Type': 'application/json', },
       data: registerHandlerRequestBody
     },
-      options);
+      );
     }
   
 
@@ -605,11 +598,11 @@ export const adminRegisterHandler = (
  */
 export const adminGetTargetGroup = (
     id: string,
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<TargetGroup>(
       {url: `/api/v1/admin/target-groups/${id}`, method: 'get'
     },
-      options);
+      );
     }
   
 
@@ -620,15 +613,15 @@ export type AdminGetTargetGroupQueryResult = NonNullable<Awaited<ReturnType<type
 export type AdminGetTargetGroupQueryError = ErrorType<ErrorResponseResponse>
 
 export const useAdminGetTargetGroup = <TError = ErrorType<ErrorResponseResponse>>(
- id: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminGetTargetGroup>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+ id: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminGetTargetGroup>>, TError> & { swrKey?: Key, enabled?: boolean },  }
 
   ) => {
 
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
+  const {swr: swrOptions} = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false && !!(id)
     const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminGetTargetGroupKey(id) : null);
-  const swrFn = () => adminGetTargetGroup(id, requestOptions);
+  const swrFn = () => adminGetTargetGroup(id, );
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
@@ -644,24 +637,66 @@ export const useAdminGetTargetGroup = <TError = ErrorType<ErrorResponseResponse>
  */
 export const adminDeleteTargetGroup = (
     id: string,
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<void>(
       {url: `/api/v1/admin/target-groups/${id}`, method: 'delete'
     },
-      options);
+      );
     }
   
+
+/**
+ * List all the resources associated with the provided resourceType for given target-group-id.
+ * @summary List Target Group Resources
+ */
+export const adminGetTargetGroupResources = (
+    id: string,
+    resourceType: string,
+ ) => {
+      return customInstance<ListTargetGroupResourceResponse>(
+      {url: `/api/v1/admin/target-groups/${id}/resources/${resourceType}`, method: 'get'
+    },
+      );
+    }
+  
+
+export const getAdminGetTargetGroupResourcesKey = (id: string,
+    resourceType: string,) => [`/api/v1/admin/target-groups/${id}/resources/${resourceType}`];
+
+    
+export type AdminGetTargetGroupResourcesQueryResult = NonNullable<Awaited<ReturnType<typeof adminGetTargetGroupResources>>>
+export type AdminGetTargetGroupResourcesQueryError = ErrorType<ErrorResponseResponse>
+
+export const useAdminGetTargetGroupResources = <TError = ErrorType<ErrorResponseResponse>>(
+ id: string,
+    resourceType: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminGetTargetGroupResources>>, TError> & { swrKey?: Key, enabled?: boolean },  }
+
+  ) => {
+
+  const {swr: swrOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && !!(id && resourceType)
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminGetTargetGroupResourcesKey(id,resourceType) : null);
+  const swrFn = () => adminGetTargetGroupResources(id,resourceType, );
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
 
 /**
  * @summary Get target groups
  */
 export const adminListTargetGroups = (
     
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<ListTargetGroupResponseResponse>(
       {url: `/api/v1/admin/target-groups`, method: 'get'
     },
-      options);
+      );
     }
   
 
@@ -672,15 +707,15 @@ export type AdminListTargetGroupsQueryResult = NonNullable<Awaited<ReturnType<ty
 export type AdminListTargetGroupsQueryError = ErrorType<ErrorResponseResponse>
 
 export const useAdminListTargetGroups = <TError = ErrorType<ErrorResponseResponse>>(
-  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminListTargetGroups>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminListTargetGroups>>, TError> & { swrKey?: Key, enabled?: boolean },  }
 
   ) => {
 
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
+  const {swr: swrOptions} = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false
     const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminListTargetGroupsKey() : null);
-  const swrFn = () => adminListTargetGroups(requestOptions);
+  const swrFn = () => adminListTargetGroups();
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
@@ -695,13 +730,13 @@ export const useAdminListTargetGroups = <TError = ErrorType<ErrorResponseRespons
  */
 export const adminCreateTargetGroup = (
     createTargetGroupRequestBody: CreateTargetGroupRequestBody,
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<TargetGroup>(
       {url: `/api/v1/admin/target-groups`, method: 'post',
       headers: {'Content-Type': 'application/json', },
       data: createTargetGroupRequestBody
     },
-      options);
+      );
     }
   
 
@@ -711,13 +746,13 @@ export const adminCreateTargetGroup = (
 export const adminCreateTargetGroupLink = (
     id: string,
     createTargetGroupLinkBody: CreateTargetGroupLinkBody,
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<TargetRoute>(
       {url: `/api/v1/admin/target-groups/${id}/link`, method: 'post',
       headers: {'Content-Type': 'application/json', },
       data: createTargetGroupLinkBody
     },
-      options);
+      );
     }
   
 
@@ -727,12 +762,12 @@ export const adminCreateTargetGroupLink = (
 export const adminRemoveTargetGroupLink = (
     id: string,
     params: AdminRemoveTargetGroupLinkParams,
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<void>(
       {url: `/api/v1/admin/target-groups/${id}/unlink`, method: 'post',
         params
     },
-      options);
+      );
     }
   
 
@@ -742,11 +777,11 @@ export const adminRemoveTargetGroupLink = (
  */
 export const adminHealthcheckHandlers = (
     
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<void>(
       {url: `/api/v1/admin/healthcheck-handlers`, method: 'post'
     },
-      options);
+      );
     }
   
 

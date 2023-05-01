@@ -79,3 +79,18 @@ func (mr *MockTargetServiceMockRecorder) DeleteGroup(arg0, arg1 interface{}) *go
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteGroup", reflect.TypeOf((*MockTargetService)(nil).DeleteGroup), arg0, arg1)
 }
+
+// FilterResources mocks base method.
+func (m *MockTargetService) FilterResources(arg0 context.Context, arg1 []types.TargetGroupResource, arg2 []types.Operation) ([]types.TargetGroupResource, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FilterResources", arg0, arg1, arg2)
+	ret0, _ := ret[0].([]types.TargetGroupResource)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FilterResources indicates an expected call of FilterResources.
+func (mr *MockTargetServiceMockRecorder) FilterResources(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FilterResources", reflect.TypeOf((*MockTargetService)(nil).FilterResources), arg0, arg1, arg2)
+}

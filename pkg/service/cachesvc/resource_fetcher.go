@@ -8,6 +8,7 @@ import (
 
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/common-fate/pkg/cache"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/provider-registry-sdk-go/pkg/handlerclient"
 	"github.com/common-fate/provider-registry-sdk-go/pkg/msg"
 	"golang.org/x/sync/errgroup"
@@ -75,11 +76,28 @@ func (rf *ResourceFetcher) getResources(ctx context.Context, response msg.LoadRe
 
 		rf.resourcesMx.Lock()
 		for _, i := range response.Resources {
+
+			// TODO: Revist and test this logic.
+			attributes := make(map[string]string)
+			if i.Data != nil && len(i.Data) > 0 {
+				for k, v := range i.Data {
+					if v != nil {
+						if str, ok := v.(string); ok {
+							attributes[k] = str
+						}
+					}
+				}
+			}
+
+			attributes["id"] = i.ID
+			attributes["name"] = i.Name
+
 			tgr := cache.TargetGroupResource{
 				ResourceType: i.Type,
-				Resource: cache.Resource{
-					ID:   i.ID,
-					Name: i.Name,
+				Resource: types.Resource{
+					Id:         i.ID,
+					Name:       i.Name,
+					Attributes: attributes,
 				},
 				TargetGroupID: rf.targetGroupID,
 			}

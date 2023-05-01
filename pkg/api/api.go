@@ -113,6 +113,7 @@ type TargetService interface {
 	CreateGroup(ctx context.Context, targetGroup types.CreateTargetGroupRequest) (*target.Group, error)
 	CreateRoute(ctx context.Context, group string, req types.CreateTargetGroupLink) (*target.Route, error)
 	DeleteGroup(ctx context.Context, group *target.Group) error
+	FilterResources(ctx context.Context, resources []types.TargetGroupResource, filter types.ResourceFilter) ([]types.TargetGroupResource, error)
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_handler_service.go -package=mocks . HandlerService

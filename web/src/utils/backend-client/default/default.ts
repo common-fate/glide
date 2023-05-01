@@ -12,6 +12,8 @@ import type {
 } from 'swr'
 import type {
   ErrorResponseResponse,
+  ListTargetGroupResourceResponse,
+  ResourceFilter,
   ListTargetGroupRoutesResponse,
   ListEntitlementsResponseResponse,
   ListTargetsResponseResponse,
@@ -29,24 +31,34 @@ import type { ErrorType } from '../../custom-instance'
 
 
   
-  // eslint-disable-next-line
-  type SecondParameter<T extends (...args: any) => any> = T extends (
-  config: any,
-  args: infer P,
-) => any
-  ? P
-  : never;
-
-/**
+  /**
  * @summary Delete Access Rule
  */
 export const adminDeleteAccessRule = (
     ruleId: string,
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<void>(
       {url: `/api/v1/admin/access-rules/${ruleId}`, method: 'delete'
     },
-      options);
+      );
+    }
+  
+
+/**
+ * List the filtered resources associated with the provided resourceType for given target-group-id.
+ * @summary Filter TargetGroup Resources
+ */
+export const adminFilterTargetGroupResources = (
+    id: string,
+    resourceType: string,
+    resourceFilter: ResourceFilter,
+ ) => {
+      return customInstance<ListTargetGroupResourceResponse>(
+      {url: `/api/v1/admin/target-groups/${id}/resources/${resourceType}/filters`, method: 'post',
+      headers: {'Content-Type': 'application/json', },
+      data: resourceFilter
+    },
+      );
     }
   
 
@@ -55,11 +67,11 @@ export const adminDeleteAccessRule = (
  */
 export const adminListTargetRoutes = (
     id: string,
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<ListTargetGroupRoutesResponse>(
       {url: `/api/v1/admin/target-groups/${id}/routes`, method: 'get'
     },
-      options);
+      );
     }
   
 
@@ -70,15 +82,15 @@ export type AdminListTargetRoutesQueryResult = NonNullable<Awaited<ReturnType<ty
 export type AdminListTargetRoutesQueryError = ErrorType<ErrorResponseResponse>
 
 export const useAdminListTargetRoutes = <TError = ErrorType<ErrorResponseResponse>>(
- id: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminListTargetRoutes>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+ id: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminListTargetRoutes>>, TError> & { swrKey?: Key, enabled?: boolean },  }
 
   ) => {
 
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
+  const {swr: swrOptions} = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false && !!(id)
     const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminListTargetRoutesKey(id) : null);
-  const swrFn = () => adminListTargetRoutes(id, requestOptions);
+  const swrFn = () => adminListTargetRoutes(id, );
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
@@ -95,11 +107,11 @@ These are derived from the Target Groups.
  */
 export const userListEntitlements = (
     
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<ListEntitlementsResponseResponse>(
       {url: `/api/v1/entitlements`, method: 'get'
     },
-      options);
+      );
     }
   
 
@@ -110,15 +122,15 @@ export type UserListEntitlementsQueryResult = NonNullable<Awaited<ReturnType<typ
 export type UserListEntitlementsQueryError = ErrorType<ErrorResponseResponse>
 
 export const useUserListEntitlements = <TError = ErrorType<ErrorResponseResponse>>(
-  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userListEntitlements>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userListEntitlements>>, TError> & { swrKey?: Key, enabled?: boolean },  }
 
   ) => {
 
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
+  const {swr: swrOptions} = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false
     const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserListEntitlementsKey() : null);
-  const swrFn = () => userListEntitlements(requestOptions);
+  const swrFn = () => userListEntitlements();
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
@@ -134,12 +146,12 @@ export const useUserListEntitlements = <TError = ErrorType<ErrorResponseResponse
  */
 export const userListEntitlementTargets = (
     params?: UserListEntitlementTargetsParams,
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<ListTargetsResponseResponse>(
       {url: `/api/v1/entitlements/targets`, method: 'get',
         params
     },
-      options);
+      );
     }
   
 
@@ -150,15 +162,15 @@ export type UserListEntitlementTargetsQueryResult = NonNullable<Awaited<ReturnTy
 export type UserListEntitlementTargetsQueryError = ErrorType<ErrorResponseResponse>
 
 export const useUserListEntitlementTargets = <TError = ErrorType<ErrorResponseResponse>>(
- params?: UserListEntitlementTargetsParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userListEntitlementTargets>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+ params?: UserListEntitlementTargetsParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userListEntitlementTargets>>, TError> & { swrKey?: Key, enabled?: boolean },  }
 
   ) => {
 
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
+  const {swr: swrOptions} = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false
     const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserListEntitlementTargetsKey(params) : null);
-  const swrFn = () => userListEntitlementTargets(params, requestOptions);
+  const swrFn = () => userListEntitlementTargets(params, );
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
@@ -174,13 +186,13 @@ export const useUserListEntitlementTargets = <TError = ErrorType<ErrorResponseRe
  */
 export const userRequestPreflight = (
     createPreflightRequestBody: CreatePreflightRequestBody,
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<Preflight>(
       {url: `/api/v1/preflight`, method: 'post',
       headers: {'Content-Type': 'application/json', },
       data: createPreflightRequestBody
     },
-      options);
+      );
     }
   
 
@@ -190,12 +202,12 @@ export const userRequestPreflight = (
  */
 export const userListReviews = (
     params?: UserListReviewsParams,
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<ListRequestsResponseResponse>(
       {url: `/api/v1/reviews`, method: 'get',
         params
     },
-      options);
+      );
     }
   
 
@@ -206,15 +218,15 @@ export type UserListReviewsQueryResult = NonNullable<Awaited<ReturnType<typeof u
 export type UserListReviewsQueryError = ErrorType<ErrorResponseResponse>
 
 export const useUserListReviews = <TError = ErrorType<ErrorResponseResponse>>(
- params?: UserListReviewsParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userListReviews>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+ params?: UserListReviewsParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userListReviews>>, TError> & { swrKey?: Key, enabled?: boolean },  }
 
   ) => {
 
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
+  const {swr: swrOptions} = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false
     const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserListReviewsKey(params) : null);
-  const swrFn = () => userListReviews(params, requestOptions);
+  const swrFn = () => userListReviews(params, );
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
@@ -230,12 +242,12 @@ export const useUserListReviews = <TError = ErrorType<ErrorResponseResponse>>(
  */
 export const userListRequests = (
     params?: UserListRequestsParams,
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<ListRequestsResponseResponse>(
       {url: `/api/v1/requests`, method: 'get',
         params
     },
-      options);
+      );
     }
   
 
@@ -246,15 +258,15 @@ export type UserListRequestsQueryResult = NonNullable<Awaited<ReturnType<typeof 
 export type UserListRequestsQueryError = ErrorType<ErrorResponseResponse>
 
 export const useUserListRequests = <TError = ErrorType<ErrorResponseResponse>>(
- params?: UserListRequestsParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userListRequests>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+ params?: UserListRequestsParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userListRequests>>, TError> & { swrKey?: Key, enabled?: boolean },  }
 
   ) => {
 
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
+  const {swr: swrOptions} = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false
     const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserListRequestsKey(params) : null);
-  const swrFn = () => userListRequests(params, requestOptions);
+  const swrFn = () => userListRequests(params, );
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
@@ -269,13 +281,13 @@ export const useUserListRequests = <TError = ErrorType<ErrorResponseResponse>>(
  */
 export const userPostRequests = (
     createAccessRequestRequestBody: CreateAccessRequestRequestBody,
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<Request>(
       {url: `/api/v1/requests`, method: 'post',
       headers: {'Content-Type': 'application/json', },
       data: createAccessRequestRequestBody
     },
-      options);
+      );
     }
   
 
@@ -285,11 +297,11 @@ export const userPostRequests = (
  */
 export const userGetRequest = (
     requestId: string,
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<Request>(
       {url: `/api/v1/requests/${requestId}`, method: 'get'
     },
-      options);
+      );
     }
   
 
@@ -300,15 +312,15 @@ export type UserGetRequestQueryResult = NonNullable<Awaited<ReturnType<typeof us
 export type UserGetRequestQueryError = ErrorType<ErrorResponseResponse>
 
 export const useUserGetRequest = <TError = ErrorType<ErrorResponseResponse>>(
- requestId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userGetRequest>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+ requestId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userGetRequest>>, TError> & { swrKey?: Key, enabled?: boolean },  }
 
   ) => {
 
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
+  const {swr: swrOptions} = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false && !!(requestId)
     const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserGetRequestKey(requestId) : null);
-  const swrFn = () => userGetRequest(requestId, requestOptions);
+  const swrFn = () => userGetRequest(requestId, );
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 

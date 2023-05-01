@@ -4,14 +4,14 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"github.com/common-fate/common-fate/pkg/cache"
 	"github.com/common-fate/common-fate/pkg/storage/keys"
+	cftypes "github.com/common-fate/common-fate/pkg/types"
 )
 
 type ListCachedTargetGroupResourceForTargetGroupAndResourceType struct {
 	TargetGroupID string
 	ResourceType  string
-	Result        []cache.TargetGroupResource `ddb:"result"`
+	Result        []cftypes.TargetGroupResource `ddb:"result"`
 }
 
 func (q *ListCachedTargetGroupResourceForTargetGroupAndResourceType) BuildQuery() (*dynamodb.QueryInput, error) {

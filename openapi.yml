@@ -509,6 +509,57 @@ paths:
       description: delete target group
       tags:
         - Admin
+  "/api/v1/admin/target-groups/{id}/resources/{resourceType}":
+    parameters:
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: resourceType
+        in: path
+        required: true
+    get:
+      summary: List Target Group Resources
+      responses:
+        "200":
+          $ref: "#/components/responses/ListTargetGroupResource"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      operationId: admin-get-target-group-resources
+      tags:
+        - Admin
+      description: List all the resources associated with the provided resourceType for given target-group-id.
+  "/api/v1/admin/target-groups/{id}/resources/{resourceType}/filters":
+    parameters:
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: resourceType
+        in: path
+        required: true
+    post:
+      summary: Filter TargetGroup Resources
+      operationId: admin-filter-target-group-resources
+      responses:
+        "200":
+          $ref: "#/components/responses/ListTargetGroupResource"
+      description: List the filtered resources associated with the provided resourceType for given target-group-id.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResourceFilter"
   /api/v1/admin/target-groups:
     get:
       summary: Get target groups
@@ -1882,6 +1933,80 @@ components:
       required:
         - id
         - timing
+    ResourceFilterOperationTypeEnum:
+      title: ResourceFilterOperationTypeEnum
+      x-stoplight:
+        id: pbn0w5xu3u6cu
+      type: string
+      enum:
+        - AND
+        - OR
+        - SELECT
+        - BEGINS_WITH
+      description: ""
+    ResourceFilter:
+      title: ResourceFilter
+      x-stoplight:
+        id: qtz0jxow620ga
+      type: array
+      items:
+        $ref: "#/components/schemas/Operation"
+    Operation:
+      title: Operation
+      x-stoplight:
+        id: aadacdcb619f3
+      type: object
+      properties:
+        operationType:
+          $ref: "#/components/schemas/ResourceFilterOperationTypeEnum"
+        Value:
+          type: string
+        Attribute:
+          type: string
+        Values:
+          type: array
+          items:
+            type: string
+        operations:
+          $ref: "#/components/schemas/Operation"
+        ValidationError:
+          type: string
+      required:
+        - operationType
+        - Attribute
+    TargetGroupResource:
+      title: TargetGroupResource
+      x-stoplight:
+        id: d0k6mfpbjaryp
+      type: object
+      properties:
+        targetGroupId:
+          type: string
+        resourceType:
+          type: string
+        resource:
+          $ref: "#/components/schemas/Resource"
+      required:
+        - targetGroupId
+        - resourceType
+        - resource
+    Resource:
+      title: Resource
+      x-stoplight:
+        id: ipd1wtcbyajw2
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        attributes:
+          type: object
+          x-go-type: "map[string]string"
+      required:
+        - id
+        - name
+        - attributes
   responses:
     ErrorResponse:
       description: An error returned from the service.
@@ -2344,6 +2469,14 @@ components:
                         valueDescription: The Amazon Resource Name (ARN) of the role to assume in the SSO instance
                         value: "arn:aws:iam::123456789012:role/MyRole"
                 next: string
+    ListTargetGroupResource:
+      description: List TargetGroup Resource Response
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/TargetGroupResource"
   examples: {}
   securitySchemes: {}
   requestBodies:
@@ -2553,6 +2686,11 @@ components:
               - preflightId
               - groupOptions
           examples: {}
+    ResouceFilterRequest:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ResourceFilter"
 tags:
   - name: End User
   - name: Admin
