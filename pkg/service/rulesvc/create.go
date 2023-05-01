@@ -211,27 +211,29 @@ func (s *Service) CreateAccessRule(ctx context.Context, userID string, in types.
 
 	//check if user and group exists
 	g, gctx := errgroup.WithContext(ctx)
-	for _, u := range *in.Approval.Users {
-		g.Go(func() error {
+	g.Go(func() error {
+		for _, u := range *in.Approval.Users {
+
 			userLookup := storage.GetUser{ID: u}
 
 			_, err := s.DB.Query(gctx, &userLookup)
 
 			return err
-		})
+		}
+		return nil
+	})
 
-	}
+	g.Go(func() error {
+		for _, u := range *in.Approval.Groups {
 
-	for _, u := range *in.Approval.Groups {
-		g.Go(func() error {
 			groupLookup := storage.GetGroup{ID: u}
 
 			_, err := s.DB.Query(ctx, &groupLookup)
 
 			return err
-		})
-
-	}
+		}
+		return nil
+	})
 
 	q := storage.GetTargetGroup{ID: in.Target.ProviderId}
 	_, err := s.DB.Query(ctx, &q)
