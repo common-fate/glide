@@ -208,32 +208,36 @@ func (s *Service) CreateAccessRule(ctx context.Context, userID string, in types.
 
 	log := logger.Get(ctx).With("user.id", userID, "access_rule.id", id)
 	now := s.Clock.Now()
+	g, gctx := errgroup.WithContext(ctx)
 
 	//check if user and group exists
-	g, gctx := errgroup.WithContext(ctx)
-	g.Go(func() error {
-		for _, u := range *in.Approval.Users {
+	if in.Approval.Users != nil {
+		g.Go(func() error {
+			for _, u := range *in.Approval.Users {
 
-			userLookup := storage.GetUser{ID: u}
+				userLookup := storage.GetUser{ID: u}
 
-			_, err := s.DB.Query(gctx, &userLookup)
+				_, err := s.DB.Query(gctx, &userLookup)
 
-			return err
-		}
-		return nil
-	})
+				return err
+			}
+			return nil
+		})
+	}
 
-	g.Go(func() error {
-		for _, u := range *in.Approval.Groups {
+	if in.Approval.Groups != nil {
+		g.Go(func() error {
+			for _, u := range *in.Approval.Groups {
 
-			groupLookup := storage.GetGroup{ID: u}
+				groupLookup := storage.GetGroup{ID: u}
 
-			_, err := s.DB.Query(ctx, &groupLookup)
+				_, err := s.DB.Query(ctx, &groupLookup)
 
-			return err
-		}
-		return nil
-	})
+				return err
+			}
+			return nil
+		})
+	}
 
 	q := storage.GetTargetGroup{ID: in.Target.ProviderId}
 	_, err := s.DB.Query(ctx, &q)

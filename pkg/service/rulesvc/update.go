@@ -22,29 +22,34 @@ func (s *Service) UpdateRule(ctx context.Context, in *UpdateOpts) (*rule.AccessR
 
 	//check if user and group exists
 	g, gctx := errgroup.WithContext(ctx)
-	g.Go(func() error {
-		for _, u := range *in.UpdateRequest.Approval.Users {
+	if in.UpdateRequest.Approval.Users != nil {
+		g.Go(func() error {
+			for _, u := range *in.UpdateRequest.Approval.Users {
 
-			userLookup := storage.GetUser{ID: u}
+				userLookup := storage.GetUser{ID: u}
 
-			_, err := s.DB.Query(gctx, &userLookup)
+				_, err := s.DB.Query(gctx, &userLookup)
 
-			return err
-		}
-		return nil
-	})
+				return err
+			}
+			return nil
+		})
 
-	g.Go(func() error {
-		for _, u := range *in.UpdateRequest.Approval.Groups {
+	}
 
-			groupLookup := storage.GetGroup{ID: u}
+	if in.UpdateRequest.Approval.Groups != nil {
+		g.Go(func() error {
+			for _, u := range *in.UpdateRequest.Approval.Groups {
 
-			_, err := s.DB.Query(ctx, &groupLookup)
+				groupLookup := storage.GetGroup{ID: u}
 
-			return err
-		}
-		return nil
-	})
+				_, err := s.DB.Query(ctx, &groupLookup)
+
+				return err
+			}
+			return nil
+		})
+	}
 
 	var isTargetGroup bool
 	if in.Rule.Target.TargetGroupID != "" {

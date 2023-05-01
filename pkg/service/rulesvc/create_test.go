@@ -42,9 +42,9 @@ func TestCreateAccessRule(t *testing.T) {
 	now := clk.Now()
 
 	mockRule := rule.AccessRule{
-		ID:          ruleID,
-		Version:     versionID,
-		Approval:    rule.Approval{Users: *in.Approval.Users, Groups: *in.Approval.Groups},
+		ID:      ruleID,
+		Version: versionID,
+		// Approval:    rule.Approval{Users: *in.Approval.Users, Groups: *in.Approval.Groups},
 		Status:      rule.ACTIVE,
 		Description: in.Description,
 		Name:        in.Name,
