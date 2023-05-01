@@ -224,14 +224,14 @@ const Home = () => {
                   </Stack>
                 </Stack>
 
-                {/* <Code
+                <Code
                   maxW="60ch"
                   textOverflow="clip"
                   whiteSpace="pre-wrap"
                   mt={32}
                 >
                   {JSON.stringify({ request }, null, 2)}
-                </Code> */}
+                </Code>
               </>
             </GridItem>
             <GridItem>

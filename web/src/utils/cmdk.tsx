@@ -83,7 +83,7 @@ type CommandProps = Children &
     value?: string;
     /** checked */
     checked?: string[];
-    setChecked?: (checked: string[]) => void;
+    setChecked?: React.Dispatch<React.SetStateAction<string[]>>;
     /**
      * Event handler called when the selected item of the menu changes.
      */
@@ -124,7 +124,7 @@ type Store = {
   emit: () => void;
   // we want to pass checked/setChecked to the store as well
   checked: string[];
-  setChecked: (checked: string[]) => void;
+  setChecked: React.Dispatch<React.SetStateAction<string[]>>;
 };
 
 const LIST_SELECTOR = `[cmdk-list-sizer=""]`;
@@ -645,19 +645,21 @@ const Command = React.forwardRef<HTMLDivElement, CommandProps>(
                     const value = selected?.getAttribute(VALUE_ATTR);
                     const checked = props.checked;
 
-                    // add checked
-                    if (checked.includes(value)) {
-                      console.log(
-                        "called updateSelectedToCheckbox: found and removing"
-                      );
-                      let curr = checked;
-                      curr = curr.filter((item) => item !== value);
-                      props.setChecked(curr);
-                    } else {
-                      console.log(
-                        "called updateSelectedToCheckbox: not found, appending"
-                      );
-                      props.setChecked((curr) => [...curr, value]);
+                    if (typeof value == "string") {
+                      // add checked
+                      if (checked.includes(value)) {
+                        console.log(
+                          "called updateSelectedToCheckbox: found and removing"
+                        );
+                        let curr = checked;
+                        curr = curr.filter((item) => item !== value);
+                        props.setChecked(curr);
+                      } else {
+                        console.log(
+                          "called updateSelectedToCheckbox: not found, appending"
+                        );
+                        props.setChecked((curr) => [...curr, value]);
+                      }
                     }
                   }
                 }

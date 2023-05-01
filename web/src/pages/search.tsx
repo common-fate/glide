@@ -53,11 +53,6 @@ const isMac = () =>
     navigator?.userAgentData?.platform || navigator?.platform || "unknown"
   );
 
-const keyFromTarget = (target: Target) =>
-  target.kind.name +
-  " " +
-  target.fields.map((field) => field.valueLabel).join(", ");
-
 const Search = () => {
   // DATA FETCHING
 
@@ -127,7 +122,7 @@ const Search = () => {
     if (inputValue === "") return allTargets.slice(0, 100);
     return allTargets
       .filter((target) => {
-        const key = keyFromTarget(target).toLowerCase();
+        const key = target.id.toLowerCase();
         return key.includes(inputValue.toLowerCase());
       })
       .slice(0, 100);
@@ -161,7 +156,7 @@ const Search = () => {
         pos="relative"
         key={target.id}
         // this value is used by the command palette
-        value={keyFromTarget(target)}
+        value={target.id}
         as={CommandNew.Item}
       >
         <Flex>

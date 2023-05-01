@@ -39,10 +39,10 @@ export const TimeStep: React.FC = () => {
             Max duration:{"  "}
             {time && durationString(time?.maxDurationSeconds)}
           </Text>
-          <Text textStyle={"Body/Medium"} color="neutrals.600">
+          {/* <Text textStyle={"Body/Medium"} color="neutrals.600">
             Suggested duration:{"  "}
             {time && durationString(time?.reccomdenedDurationSeconds)}
-          </Text>
+          </Text> */}
         </VStack>
       }
     >
@@ -81,7 +81,7 @@ export const TimeStep: React.FC = () => {
           }}
         />
       </FormControl>
-      <FormControl
+      {/* <FormControl
         isInvalid={
           !!methods.formState.errors.timeConstraints?.reccomdenedDurationSeconds
         }
@@ -126,7 +126,7 @@ export const TimeStep: React.FC = () => {
             );
           }}
         />
-      </FormControl>
+      </FormControl> */}
     </FormStep>
   );
 };
