@@ -109,7 +109,7 @@ paths:
       operationId: user-create-request
       responses:
         "200":
-          description: OK
+          $ref: "#/components/responses/CreateRequestResponse"
       description: |-
         Make a request to access something.
 
@@ -2791,6 +2791,19 @@ components:
                 type: string
             required:
               - routes
+    CreateRequestResponse:
+      description: Details about the created Access Requests.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              requests:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Request"
+            required:
+              - requests
   examples: {}
   securitySchemes: {}
   requestBodies:

@@ -33,6 +33,7 @@ export * from './createFavoriteRequestBody';
 export * from './createGroupRequestBody';
 export * from './createProviderSetupRequestBody';
 export * from './createRequestRequestBody';
+export * from './createRequestResponseResponse';
 export * from './createRequestWith';
 export * from './createRequestWithSubRequest';
 export * from './createTargetGroupLinkBody';

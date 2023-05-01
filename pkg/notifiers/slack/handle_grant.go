@@ -7,7 +7,6 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/common-fate/common-fate/pkg/gevent"
-	"github.com/common-fate/common-fate/pkg/notifiers"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/slack-go/slack"
 	"go.uber.org/zap"
@@ -35,24 +34,24 @@ func (n *SlackNotifier) HandleGrantEvent(ctx context.Context, log *zap.SugaredLo
 	var fallback string
 	var accessory *slack.Accessory
 
-	reviewURL, err := notifiers.ReviewURL(n.FrontendURL, gq.Result.ID)
-
-	if err != nil {
-		return err
-	}
+	// reviewURL, err := notifiers.ReviewURL(n.FrontendURL, gq.Result.ID)
+	// if err != nil {
+	// 	return err
+	// }
 
 	// get the message text based on the event type
 	switch event.DetailType {
-	case gevent.GrantActivatedType:
-		msg = fmt.Sprintf("Your access to *%s* is now active.", rq.Result.Name)
-		accessory = &slack.Accessory{
-			ButtonElement: &slack.ButtonBlockElement{
-				Type: slack.METButton,
-				Text: slack.NewTextBlockObject(slack.PlainTextType, "Access Instructions", true, false),
-				URL:  reviewURL.AccessInstructions,
-			},
-		}
-		fallback = fmt.Sprintf("Your access to %s is now active.", rq.Result.Name)
+	// NOTE: Commenting out slack notification for grant activated type to make notification less noisy.
+	// case gevent.GrantActivatedType:
+	// 	msg = fmt.Sprintf("Your access to *%s* is now active.", rq.Result.Name)
+	// 	accessory = &slack.Accessory{
+	// 		ButtonElement: &slack.ButtonBlockElement{
+	// 			Type: slack.METButton,
+	// 			Text: slack.NewTextBlockObject(slack.PlainTextType, "Access Instructions", true, false),
+	// 			URL:  reviewURL.AccessInstructions,
+	// 		},
+	// 	}
+	// 	fallback = fmt.Sprintf("Your access to %s is now active.", rq.Result.Name)
 	case gevent.GrantFailedType:
 		msg = fmt.Sprintf("We've had an issue trying to provision or clean up your access to *%s*. We'll keep trying, but if you urgently need access to the role please contact your cloud administrator.", rq.Result.Name)
 		fallback = fmt.Sprintf("We've had an issue with your access to %s", rq.Result.Name)
