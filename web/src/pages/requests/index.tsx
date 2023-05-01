@@ -3,9 +3,14 @@ import {
   Button,
   Center,
   CenterProps,
+  Checkbox,
   Container,
   Flex,
+  FormControl,
+  FormHelperText,
+  FormLabel,
   Grid,
+  Input,
   Link as ChakraLink,
   LinkBox,
   LinkBoxProps,
@@ -24,14 +29,21 @@ import {
   useDisclosure,
   VStack,
 } from "@chakra-ui/react";
-import React from "react";
+import React, { useState } from "react";
 import { Helmet } from "react-helmet";
 import { Link, MakeGenerics, useNavigate, useSearch } from "react-location";
 import { ProviderIcon, ShortTypes } from "../../components/icons/providerIcon";
 import { UserLayout } from "../../components/Layout";
-import { useUserListRequests } from "../../utils/backend-client/default/default";
+import {
+  useUserListEntitlementTargets,
+  useUserListRequests,
+} from "../../utils/backend-client/default/default";
 import {} from "../../utils/backend-client/end-user/end-user";
-import { AccessRule, Request } from "../../utils/backend-client/types";
+import {
+  AccessRule,
+  Request,
+  TargetField,
+} from "../../utils/backend-client/types";
 import { useUser } from "../../utils/context/userContext";
 import { renderTiming } from "../../utils/renderTiming";
 import { useInfiniteScrollApi } from "../../utils/useInfiniteScrollApi";
@@ -80,30 +92,7 @@ const Home = () => {
               justifyContent="center"
               spacing={12}
             >
-              <VStack spacing={8}>
-                {/* <Favorites /> */}
-                <Flex flexDirection="column" w="100%">
-                  <Flex>
-                    <Text
-                      as="h3"
-                      textStyle="Heading/H3"
-                      mt="6px" // this minor adjustment aligns heading with Tabbed content on XL screen widths
-                    >
-                      New Request
-                    </Text>
-                    <Button
-                      display={{ base: "flex", lg: "none" }}
-                      variant="brandSecondary"
-                      size="sm"
-                      ml="auto"
-                      onClick={onToggle}
-                    >
-                      View All
-                    </Button>
-                  </Flex>
-                  <Rules />
-                </Flex>
-              </VStack>
+              <VStack spacing={8}></VStack>
 
               <Tabs
                 variant="brand"

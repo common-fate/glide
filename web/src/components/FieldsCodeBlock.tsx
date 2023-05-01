@@ -14,7 +14,6 @@ const FieldsCodeBlock = ({
 }: Props & CodeProps) => {
   return (
     <Code bg="none" whiteSpace="pre-wrap" {...props}>
-      aws
       {fields.map((f) =>
         showTooltips ? (
           <Tooltip
@@ -61,7 +60,7 @@ const FieldsCodeBlock = ({
                 wordBreak="break-all"
                 // bg="pink"
                 display="inline-block"
-                maxW="32ch"
+                maxW="400px"
                 // w="20%"
               >
                 {f.valueLabel}

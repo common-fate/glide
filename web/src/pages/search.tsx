@@ -45,7 +45,8 @@ import { Command as CommandNew } from "../utils/cmdk";
 // CONSTANTS
 const ACTION_KEY_DEFAULT = ["Ctrl", "Control"];
 const ACTION_KEY_APPLE = ["⌘", "Command"];
-
+const TARGET_HEIGHT = 100;
+const TARGETS = 5;
 // https://erikmartinjordan.com/navigator-platform-deprecated-alternative
 const isMac = () =>
   /(Mac|iPhone|iPod|iPad)/i.test(
@@ -119,13 +120,11 @@ const Search = () => {
   // filteredItems with slice 100
   const filteredItems = useMemo(() => {
     if (allTargets.length === 0 || !allTargets) return [];
-    if (inputValue === "") return allTargets.slice(0, 100);
-    return allTargets
-      .filter((target) => {
-        const key = target.id.toLowerCase();
-        return key.includes(inputValue.toLowerCase());
-      })
-      .slice(0, 100);
+    if (inputValue === "") return allTargets;
+    return allTargets.filter((target) => {
+      const key = target.id.toLowerCase();
+      return key.includes(inputValue.toLowerCase());
+    });
   }, [inputValue, allTargets]);
 
   const targetComponent: React.FC<ListChildComponentProps> = ({
@@ -138,6 +137,7 @@ const Search = () => {
 
     return (
       <Flex
+        h={TARGET_HEIGHT}
         style={style}
         alignContent="flex-start"
         p={2}
@@ -148,12 +148,6 @@ const Search = () => {
             display: "block",
           },
         }}
-        _checked={{
-          "#checked": {
-            display: "block",
-          },
-        }}
-        pos="relative"
         key={target.id}
         // this value is used by the command palette
         value={target.id}
@@ -162,76 +156,15 @@ const Search = () => {
         <Flex>
           <ProviderIcon mr={2} shortType={target.kind.icon as ShortTypes} />
           <FieldsCodeBlock fields={target.fields} showTooltips />
-          {/* <HStack>
-            {target.fields.map((field, i) => (
-              <Box borderLeftWidth={i > 0 ? 2 : undefined} paddingRight={10}>
-                <Tooltip
-                  key={field.id}
-                  label={
-                    <>
-                      <Box fontWeight="bold">{field.fieldTitle}</Box>
-                      {field.fieldDescription && (
-                        <Box>{field.fieldDescription}</Box>
-                      )}
-                      {field.valueDescription && (
-                        <Box mt={2}>{field.valueDescription}</Box>
-                      )}
-                    </>
-                  }
-                  placement="top"
-                >
-                  <Box display="inline-block" verticalAlign="top">
-                    <Box>{field.valueLabel}</Box>
-                    <Box>{field.value}</Box>
-                  </Box>
-                </Tooltip>
-              </Box>
-            ))}
-          </HStack> */}
         </Flex>
         <CheckCircleIcon
-          id="checked"
-          position="absolute"
-          display="none"
-          top={2}
-          right={2}
+          visibility={
+            checked.includes(target.id.toLowerCase()) ? "visible" : "hidden"
+          }
           h="12px"
           w="12px"
           color={"brandBlue.300"}
         />
-        {/* @TODO: review me as a part of CF-1028 */}
-        {/* <Box
-        rounded="md"
-        w="24ch"
-        zIndex={9999}
-        pos="absolute"
-        top={4}
-        right={4}
-        id="description"
-        display="none"
-        textStyle="Body/ExtraSmall"
-        p={1}
-      >
-        Admin access to {target.fields[0].value}{" "}
-        account
-      </Box> */}
-        <Box
-          rounded="md"
-          w="24ch"
-          bg="white"
-          border="1px solid"
-          borderColor="neutrals.300"
-          zIndex={9999}
-          pos="absolute"
-          bottom={-4}
-          right={0}
-          id="description"
-          display="none"
-          textStyle="Body/ExtraSmall"
-          p={1}
-        >
-          Admin access to {target.fields[0].value} account
-        </Box>
       </Flex>
     );
   };
@@ -423,9 +356,9 @@ const Search = () => {
                           </Center>
                         )}
                         <List
-                          height={400}
+                          height={TARGETS * TARGET_HEIGHT}
                           itemCount={filteredItems.length}
-                          itemSize={35}
+                          itemSize={TARGET_HEIGHT}
                           width="100%"
                         >
                           {targetComponent}
