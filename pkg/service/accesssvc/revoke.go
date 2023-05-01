@@ -56,9 +56,8 @@ func (s *Service) RevokeRequest(ctx context.Context, in access.RequestWithGroups
 	user := auth.UserFromContext(ctx)
 	//emit request group revoke event
 	err := s.EventPutter.Put(ctx, gevent.RequestRevokeInitiated{
-		Request:      in,
-		RevokerId:    user.ID,
-		RevokerEmail: user.Email,
+		Request: in,
+		Revoker: gevent.UserFromIdentityUser(*user),
 	})
 	if err != nil {
 		return nil, err

@@ -14,12 +14,10 @@ const (
 )
 
 type AccessGroupReviewed struct {
-	AccessGroup   access.GroupWithTargets `json:"group"`
-	ReviewerID    string                  `json:"reviewerId"`
-	ReviewerEmail string                  `json:"reviewerEmail"`
-	ReviewType    string                  `json:"reviewType"`
-	Subject       string                  `json:"subject"`
-	Outcome       types.ReviewDecision    `json:"outcome"`
+	// Override timing has not yet been applied to this group if it was present on the review
+	AccessGroup access.GroupWithTargets `json:"group"`
+	Reviewer    User                    `json:"reviewer"`
+	Review      types.ReviewRequest     `json:"review"`
 }
 
 func (AccessGroupReviewed) EventType() string {
@@ -29,8 +27,7 @@ func (AccessGroupReviewed) EventType() string {
 type AccessGroupApproved struct {
 	AccessGroup    access.GroupWithTargets                `json:"group"`
 	ApprovalMethod types.RequestAccessGroupApprovalMethod `json:"approvalMethod"`
-	ReviewerID     string                                 `json:"reviewerId"`
-	ReviewerEmail  string                                 `json:"reviewerEmail"`
+	Reviewer       User                                   `json:"reviewer"`
 }
 
 func (AccessGroupApproved) EventType() string {
@@ -38,21 +35,10 @@ func (AccessGroupApproved) EventType() string {
 }
 
 type AccessGroupDeclined struct {
-	AccessGroup   access.GroupWithTargets `json:"group"`
-	ReviewerID    string                  `json:"reviewerId"`
-	ReviewerEmail string                  `json:"reviewerEmail"`
-	ReviewType    string                  `json:"reviewType"`
-	Subject       string                  `json:"subject"`
+	AccessGroup access.GroupWithTargets `json:"group"`
+	Reviewer    User                    `json:"reviewer"`
 }
 
 func (AccessGroupDeclined) EventType() string {
 	return AccessGroupDeclinedType
-}
-
-// GroupEventPayload is a payload which is common to
-// all group events. It is used to conveniently unmarshal
-// the group payloads in our event handler code.
-type GroupEventPayload struct {
-	Request    access.GroupWithTargets `json:"group"`
-	ReviewerID string                  `json:"reviewerId"`
 }

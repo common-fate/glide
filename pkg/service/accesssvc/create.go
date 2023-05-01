@@ -171,8 +171,7 @@ func (s *Service) CreateRequest(ctx context.Context, user identity.User, createR
 	// emit the events for request created and conditionally auto approvals
 
 	err = s.EventPutter.Put(ctx, gevent.RequestCreated{
-		Request:        out,
-		RequestorEmail: request.RequestedBy.Email,
+		Request: out,
 	})
 	if err != nil {
 		return nil, err

@@ -130,7 +130,7 @@ func (n *EventHandler) handleRequestRevokeInitiated(ctx context.Context, detail 
 	items := []ddb.Keyer{}
 
 	for _, group := range requestEvent.Request.Groups {
-		out, err := n.Workflow.Revoke(ctx, group, requestEvent.RevokerId, requestEvent.RevokerEmail)
+		out, err := n.Workflow.Revoke(ctx, group, requestEvent.Revoker.ID, requestEvent.Revoker.Email)
 		if err != nil {
 			return err
 		}

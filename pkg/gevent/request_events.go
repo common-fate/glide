@@ -14,8 +14,7 @@ const (
 // RequestCreated is when the user requests access
 // to something in the Common Fate service.
 type RequestCreated struct {
-	Request        access.RequestWithGroupsWithTargets `json:"request"`
-	RequestorEmail string                              `json:"requestorEmail"`
+	Request access.RequestWithGroupsWithTargets `json:"request"`
 }
 
 func (RequestCreated) EventType() string {
@@ -32,9 +31,8 @@ func (RequestComplete) EventType() string {
 
 // Request Revoke is omitted when a user revokes a request
 type RequestRevokeInitiated struct {
-	Request      access.RequestWithGroupsWithTargets `json:"request"`
-	RevokerId    string                              `json:"revokerId"`
-	RevokerEmail string                              `json:"revokerEmail"`
+	Request access.RequestWithGroupsWithTargets `json:"request"`
+	Revoker User                                `json:"revoker"`
 }
 
 func (RequestRevokeInitiated) EventType() string {

@@ -83,7 +83,7 @@ type CognitoService interface {
 type AccessService interface {
 	CreateRequest(ctx context.Context, user identity.User, in types.CreateAccessRequestRequest) (*access.RequestWithGroupsWithTargets, error)
 	RevokeRequest(ctx context.Context, in access.RequestWithGroupsWithTargets) (*access.RequestWithGroupsWithTargets, error)
-	AddReviewAndGrantAccess(ctx context.Context, opts accesssvc.AddReviewOpts) (*accesssvc.AddReviewResult, error)
+	Review(ctx context.Context, user identity.User, isAdmin bool, requestID string, groupID string, in types.ReviewRequest) error
 	CancelRequest(ctx context.Context, opts accesssvc.CancelRequestOpts) error
 	// CreateFavorite(ctx context.Context, in accesssvc.CreateFavoriteOpts) (*access.Favorite, error)
 	// UpdateFavorite(ctx context.Context, in accesssvc.UpdateFavoriteOpts) (*access.Favorite, error)

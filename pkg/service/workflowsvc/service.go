@@ -31,7 +31,7 @@ type Service struct {
 }
 
 func (s *Service) Grant(ctx context.Context, group access.GroupWithTargets) ([]access.GroupTarget, error) {
-	start, end := group.RequestedTiming.GetInterval(access.WithNow(s.Clk.Now()))
+	start, end := group.GetInterval(access.WithNow(s.Clk.Now()))
 	for i, target := range group.Targets {
 		target.Grant = &access.Grant{
 			Subject: group.RequestedBy.Email,

@@ -38,7 +38,7 @@ func (n *EventHandler) handleReviewEvent(ctx context.Context, detail json.RawMes
 	}
 
 	//work out the outcome of the review
-	switch grantEvent.Outcome {
+	switch grantEvent.Review.Decision {
 	case types.ReviewDecisionAPPROVED:
 		err := n.Eventbus.Put(ctx, gevent.AccessGroupApproved{
 			AccessGroup: grantEvent.AccessGroup,
