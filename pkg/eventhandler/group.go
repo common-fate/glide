@@ -3,62 +3,67 @@ package eventhandler
 import (
 	"context"
 	"encoding/json"
+	"time"
 
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/types"
-	"github.com/common-fate/ddb"
 	"go.uber.org/zap"
 )
 
 func (n *EventHandler) HandleAccessGroupEvents(ctx context.Context, log *zap.SugaredLogger, event events.CloudWatchEvent) error {
-
-	var err error
 	switch event.DetailType {
 	case gevent.AccessGroupReviewedType:
-		err = n.handleReviewEvent(ctx, event.Detail)
+		return n.handleReviewEvent(ctx, event.Detail)
 	case gevent.AccessGroupApprovedType:
-		err = n.handleAccessGroupApprovedEvent(ctx, event.Detail)
+		return n.handleAccessGroupApprovedEvent(ctx, event.Detail)
 	case gevent.AccessGroupDeclinedType:
-		err = n.handleAccessGroupDeclinedDeclinedEvent(ctx, event.Detail)
-
+		return n.handleAccessGroupDeclinedDeclinedEvent(ctx, event.Detail)
 	}
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
 func (n *EventHandler) handleReviewEvent(ctx context.Context, detail json.RawMessage) error {
-	var grantEvent gevent.AccessGroupReviewed
-	err := json.Unmarshal(detail, &grantEvent)
+	var groupEvent gevent.AccessGroupReviewed
+	err := json.Unmarshal(detail, &groupEvent)
+	if err != nil {
+		return err
+	}
+	group, err := n.GetGroupFromDatabase(ctx, groupEvent.AccessGroup.RequestID, groupEvent.AccessGroup.ID)
+	if err != nil {
+		return err
+
+	}
+	// First, check that the group has not already been reviewed
+	// if it has, then ignore this review event
+	// This step prevents race conditions.
+	// Reviews are processed in the order they are submitted due to the event handler having a provisioned concurrency limit of 1
+	log := logger.Get(ctx)
+	if group.Status != types.RequestAccessGroupStatusPENDINGAPPROVAL {
+		log.Infow("Ignoring review for group which has already been reviewed", "reviewEvent", groupEvent)
+	}
+	reviewed := types.REVIEWED
+	group.ApprovalMethod = &reviewed
+	group.UpdatedAt = time.Now()
+	group.Status = types.RequestAccessGroupStatusAPPROVED
+	if groupEvent.Review.Decision == types.ReviewDecisionDECLINED {
+		group.Status = types.RequestAccessGroupStatusDECLINED
+	}
+	err = n.DB.Put(ctx, group)
 	if err != nil {
 		return err
 	}
 
-	//work out the outcome of the review
-	switch grantEvent.Review.Decision {
-	case types.ReviewDecisionAPPROVED:
-		err := n.Eventbus.Put(ctx, gevent.AccessGroupApproved{
-			AccessGroup: grantEvent.AccessGroup,
+	if groupEvent.Review.Decision == types.ReviewDecisionAPPROVED {
+		return n.Eventbus.Put(ctx, gevent.AccessGroupApproved{
+			AccessGroup: groupEvent.AccessGroup,
 		})
-		if err != nil {
-			return err
-		}
-
-		return nil
-	case types.ReviewDecisionDECLINED:
-		err := n.Eventbus.Put(ctx, gevent.AccessGroupDeclined{
-			AccessGroup: grantEvent.AccessGroup,
+	} else {
+		return n.Eventbus.Put(ctx, gevent.AccessGroupDeclined{
+			AccessGroup: groupEvent.AccessGroup,
 		})
-		if err != nil {
-			return err
-		}
-
-		return nil
 	}
-	return nil
 }
 
 // the group will already be marked as approved here
@@ -72,43 +77,39 @@ func (n *EventHandler) handleAccessGroupApprovedEvent(ctx context.Context, detai
 	request, err := n.GetRequestFromDatabase(ctx, groupEvent.AccessGroup.RequestID)
 	if err != nil {
 		return err
-
 	}
-
-	items := []ddb.Keyer{}
 
 	// 	if all groups are reviewed update request status to active, save to ddb
 	// Then start the grant workflows
 	if request.AllGroupsReviewed() {
 		request.UpdateStatus(types.ACTIVE)
-		items = append(items, request.DBItems()...)
-		err = n.DB.PutBatch(ctx, items...)
+		err = n.DB.PutBatch(ctx, request.DBItems()...)
 		if err != nil {
 			return err
 		}
 	}
 
 	_, err = n.Workflow.Grant(ctx, groupEvent.AccessGroup)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 
 }
 
 func (n *EventHandler) handleAccessGroupDeclinedDeclinedEvent(ctx context.Context, detail json.RawMessage) error {
 	//update the group status
-	var grantEvent gevent.AccessGroupDeclined
-	err := json.Unmarshal(detail, &grantEvent)
+	var groupEvent gevent.AccessGroupDeclined
+	err := json.Unmarshal(detail, &groupEvent)
 	if err != nil {
 		return err
 	}
-
-	grantEvent.AccessGroup.Status = types.RequestAccessGroupStatusAPPROVED
-	err = n.DB.Put(ctx, &grantEvent.AccessGroup.Group)
+	request, err := n.GetRequestFromDatabase(ctx, groupEvent.AccessGroup.RequestID)
 	if err != nil {
 		return err
 	}
-	//todo: send notification here
-	return nil
+	// If all groups are declined, then the request is marked as complete, because no grants will start
+	if request.AllGroupsDeclined() {
+		request.UpdateStatus(types.COMPLETE)
+	} else if request.AllGroupsReviewed() {
+		request.UpdateStatus(types.ACTIVE)
+	}
+	return n.DB.PutBatch(ctx, request.DBItems()...)
 }

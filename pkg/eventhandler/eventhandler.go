@@ -125,3 +125,16 @@ func (n *EventHandler) GetRequestFromDatabase(ctx context.Context, requestID str
 	}
 	return q.Result, nil
 }
+
+func (n *EventHandler) GetGroupFromDatabase(ctx context.Context, requestID string, groupID string) (*access.GroupWithTargets, error) {
+	q := storage.GetRequestGroupWithTargets{
+		RequestID: requestID,
+		GroupID:   groupID,
+	}
+	// uses consistent read to ensure that we always get the latest version of the request
+	_, err := n.DB.Query(ctx, &q, ddb.ConsistentRead())
+	if err != nil {
+		return nil, err
+	}
+	return q.Result, nil
+}

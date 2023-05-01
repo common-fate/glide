@@ -13,19 +13,17 @@ import (
 
 // HandleGrantEvent will update the status of a grant in response to events emitted by the access handler
 func (n *EventHandler) HandleGrantEvent(ctx context.Context, log *zap.SugaredLogger, event events.CloudWatchEvent) error {
-	var err error
 	switch event.DetailType {
 	case gevent.GrantActivatedType:
-		err = n.handleGrantActivated(ctx, event.Detail)
+		return n.handleGrantActivated(ctx, event.Detail)
 	case gevent.GrantExpiredType:
-		err = n.handleGrantExpired(ctx, event.Detail)
+		return n.handleGrantExpired(ctx, event.Detail)
 	case gevent.GrantFailedType:
-		err = n.handleGrantFailed(ctx, event.Detail)
+		return n.handleGrantFailed(ctx, event.Detail)
 	case gevent.GrantRevokedType:
-		err = n.handleGrantRevoked(ctx, event.Detail)
+		return n.handleGrantRevoked(ctx, event.Detail)
 	}
-
-	return err
+	return nil
 }
 
 func (n *EventHandler) handleGrantActivated(ctx context.Context, detail json.RawMessage) error {

@@ -40,13 +40,20 @@ type RequestWithGroupsWithTargets struct {
 }
 
 func (r *RequestWithGroupsWithTargets) AllGroupsReviewed() bool {
-	allApproved := true
 	for _, group := range r.Groups {
 		if group.ApprovalMethod != nil {
-			allApproved = false
+			return false
 		}
 	}
-	return allApproved
+	return true
+}
+func (r *RequestWithGroupsWithTargets) AllGroupsDeclined() bool {
+	for _, group := range r.Groups {
+		if group.Status != types.RequestAccessGroupStatusDECLINED {
+			return false
+		}
+	}
+	return true
 }
 func (r *RequestWithGroupsWithTargets) UpdateStatus(status types.RequestStatus) {
 	r.RequestStatus = status
