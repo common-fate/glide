@@ -40,7 +40,6 @@ import {
   Target,
   UserListEntitlementTargetsParams,
 } from "../utils/backend-client/types";
-import exampleTargetsJosh from "../../example_targets_josh.json";
 
 import { Command as CommandNew } from "../utils/cmdk";
 // CONSTANTS
@@ -64,12 +63,6 @@ const Search = () => {
 
   const entitlements = useUserListEntitlements({
     swr: { refreshInterval: 10000 },
-    // request: {
-    //   baseURL: "http://127.0.0.1:3100",
-    //   headers: {
-    //     Prefer: "code=200, example=example_targets",
-    //   },
-    // },
   });
 
   // HOOKS
@@ -108,36 +101,24 @@ const Search = () => {
   });
 
   useEffect(() => {
-    if (allTargets.length === 0) {
-      setAllTargets(exampleTargetsJosh.targets);
+    const fetchData = async () => {
+      const params: UserListEntitlementTargetsParams = {
+        nextToken: nextToken === "initial" ? undefined : nextToken,
+      };
+      const result = await userListEntitlementTargets(params);
+      setAllTargets((prevData) => [...prevData, ...result.targets]);
       setTargetKeyMap((tkm) => {
-        exampleTargetsJosh.targets.forEach((t) => {
+        result.targets.forEach((t) => {
           // the command palette library casts the value to lowercase, so we need to do the same here
-          tkm[keyFromTarget(t).toLowerCase()] = t;
-          // tkm[t.id.toLowerCase()] = t;
+          tkm[t.id.toLowerCase()] = t;
         });
         return tkm;
       });
+      setNextToken(result.next);
+    };
+    if (nextToken !== undefined) {
+      fetchData();
     }
-
-    // const fetchData = async () => {
-    //   const params: UserListEntitlementTargetsParams = {
-    //     nextToken: nextToken !== "initial" ? nextToken : undefined,
-    //   };
-    //   const result = await userListEntitlementTargets(params);
-    //   setAllTargets((prevData) => [...prevData, ...result.targets]);
-    //   setTargetKeyMap((tkm) => {
-    //     result.targets.forEach((t) => {
-    //       // the command palette library casts the value to lowercase, so we need to do the same here
-    //       tkm[t.id.toLowerCase()] = t;
-    //     });
-    //     return tkm;
-    //   });
-    //   setNextToken(result.next);
-    // };
-    // if (nextToken !== undefined) {
-    //   fetchData();
-    // }
   }, [nextToken]);
 
   // filteredItems with slice 100
