@@ -53,7 +53,7 @@ import {
   Minutes,
   Weeks,
 } from "../../components/DurationInput";
-import FieldsCodeBlock from "../../components/FieldsCodeBlock";
+
 import { ProviderIcon, ShortTypes } from "../../components/icons/providerIcon";
 import { UserLayout } from "../../components/Layout";
 import { StatusCell } from "../../components/StatusCell";
@@ -382,7 +382,7 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
                   pos="relative"
                 >
                   <ProviderIcon boxSize="24px" shortType="aws-sso" mr={2} />
-                  <FieldsCodeBlock fields={target.fields} />
+                  {/* <FieldsCodeBlock fields={target.fields} /> */}
                   {false && (
                     <Spinner
                       thickness="2px"
@@ -421,7 +421,7 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
               <ProviderIcon
                 shortType={selectedGrant?.targetKind.icon as ShortTypes}
               />
-              <FieldsCodeBlock fields={selectedGrant?.fields || []} />
+              {/* <FieldsCodeBlock fields={selectedGrant?.fields || []} /> */}
             </Box>
             <Text textStyle="Body/Small">Access Instructions</Text>
 
