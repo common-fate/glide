@@ -62,21 +62,17 @@ import {
   useUserListRequests,
 } from "../../utils/backend-client/default/default";
 import {
-  userCancelRequest,
   userReviewRequest,
   userRevokeRequest,
 } from "../../utils/backend-client/end-user/end-user";
 import {
   RequestAccessGroup,
   RequestAccessGroupTarget,
-  RequestStatus,
 } from "../../utils/backend-client/types";
 import {
   durationString,
   durationStringHoursMinutes,
-  getEndTimeWithDuration,
 } from "../../utils/durationString";
-import { request } from "http";
 
 type MyLocationGenerics = MakeGenerics<{
   Search: {
@@ -230,91 +226,38 @@ export const HeaderStatusCell = ({ group }: AccessGroupProps) => {
         }}
       >
         <Text color="neutrals.700">Review Required</Text>
+        {/* <AvatarGroup size="sm" max={2} ml={-2}>
+          {group.reviewers.map((reviewer) => (
+            <Avatar
+              key={reviewer.id}
+              name={reviewer.firstName + " " + reviewer.lastName}
+              src={reviewer.picture}
+            />
+          ))}
+        </AvatarGroup> */}
       </Box>
     );
   }
 
   if (group.status === "APPROVED") {
-    switch (group.requestStatus) {
-      case "ACTIVE":
-        return (
-          <Flex flex="1">
-            <StatusCell
-              success="ACTIVE"
-              value={group.status}
-              replaceValue={
-                "Active for the next " +
-                durationStringHoursMinutes(
-                  intervalToDuration({
-                    start: new Date(),
-                    end: getEndTimeWithDuration(
-                      group.requestedTiming.startTime
-                        ? group.requestedTiming.startTime
-                        : "",
-                      group.requestedTiming.durationSeconds
-                    ),
-                  })
-                )
-              }
-            />
-          </Flex>
-        );
-      case "PENDING":
-        return (
-          <Box
-            as="span"
-            flex="1"
-            textAlign="left"
-            sx={{
-              p: { lineHeight: "120%", textStyle: "Body/Extra Small" },
-            }}
-          >
-            <Text color="neutrals.700">Pending</Text>
-          </Box>
-        );
-      case "REVOKING":
-        return (
-          <Box
-            as="span"
-            flex="1"
-            textAlign="left"
-            sx={{
-              p: { lineHeight: "120%", textStyle: "Body/Extra Small" },
-            }}
-          >
-            <Text color="neutrals.700">Revoking</Text>
-          </Box>
-        );
-      case "REVOKED":
-        return (
-          <Box
-            as="span"
-            flex="1"
-            textAlign="left"
-            sx={{
-              p: { lineHeight: "120%", textStyle: "Body/Extra Small" },
-            }}
-          >
-            <Text color="neutrals.700">Revoked</Text>
-          </Box>
-        );
-      case "COMPLETE":
-        return (
-          <Box
-            as="span"
-            flex="1"
-            textAlign="left"
-            sx={{
-              p: { lineHeight: "120%", textStyle: "Body/Extra Small" },
-            }}
-          >
-            <Text color="neutrals.700">Complete</Text>
-          </Box>
-        );
-
-      default:
-        break;
-    }
+    return (
+      <Flex flex="1">
+        <StatusCell
+          success="ACTIVE"
+          value={group.status}
+          replaceValue={
+            "Active for the next " +
+            durationStringHoursMinutes(
+              intervalToDuration({
+                start: new Date(),
+                end: new Date(),
+                // end: new Date(Date.parse(group.grant.end)),
+              })
+            )
+          }
+        />
+      </Flex>
+    );
   }
 
   return null;
@@ -608,7 +551,7 @@ export const ApproveRejectDuration = ({
           </Button>
         </ButtonGroup>
       )}
-      {!isReviewer && group.requestStatus == "ACTIVE" && (
+      {!isReviewer && (
         <ButtonGroup ml="auto" variant="brandSecondary" spacing={2}>
           <Button
             size="sm"
@@ -624,25 +567,6 @@ export const ApproveRejectDuration = ({
             }}
           >
             Revoke
-          </Button>
-        </ButtonGroup>
-      )}
-      {!isReviewer && group.requestStatus == "PENDING" && (
-        <ButtonGroup ml="auto" variant="brandSecondary" spacing={2}>
-          <Button
-            size="sm"
-            onClick={() => {
-              console.log("cancel");
-              userCancelRequest(group.requestId)
-                .then((e) => {
-                  console.log(e);
-                })
-                .catch((e) => {
-                  console.log(e);
-                });
-            }}
-          >
-            Cancel
           </Button>
         </ButtonGroup>
       )}

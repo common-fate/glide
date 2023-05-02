@@ -91,6 +91,15 @@ func (n *EventHandler) handleGrantRevoked(ctx context.Context, detail json.RawMe
 		return err
 	}
 
+	grant := grantEvent.Grant
+
+	grant.Grant.Status = types.RequestAccessGroupTargetStatusREVOKED
+
+	err = n.DB.Put(ctx, &grant)
+	if err != nil {
+		return err
+	}
+
 	q := storage.GetRequestGroupWithTargets{RequestID: grantEvent.Grant.RequestID, GroupID: grantEvent.Grant.GroupID}
 
 	_, err = n.DB.Query(ctx, &q)

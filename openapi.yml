@@ -937,6 +937,28 @@ paths:
       tags:
         - End User
       description: "Admins and approvers can revoke access previously approved. Effective immediately "
+  "/api/v1/requests/{requestid}/cancel":
+    parameters:
+      - schema:
+          type: string
+        name: requestid
+        in: path
+        required: true
+    post:
+      summary: Revoke an active request
+      operationId: user-cancel-request
+      responses:
+        "200":
+          description: OK
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      tags:
+        - End User
+      description: "Admins and approvers can cancel access before provisioned. Effective immediately "
   "/api/v1/requests/{requestId}":
     get:
       summary: Get Request
@@ -1732,6 +1754,8 @@ components:
           $ref: "#/components/schemas/RequestAccessGroupApprovalMethod"
         accessRule:
           $ref: "#/components/schemas/RequestAccessGroupAccessRule"
+        requestStatus:
+          $ref: "#/components/schemas/RequestStatus"
       required:
         - id
         - requestId
@@ -1742,6 +1766,7 @@ components:
         - requestedBy
         - targets
         - accessRule
+        - requestStatus
     RequestAccessGroupAccessRule:
       title: RequestAccessGroupAccessRule
       type: object
@@ -1868,7 +1893,6 @@ components:
     CreateAccessRequestGroupOptions:
       type: object
       title: CreateAccessRequestGroupOptions
-      description: ""
       x-stoplight:
         id: 6f6c2fa4da748
       properties:
