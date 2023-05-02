@@ -73,6 +73,10 @@ func (a *API) GovCreateAccessRule(w http.ResponseWriter, r *http.Request) {
 		// the user supplied id already exists
 		err = apio.NewRequestError(err, http.StatusBadRequest)
 	}
+	if err == rulesvc.ErrProviderNotFound{
+		// the provider does not exist
+		err = apio.NewRequestError(err, http.StatusNotFound)
+	}
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
