@@ -60,14 +60,14 @@ func TestFilterTargetsByGroups(t *testing.T) {
 			ID:    "hello",
 			Value: "world",
 		}},
-		Groups: map[string]struct{}{"group_1": {}},
+		IDPGroupsWithAccess: map[string]struct{}{"group_1": {}},
 	}
 	t2 := Target{
 		Fields: []Field{{
 			ID:    "hello",
 			Value: "world",
 		}},
-		Groups: map[string]struct{}{"group_2": {}},
+		IDPGroupsWithAccess: map[string]struct{}{"group_2": {}},
 	}
 	tests := []struct {
 		name string

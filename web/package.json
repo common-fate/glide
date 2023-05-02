@@ -28,6 +28,7 @@
     "@radix-ui/react-dialog": "^1.0.3",
     "@rjsf/chakra-ui": "^4.2.3",
     "@rjsf/core": "^4.2.3",
+    "@types/react-window": "^1.8.5",
     "axios": "^0.27.2",
     "cmdk": "^0.2.0",
     "command-score": "^0.1.2",
@@ -45,6 +46,7 @@
     "react-sticky": "^6.0.3",
     "react-table": "^7.8.0",
     "react-use": "^17.4.0",
+    "react-window": "^1.8.9",
     "swr": "^1.3.0"
   },
   "devDependencies": {

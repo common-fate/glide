@@ -1,7 +1,7 @@
 import { intervalToDuration, formatDuration } from "date-fns";
 
 export const durationString = (durationSeconds?: number): string => {
-  if (durationSeconds) {
+  if (durationSeconds || durationSeconds === 0) {
     const d = intervalToDuration({ start: 0, end: durationSeconds * 1000 });
 
     return formatDuration(d);

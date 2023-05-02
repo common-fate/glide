@@ -17,6 +17,7 @@ export type RequestStatus = typeof RequestStatus[keyof typeof RequestStatus];
 export const RequestStatus = {
   CANCELLED: 'CANCELLED',
   REVOKED: 'REVOKED',
+  REVOKING: 'REVOKING',
   PENDING: 'PENDING',
   COMPLETE: 'COMPLETE',
   ACTIVE: 'ACTIVE',

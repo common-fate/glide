@@ -7,7 +7,6 @@ import (
 
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/storage"
-	"github.com/common-fate/ddb"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -47,7 +46,7 @@ func (u *userMap) All() []string {
 // GetApprovers gets all the approvers for a rule, both those assigned as individuals and those
 // assigned via a group. It de-duplicates users, so if a user is assigned as an approver through
 // multiple groups they'll only be returned once.
-func GetApprovers(ctx context.Context, db ddb.Storage, rule rule.AccessRule) ([]string, error) {
+func (s *Service) GetApprovers(ctx context.Context, rule rule.AccessRule) ([]string, error) {
 	users := newUserMap()
 
 	for _, u := range rule.Approval.Users {
@@ -59,7 +58,7 @@ func GetApprovers(ctx context.Context, db ddb.Storage, rule rule.AccessRule) ([]
 		id := g
 		wg.Go(func() error {
 			q := &storage.GetGroup{ID: id}
-			_, err := db.Query(gctx, q)
+			_, err := s.DB.Query(gctx, q)
 			if err != nil {
 				return err
 			}

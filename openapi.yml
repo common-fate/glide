@@ -1704,6 +1704,7 @@ components:
       enum:
         - CANCELLED
         - REVOKED
+        - REVOKING
         - PENDING
         - COMPLETE
         - ACTIVE
@@ -1762,7 +1763,7 @@ components:
           type: string
         status:
           $ref: "#/components/schemas/RequestAccessGroupStatus"
-        time:
+        requestedTiming:
           $ref: "#/components/schemas/RequestAccessGroupTiming"
         overrideTiming:
           $ref: "#/components/schemas/RequestAccessGroupTiming"
@@ -1786,8 +1787,7 @@ components:
         - id
         - requestId
         - status
-        - time
-        - overrideTiming
+        - requestedTiming
         - updatedAt
         - createdAt
         - requestedBy
@@ -1863,10 +1863,8 @@ components:
           type: string
         targetGroupId:
           type: string
-        targetGroupFrom:
-          $ref: "#/components/schemas/TargetGroupFrom"
-        targetGroupIcon:
-          type: string
+        targetKind:
+          $ref: "#/components/schemas/TargetKind"
         fields:
           type: array
           items:
@@ -1880,8 +1878,7 @@ components:
         - requestId
         - accessGroupId
         - targetGroupId
-        - targetGroupFrom
-        - targetGroupIcon
+        - targetKind
         - fields
         - status
         - requestedBy

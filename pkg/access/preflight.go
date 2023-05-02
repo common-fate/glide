@@ -21,17 +21,23 @@ type Preflight struct {
 
 	// CreatedAt is a read-only field after the request has been created.
 	CreatedAt time.Time `json:"createdAt" dynamodbav:"createdAt"`
-	UserId    string    `json:"userId" dynamodbav:"userId"`
 }
 
+type PreflightAccessGroupTarget struct {
+	Target        cache.Target `json:"target" dynamodbav:"target"`
+	TargetGroupID string       `json:"targetGroupId" dynamodbav:"targetGroupId"`
+}
 type PreflightAccessGroup struct {
 	ID               string                          `json:"id" dynamodbav:"id"`
 	AccessRule       string                          `json:"accessRule" dynamodbav:"accessRule"`
 	RequiresApproval bool                            `json:"requiresApproval" dynamodbav:"requiresApproval"`
-	Targets          []cache.Target                  `json:"targets" dynamodbav:"targets"`
+	Targets          []PreflightAccessGroupTarget    `json:"targets" dynamodbav:"targets"`
 	TimeConstraints  types.AccessRuleTimeConstraints `json:"timeConstraints" dynamodbav:"timeConstraints"`
 }
 
+func (i *PreflightAccessGroupTarget) ToAPI() types.Target {
+	return i.Target.ToAPI()
+}
 func (i *PreflightAccessGroup) ToAPI() types.PreflightAccessGroup {
 	out := types.PreflightAccessGroup{
 		Id:               i.ID,
@@ -62,7 +68,7 @@ func (i *Preflight) ToAPI() types.Preflight {
 func (i *Preflight) DDBKeys() (ddb.Keys, error) {
 	keys := ddb.Keys{
 		PK: keys.Preflight.PK1,
-		SK: keys.Preflight.SK1(i.ID, i.UserId),
+		SK: keys.Preflight.SK1(i.ID, i.RequestedBy),
 	}
 	return keys, nil
 }

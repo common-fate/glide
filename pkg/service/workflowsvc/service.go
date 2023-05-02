@@ -6,6 +6,7 @@ import (
 	"github.com/benbjohnson/clock"
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/gevent"
+	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 )
@@ -30,53 +31,61 @@ type Service struct {
 	Eventbus EventPutter
 }
 
-func (s *Service) Grant(ctx context.Context, group access.GroupWithTargets, subject string) ([]access.GroupTarget, error) {
+func (s *Service) Grant(ctx context.Context, requestID string, groupID string) ([]access.GroupTarget, error) {
+	q := storage.GetRequestGroupWithTargets{
+		RequestID: requestID,
+		GroupID:   groupID,
+	}
+	_, err := s.DB.Query(ctx, &q, ddb.ConsistentRead())
+	if err != nil {
+		return nil, err
+	}
+	group := q.Result
 
-	items := []ddb.Keyer{}
-	for _, target := range group.Targets {
-
-		start, end := group.TimeConstraints.GetInterval(access.WithNow(s.Clk.Now()))
-		grant := access.Grant{
-			Subject: subject,
+	start, end := group.Group.GetInterval(access.WithNow(s.Clk.Now()))
+	for i, target := range group.Targets {
+		target.Grant = &access.Grant{
+			Subject: group.Group.RequestedBy.Email,
 			Start:   start,
 			End:     end,
 			Status:  types.RequestAccessGroupTargetStatusAWAITINGSTART,
 		}
-
-		evt := gevent.GrantActivated{
-			Grant: grant,
-		}
 		err := s.Runtime.Grant(ctx, target)
 		if err != nil {
 			//override the status here to error
-			grant.Status = types.RequestAccessGroupTargetStatusERROR
-			evt = gevent.GrantActivated{
-				Grant: grant,
+			target.Grant.Status = types.RequestAccessGroupTargetStatusERROR
+			evt := gevent.GrantFailed{
+				Grant:  target,
+				Reason: err.Error(),
+			}
+			err = s.Eventbus.Put(ctx, evt)
+			if err != nil {
+				return nil, err
 			}
 		}
-		target.Grant = &grant
 
-		//updates the target and the grant
-		items = append(items, &target)
+		group.Targets[i] = target
 
-		err = s.Eventbus.Put(ctx, evt)
-		if err != nil {
-			return nil, err
-		}
 	}
-
-	err := s.DB.PutBatch(ctx, items...)
+	err = s.DB.PutBatch(ctx, group.DBItems()...)
 	if err != nil {
 		return nil, err
 	}
-	// return grants.Result, nil
 	return group.Targets, nil
 }
 
 // // Revoke attepmts to syncronously revoke access to a request
 // // If it is successful, the request is updated in the database, and the updated request is returned from this method
-func (s *Service) Revoke(ctx context.Context, group access.GroupWithTargets, revokerID string, revokerEmail string) (*access.Group, error) {
-
+func (s *Service) Revoke(ctx context.Context, requestID string, groupID string, revokerID string, revokerEmail string) error {
+	q := storage.GetRequestGroupWithTargets{
+		RequestID: requestID,
+		GroupID:   groupID,
+	}
+	_, err := s.DB.Query(ctx, &q, ddb.ConsistentRead())
+	if err != nil {
+		return err
+	}
+	group := q.Result
 	for _, target := range group.Targets {
 
 		//Cannot request to revoke/cancel grant if it is not active or pending (state function has been created and executed)
@@ -84,22 +93,22 @@ func (s *Service) Revoke(ctx context.Context, group access.GroupWithTargets, rev
 			target.Grant.Status == types.RequestAccessGroupTargetStatusAWAITINGSTART
 
 		if !canRevoke || target.Grant.End.Before(s.Clk.Now()) {
-			return nil, ErrGrantInactive
+			return ErrGrantInactive
 		}
 
 		err := s.Runtime.Revoke(ctx, target.ID)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		//emit request group revoke event
 		err = s.Eventbus.Put(ctx, gevent.GrantRevoked{
-			Grant: *target.Grant,
+			Grant: target,
 		})
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 
-	return &group.Group, nil
+	return nil
 }

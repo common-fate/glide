@@ -18,11 +18,12 @@ type Group struct {
 	ID        string `json:"id" dynamodbav:"id"`
 	RequestID string `json:"requestId" dynamodbav:"request"`
 	// This is a snapshot of the access rule as it was configured when the request was submitted
-	AccessRuleSnapshot rule.AccessRule                `json:"accessRuleSnapshot" dynamodbav:"accessRuleSnapshot"`
-	Status             types.RequestAccessGroupStatus `json:"status" dynamodbav:"status"`
+	AccessRuleSnapshot rule.AccessRule                         `json:"accessRuleSnapshot" dynamodbav:"accessRuleSnapshot"`
+	Status             types.RequestAccessGroupStatus          `json:"status" dynamodbav:"status"`
+	ApprovalMethod     *types.RequestAccessGroupApprovalMethod `json:"approvalMethod" dynamodbav:"approvalMethod"`
 	// Also denormalised across all the request items
 	RequestStatus   types.RequestStatus `json:"requestStatus" dynamodbav:"requestStatus"`
-	TimeConstraints Timing              `json:"timeConstraints" dynamodbav:"timeConstraints"`
+	RequestedTiming Timing              `json:"requestedTiming" dynamodbav:"requestedTiming"`
 	OverrideTiming  *Timing             `json:"overrideTimings,omitempty" dynamodbav:"overrideTimings,omitempty"`
 	RequestedBy     RequestedBy         `json:"requestedBy" dynamodbav:"requestedBy"`
 	CreatedAt       time.Time           `json:"createdAt" dynamodbav:"createdAt"`
@@ -34,23 +35,33 @@ type Group struct {
 }
 
 type GroupWithTargets struct {
-	Group
-	Targets []GroupTarget
+	Group   Group         `json:"group"`
+	Targets []GroupTarget `json:"targets"`
 }
 
+func (r *GroupWithTargets) DBItems() []ddb.Keyer {
+	var items []ddb.Keyer
+	items = append(items, &r.Group)
+	for i := range r.Targets {
+		items = append(items, &r.Targets[i])
+	}
+	return items
+}
 func (g *GroupWithTargets) ToAPI() types.RequestAccessGroup {
 	out := types.RequestAccessGroup{
-		Id:          g.ID,
-		RequestId:   g.RequestID,
-		Status:      g.Status,
-		Time:        g.TimeConstraints.ToAPI(),
-		Targets:     []types.RequestAccessGroupTarget{},
-		CreatedAt:   g.CreatedAt,
-		UpdatedAt:   g.UpdatedAt,
-		RequestedBy: types.RequestRequestedBy(g.RequestedBy),
+		Id:              g.Group.ID,
+		RequestId:       g.Group.RequestID,
+		Status:          g.Group.Status,
+		RequestedTiming: g.Group.RequestedTiming.ToAPI(),
+		Targets:         []types.RequestAccessGroupTarget{},
+		ApprovalMethod:  g.Group.ApprovalMethod,
+		CreatedAt:       g.Group.CreatedAt,
+		UpdatedAt:       g.Group.UpdatedAt,
+		RequestedBy:     types.RequestRequestedBy(g.Group.RequestedBy),
 	}
-	if g.OverrideTiming != nil {
-		out.OverrideTiming = g.OverrideTiming.ToAPI()
+	if g.Group.OverrideTiming != nil {
+		ot := g.Group.OverrideTiming.ToAPI()
+		out.OverrideTiming = &ot
 	}
 	for _, target := range g.Targets {
 		out.Targets = append(out.Targets, target.ToAPI())
@@ -64,7 +75,7 @@ func (r *Group) GetInterval(opts ...func(o *GetIntervalOpts)) (start time.Time, 
 	if r.OverrideTiming != nil {
 		return r.OverrideTiming.GetInterval(opts...)
 	}
-	return r.TimeConstraints.GetInterval(opts...)
+	return r.RequestedTiming.GetInterval(opts...)
 }
 
 // Timing represents all the timing options available

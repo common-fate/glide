@@ -4,7 +4,11 @@ import { useMemo } from "react";
 import { MakeGenerics, useNavigate, useSearch } from "react-location";
 import { Column } from "react-table";
 import { useAdminListRequests } from "../../utils/backend-client/admin/admin";
-import { RequestStatus, Request } from "../../utils/backend-client/types";
+import {
+  RequestStatus,
+  Request,
+  AdminListRequestsStatus,
+} from "../../utils/backend-client/types";
 import { usePaginatorApi } from "../../utils/usePaginatorApi";
 import { CFAvatar } from "../CFAvatar";
 import { RequestsFilterMenu } from "./RequestsFilterMenu";
@@ -12,7 +16,7 @@ import { TableRenderer } from "./TableRenderer";
 
 type MyLocationGenerics = MakeGenerics<{
   Search: {
-    status?: Lowercase<RequestStatus>;
+    status?: Lowercase<AdminListRequestsStatus>;
   };
 }>;
 
@@ -25,7 +29,9 @@ export const AdminRequestsTable = () => {
   const paginator = usePaginatorApi<typeof useAdminListRequests>({
     swrHook: useAdminListRequests,
     hookProps: {
-      status: status ? (status.toUpperCase() as RequestStatus) : undefined,
+      status: status
+        ? (status.toUpperCase() as AdminListRequestsStatus)
+        : undefined,
     },
     swrProps: { swr: { refreshInterval: 10000 } },
   });
@@ -105,7 +111,7 @@ export const AdminRequestsTable = () => {
             navigate({
               search: (old) => ({
                 ...old,
-                status: s?.toLowerCase() as Lowercase<RequestStatus>,
+                status: s?.toLowerCase() as Lowercase<AdminListRequestsStatus>,
               }),
             })
           }

@@ -1,7 +1,6 @@
 import * as cdk from "aws-cdk-lib";
 
 import { Construct } from "constructs";
-import { AccessHandler } from "./constructs/access-handler";
 import { AppBackend } from "./constructs/app-backend";
 import { AppFrontend } from "./constructs/app-frontend";
 import { WebUserPool } from "./constructs/app-user-pool";
@@ -166,6 +165,9 @@ export class CommonFateStackDev extends cdk.Stack {
       APILogGroupName: appBackend.getLogGroupName(),
       WebhookLogGroupName: appBackend.getWebhookLogGroupName(),
       IDPSyncLogGroupName: appBackend.getIdpSync().getLogGroupName(),
+      EventsHandlerLogGroupName: appBackend
+        .getEventHandler()
+        .getConcurrentLogGroupName(),
       EventBusLogGroupName: events.getLogGroupName(),
       SlackNotifierLogGroupName: appBackend
         .getNotifiers()

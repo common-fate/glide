@@ -143,7 +143,7 @@ func TestGenerateDistinctTargets(t *testing.T) {
 						},
 					},
 
-					Groups: map[string]struct{}{"group_1": {}, "group_2": {}, "group_3": {}, "group_4": {}},
+					IDPGroupsWithAccess: map[string]struct{}{"group_1": {}, "group_2": {}, "group_3": {}, "group_4": {}},
 					AccessRules: map[string]cache.AccessRule{
 						"accessRule_2": {MatchedTargetGroups: []string{"targetgroup_1"}},
 						"accessRule_1": {MatchedTargetGroups: []string{"targetgroup_1"}}},
@@ -165,8 +165,8 @@ func TestGenerateDistinctTargets(t *testing.T) {
 							ValueLabel:       "PermissionSet_2",
 						},
 					},
-					Groups:      map[string]struct{}{"group_1": {}, "group_2": {}},
-					AccessRules: map[string]cache.AccessRule{"accessRule_1": {MatchedTargetGroups: []string{"targetgroup_1"}}},
+					IDPGroupsWithAccess: map[string]struct{}{"group_1": {}, "group_2": {}},
+					AccessRules:         map[string]cache.AccessRule{"accessRule_1": {MatchedTargetGroups: []string{"targetgroup_1"}}},
 				},
 			},
 		},

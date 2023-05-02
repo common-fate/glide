@@ -28,7 +28,7 @@ func TestGroupTargets(t *testing.T) {
 		AccessRules: map[string]cache.AccessRule{
 			"rule1": {},
 		},
-		Groups: map[string]struct{}{
+		IDPGroupsWithAccess: map[string]struct{}{
 			"group1": {},
 			"group2": {},
 		},
@@ -57,7 +57,7 @@ func TestGroupTargets(t *testing.T) {
 		AccessRules: map[string]cache.AccessRule{
 			"rule2": {},
 		},
-		Groups: map[string]struct{}{
+		IDPGroupsWithAccess: map[string]struct{}{
 			"group1": {},
 			"group2": {},
 		},
@@ -91,17 +91,13 @@ func TestGroupTargets(t *testing.T) {
 			targets: []cache.Target{target1, target2},
 			AccessGroups: []access.PreflightAccessGroup{
 				{
-					Targets: []cache.Target{
-						target1,
-					},
+					Targets: []access.PreflightAccessGroupTarget{{Target: target1}},
 					TimeConstraints: types.AccessRuleTimeConstraints{
 						MaxDurationSeconds: 3600,
 					},
 				},
 				{
-					Targets: []cache.Target{
-						target2,
-					},
+					Targets: []access.PreflightAccessGroupTarget{{Target: target2}},
 					TimeConstraints: types.AccessRuleTimeConstraints{
 						MaxDurationSeconds: 3600,
 					},
@@ -357,10 +353,10 @@ func TestService_ValidateAccessToAllTargets(t *testing.T) {
 				},
 			},
 			mockGetTarget: cache.Target{
-				Groups: map[string]struct{}{"group_1": {}},
+				IDPGroupsWithAccess: map[string]struct{}{"group_1": {}},
 			},
 			want: []cache.Target{{
-				Groups: map[string]struct{}{"group_1": {}},
+				IDPGroupsWithAccess: map[string]struct{}{"group_1": {}},
 			}},
 		},
 		{
@@ -372,7 +368,7 @@ func TestService_ValidateAccessToAllTargets(t *testing.T) {
 				},
 			},
 			mockGetTarget: cache.Target{
-				Groups: map[string]struct{}{"group_2": {}},
+				IDPGroupsWithAccess: map[string]struct{}{"group_2": {}},
 			},
 			wantErr: true,
 		},

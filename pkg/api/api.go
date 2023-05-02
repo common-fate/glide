@@ -12,6 +12,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/auth"
 	"github.com/common-fate/common-fate/pkg/deploy"
+	"github.com/common-fate/common-fate/pkg/eventhandler"
 	"github.com/common-fate/common-fate/pkg/gconfig"
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/handler"
@@ -23,6 +24,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/service/handlersvc"
 	"github.com/common-fate/common-fate/pkg/service/healthchecksvc"
 	"github.com/common-fate/common-fate/pkg/service/internalidentitysvc"
+	"github.com/common-fate/common-fate/pkg/service/preflightsvc"
 	"github.com/common-fate/common-fate/pkg/service/rulesvc"
 	"github.com/common-fate/common-fate/pkg/service/targetsvc"
 	"github.com/common-fate/common-fate/pkg/target"
@@ -65,7 +67,6 @@ type API struct {
 	InternalIdentity   InternalIdentityService
 	TargetService      TargetService
 	HandlerService     HandlerService
-	Workflow           Workflow
 	HealthcheckService HealthcheckService
 	PreflightService   PreflightService
 }
@@ -80,9 +81,9 @@ type CognitoService interface {
 
 // RequestServices can create Access Requests.
 type AccessService interface {
-	CreateRequest(ctx context.Context, in types.CreateAccessRequestRequest) (*access.Request, error)
-	RevokeRequest(ctx context.Context, in access.RequestWithGroupsWithTargets) (*access.Request, error)
-	AddReviewAndGrantAccess(ctx context.Context, opts accesssvc.AddReviewOpts) (*accesssvc.AddReviewResult, error)
+	CreateRequest(ctx context.Context, user identity.User, in types.CreateAccessRequestRequest) (*access.RequestWithGroupsWithTargets, error)
+	RevokeRequest(ctx context.Context, in access.RequestWithGroupsWithTargets) (*access.RequestWithGroupsWithTargets, error)
+	Review(ctx context.Context, user identity.User, isAdmin bool, requestID string, groupID string, in types.ReviewRequest) error
 	CancelRequest(ctx context.Context, opts accesssvc.CancelRequestOpts) error
 	// CreateFavorite(ctx context.Context, in accesssvc.CreateFavoriteOpts) (*access.Favorite, error)
 	// UpdateFavorite(ctx context.Context, in accesssvc.UpdateFavoriteOpts) (*access.Favorite, error)
@@ -92,11 +93,8 @@ type AccessService interface {
 
 // AccessRuleService can create and get rules
 type AccessRuleService interface {
-	ArchiveAccessRule(ctx context.Context, userID string, in rule.AccessRule) (*rule.AccessRule, error)
 	CreateAccessRule(ctx context.Context, userID string, in types.CreateAccessRuleRequest) (*rule.AccessRule, error)
-	// LookupRule(ctx context.Context, opts rulesvc.LookupRuleOpts) ([]rulesvc.LookedUpRule, error)
 	UpdateRule(ctx context.Context, in *rulesvc.UpdateOpts) (*rule.AccessRule, error)
-	// RequestArguments(ctx context.Context, accessRuleTarget rule.Target) (map[string]types.RequestArgument, error)
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_internalidentity_service.go -package=mocks . InternalIdentityService
@@ -122,12 +120,6 @@ type HandlerService interface {
 	DeleteHandler(ctx context.Context, handler *handler.Handler) error
 }
 
-//go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_workflow_service.go -package=mocks . Workflow
-type Workflow interface {
-	Revoke(ctx context.Context, targets access.Group, revokerID string, revokerEmail string) (*access.Request, error)
-	Grant(ctx context.Context, targets access.Group, subject string) ([]access.Grant, error)
-}
-
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_preflight_service.go -package=mocks . PreflightService
 type PreflightService interface {
 	ProcessPreflight(ctx context.Context, user identity.User, preflightRequest types.CreatePreflightRequest) (*access.Preflight, error)
@@ -144,7 +136,7 @@ var _ types.ServerInterface = &API{}
 type Opts struct {
 	Log                    *zap.SugaredLogger
 	ProviderRegistryClient registry_types.ClientWithResponsesInterface
-	EventSender            *gevent.Sender
+	UseLocalEventHandler   bool
 	IdentitySyncer         auth.IdentitySyncer
 	DeploymentConfig       deploy.DeployConfigReader
 	DynamoTable            string
@@ -154,8 +146,8 @@ type Opts struct {
 	CognitoUserPoolID      string
 	IDPType                string
 	AdminGroupID           string
-	StateMachineARN        string
 	FrontendURL            string
+	EventBusArn            string
 }
 
 // New creates a new API.
@@ -178,9 +170,16 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 	}
 
 	clk := clock.New()
-
-	if err != nil {
-		return nil, err
+	var eventBus gevent.EventPutter
+	if !opts.UseLocalEventHandler {
+		eventBus, err = gevent.NewSender(ctx, gevent.SenderOpts{
+			EventBusARN: opts.EventBusArn,
+		})
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		eventBus = eventhandler.NewLocalDevEventHandler(ctx, db, clk)
 	}
 
 	a := API{
@@ -191,41 +190,19 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 			DB:    db,
 			Clock: clk,
 		},
-		// Access: &accesssvc.Service{
-		// 	Clock:       clk,
-		// 	DB:          db,
-		// 	EventPutter: opts.EventSender,
-		// 	// Cache: &cachesvc.Service{
-		// 	// 	ProviderConfigReader: opts.DeploymentConfig,
-		// 	// 	DB:                   db,
-		// 	// },
-		// 	Rules: &rulesvc.Service{
-		// 		Clock: clk,
-		// 		DB:    db,
-		// 		// Cache: &cachesvc.Service{
-		// 		// 	ProviderConfigReader: opts.DeploymentConfig,
-		// 		// 	DB:                   db,
-		// 		// },
-		// 	},
-		// 	Workflow: &workflowsvc.Service{
-		// 		Runtime: &live.Runtime{
-		// 			StateMachineARN: opts.StateMachineARN,
-		// 			Eventbus:        opts.EventSender,
-		// 			DB:              db,
-		// 			RequestRouter: &requestroutersvc.Service{
-		// 				DB: db,
-		// 			},
-		// 		},
-		// 		DB:       db,
-		// 		Clk:      clk,
-		// 		Eventbus: opts.EventSender,
-		// 	},
-		// },
-
-		// Cache: &cachesvc.Service{
-		// 	ProviderConfigReader: opts.DeploymentConfig,
-		// 	DB:                   db,
-		// },
+		PreflightService: &preflightsvc.Service{
+			DB:    db,
+			Clock: clk,
+		},
+		Access: &accesssvc.Service{
+			Clock:       clk,
+			DB:          db,
+			EventPutter: eventBus,
+			Rules: &rulesvc.Service{
+				Clock: clk,
+				DB:    db,
+			},
+		},
 		Rules: &rulesvc.Service{
 			Clock: clk,
 			DB:    db,
@@ -243,19 +220,6 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 			DB:    db,
 			Clock: clk,
 		},
-		// Workflow: &workflowsvc.Service{
-		// 	Runtime: &live.Runtime{
-		// 		StateMachineARN: opts.StateMachineARN,
-		// 		Eventbus:        opts.EventSender,
-		// 		DB:              db,
-		// 		RequestRouter: &requestroutersvc.Service{
-		// 			DB: db,
-		// 		},
-		// 	},
-		// 	DB:       db,
-		// 	Clk:      clk,
-		// 	Eventbus: opts.EventSender,
-		// },
 		HealthcheckService: &healthchecksvc.Service{
 			DB:            db,
 			RuntimeGetter: healthchecksvc.DefaultGetter{},

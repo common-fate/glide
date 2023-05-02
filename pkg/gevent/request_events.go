@@ -3,55 +3,62 @@ package gevent
 import "github.com/common-fate/common-fate/pkg/access"
 
 const (
-	RequestCreatedType    = "request.created"
-	RequestRevokeInitType = "request.revoke.init"
-	RequestRevokeType     = "request.revoke"
-	RequestApprovedType   = "request.approved"
-	RequestCancelInitType = "request.cancel.init"
-	RequestCancelType     = "request.cancel"
-	RequestDeclinedType   = "request.declined"
+	RequestCreatedType         = "request.created"
+	RequestCompleteType        = "request.completed"
+	RequestRevokeInitiatedType = "request.revoke.initiated"
+	RequestRevokeCompletedType = "request.revoke.completed"
+	RequestCancelInitiatedType = "request.cancel.initiated"
+	RequestCancelCompletedType = "request.cancel.completed"
 )
 
 // RequestCreated is when the user requests access
 // to something in the Common Fate service.
 type RequestCreated struct {
-	Request        access.Request `json:"request"`
-	RequestorEmail string         `json:"requestorEmail"`
+	Request access.RequestWithGroupsWithTargets `json:"request"`
 }
 
 func (RequestCreated) EventType() string {
 	return RequestCreatedType
 }
 
+type RequestComplete struct {
+	Request access.RequestWithGroupsWithTargets `json:"request"`
+}
+
+func (RequestComplete) EventType() string {
+	return RequestCompleteType
+}
+
 // Request Revoke is omitted when a user revokes a request
-type RequestRevokeInit struct {
-	Request access.Request `json:"request"`
+type RequestRevokeInitiated struct {
+	Request access.RequestWithGroupsWithTargets `json:"request"`
+	Revoker User                                `json:"revoker"`
 }
 
-func (RequestRevokeInit) EventType() string {
-	return RequestRevokeInitType
+func (RequestRevokeInitiated) EventType() string {
+	return RequestRevokeInitiatedType
 }
 
-type RequestCancelledInit struct {
-	Request access.Request `json:"request"`
+type RequestCancelledInitiated struct {
+	Request access.RequestWithGroupsWithTargets `json:"request"`
 }
 
-func (RequestCancelledInit) EventType() string {
-	return RequestCancelInitType
+func (RequestCancelledInitiated) EventType() string {
+	return RequestCancelInitiatedType
 }
 
 type RequestRevoked struct {
-	Request access.Request `json:"request"`
+	Request access.RequestWithGroupsWithTargets `json:"request"`
 }
 
 func (RequestRevoked) EventType() string {
-	return RequestRevokeType
+	return RequestRevokeCompletedType
 }
 
 type RequestCancelled struct {
-	Request access.Request `json:"request"`
+	Request access.RequestWithGroupsWithTargets `json:"request"`
 }
 
 func (RequestCancelled) EventType() string {
-	return RequestDeclinedType
+	return RequestCancelCompletedType
 }

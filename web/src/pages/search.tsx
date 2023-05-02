@@ -3,87 +3,83 @@ import {
   Box,
   Button,
   Center,
-  Code,
   Container,
   Flex,
+  HStack,
   Input,
+  Spinner,
   Stack,
-  Text,
   TabPanel,
   TabPanels,
   Tabs,
-  useBoolean,
-  useDisclosure,
-  useEventListener,
-  chakra,
+  Text,
   Textarea,
-  Spinner,
-  Divider,
-  Icon,
   Tooltip,
-  HStack,
+  useBoolean,
+  useEventListener,
 } from "@chakra-ui/react";
-import React from "react";
-import { Link, useNavigate } from "react-location";
+import { useEffect, useMemo, useState } from "react";
+import {
+  FixedSizeList as List,
+  FixedSizeListProps,
+  ListChildComponentProps,
+} from "react-window";
+import { useNavigate } from "react-location";
 import Counter from "../components/Counter";
 import FieldsCodeBlock from "../components/FieldsCodeBlock";
 import { ProviderIcon, ShortTypes } from "../components/icons/providerIcon";
 import { UserLayout } from "../components/Layout";
 import {
+  userListEntitlementTargets,
   userPostRequests,
   userRequestPreflight,
   useUserListEntitlements,
-  useUserListEntitlementTargets,
 } from "../utils/backend-client/default/default";
-import { Preflight, Target } from "../utils/backend-client/types";
+import {
+  Preflight,
+  Target,
+  UserListEntitlementTargetsParams,
+} from "../utils/backend-client/types";
+
 import { Command as CommandNew } from "../utils/cmdk";
-import { HeaderStatusCell } from "./request/[id]";
-function TargetComponent({ target }: { target: Target }) {
-  return (
-    <Flex>
-      <ProviderIcon shortType={target.kind.icon as ShortTypes} />
-      <HStack>
-        {target.fields.map((field, i) => (
-          <Box borderLeftWidth={i > 0 ? 2 : undefined} paddingRight={10}>
-            <Tooltip
-              key={field.id}
-              label={
-                <>
-                  <Box fontWeight="bold">{field.fieldTitle}</Box>
-                  {field.fieldDescription && (
-                    <Box>{field.fieldDescription}</Box>
-                  )}
-                  {field.valueDescription && (
-                    <Box mt={2}>{field.valueDescription}</Box>
-                  )}
-                </>
-              }
-              placement="top"
-            >
-              <Box display="inline-block" verticalAlign="top">
-                <Box>{field.valueLabel}</Box>
-                <Box>{field.value}</Box>
-              </Box>
-            </Tooltip>
-          </Box>
-        ))}
-      </HStack>
-    </Flex>
+// CONSTANTS
+const ACTION_KEY_DEFAULT = ["Ctrl", "Control"];
+const ACTION_KEY_APPLE = ["⌘", "Command"];
+const TARGET_HEIGHT = 100;
+const TARGETS = 5;
+// https://erikmartinjordan.com/navigator-platform-deprecated-alternative
+const isMac = () =>
+  /(Mac|iPhone|iPod|iPad)/i.test(
+    // @ts-ignore
+    navigator?.userAgentData?.platform || navigator?.platform || "unknown"
   );
-}
+
 const Search = () => {
-  // https://erikmartinjordan.com/navigator-platform-deprecated-alternative
-  const isMac = () =>
-    /(Mac|iPhone|iPod|iPad)/i.test(
-      // @ts-ignore
-      navigator?.userAgentData?.platform || navigator?.platform || "unknown"
-    );
+  // DATA FETCHING
 
-  const ACTION_KEY_DEFAULT = ["Ctrl", "Control"];
-  const ACTION_KEY_APPLE = ["⌘", "Command"];
-  const [actionKey, setActionKey] = React.useState<string[]>(ACTION_KEY_APPLE);
+  const entitlements = useUserListEntitlements({
+    swr: { refreshInterval: 10000 },
+  });
 
-  React.useEffect(() => {
+  // HOOKS
+  const navigate = useNavigate();
+
+  // STATE
+  const [targetKeyMap, setTargetKeyMap] = useState<{
+    [key: string]: Target;
+  }>({});
+  const [inputValue, setInputValue] = useState<string>("");
+  const [checked, setChecked] = useState<string[]>([]);
+  const [actionKey, setActionKey] = useState<string[]>(ACTION_KEY_APPLE);
+  const [tabIndex, setTabIndex] = useState(0);
+  const [preflightRes, setPreflightRes] = useState<Preflight>();
+  const [accessReason, setAccessReason] = useState<string>("");
+  const [allTargets, setAllTargets] = useState<Target[]>([]);
+  const [nextToken, setNextToken] = useState<string | undefined>("initial");
+  const [submitLoading, submitLoadingToggle] = useBoolean();
+  // EFFECTS
+
+  useEffect(() => {
     if (typeof navigator === "undefined") return;
     if (!isMac()) {
       setActionKey(ACTION_KEY_DEFAULT);
@@ -100,58 +96,80 @@ const Search = () => {
     }
   });
 
-  const targets = useUserListEntitlementTargets(undefined, {
-    swr: { refreshInterval: 10000 },
-    // request: {
-    //   baseURL: "http://127.0.0.1:3100",
-    //   headers: {
-    //     Prefer: "code=200, example=example_targets",
-    //   },
-    // },
-  });
-  const entitlements = useUserListEntitlements({
-    swr: { refreshInterval: 10000 },
-    // request: {
-    //   baseURL: "http://127.0.0.1:3100",
-    //   headers: {
-    //     Prefer: "code=200, example=example_targets",
-    //   },
-    // },
-  });
-  const [targetKeyMap, setTargetKeyMap] = React.useState<{
-    [key: string]: Target;
-  }>({});
+  useEffect(() => {
+    const fetchData = async () => {
+      const params: UserListEntitlementTargetsParams = {
+        nextToken: nextToken === "initial" ? undefined : nextToken,
+      };
+      const result = await userListEntitlementTargets(params);
+      setAllTargets((prevData) => [...prevData, ...result.targets]);
+      setTargetKeyMap((tkm) => {
+        result.targets.forEach((t) => {
+          // the command palette library casts the value to lowercase, so we need to do the same here
+          tkm[t.id.toLowerCase()] = t;
+        });
+        return tkm;
+      });
+      setNextToken(result.next);
+    };
+    if (nextToken !== undefined) {
+      fetchData();
+    }
+  }, [nextToken]);
 
-  const [inputValue, setInputValue] = React.useState<string>("");
-
-  const [checked, setChecked] = React.useState<string[]>([]);
-
-  React.useEffect(() => {
-    if (!targets.data) return;
-    const map: { [key: string]: Target } = {};
-    targets.data.targets.forEach((target) => {
-      map[target.id] = target;
+  // filteredItems with slice 100
+  const filteredItems = useMemo(() => {
+    if (allTargets.length === 0 || !allTargets) return [];
+    if (inputValue === "") return allTargets;
+    return allTargets.filter((target) => {
+      const key = target.id.toLowerCase();
+      return key.includes(inputValue.toLowerCase());
     });
-    setTargetKeyMap(map);
-  }, [targets.data]);
+  }, [inputValue, allTargets]);
 
-  const targetsLoading =
-    targets.isValidating && Object.entries(targetKeyMap).length == 0;
+  const targetComponent: React.FC<ListChildComponentProps> = ({
+    index,
+    style,
+  }) => {
+    const target = filteredItems[index];
 
-  // @TODO:
-  // Actually use the fixture data, maybe write it with actual values.
-  // Add in page responses etc.
+    if (!target) return <></>;
 
-  const navigate = useNavigate();
+    return (
+      <Flex
+        h={TARGET_HEIGHT}
+        style={style}
+        alignContent="flex-start"
+        p={2}
+        rounded="md"
+        _selected={{
+          "bg": "neutrals.100",
+          "#description": {
+            display: "block",
+          },
+        }}
+        key={target.id}
+        // this value is used by the command palette
+        value={target.id}
+        as={CommandNew.Item}
+      >
+        <Flex>
+          <ProviderIcon mr={2} shortType={target.kind.icon as ShortTypes} />
+          <FieldsCodeBlock fields={target.fields} showTooltips />
+        </Flex>
+        <CheckCircleIcon
+          visibility={
+            checked.includes(target.id.toLowerCase()) ? "visible" : "hidden"
+          }
+          h="12px"
+          w="12px"
+          color={"brandBlue.300"}
+        />
+      </Flex>
+    );
+  };
 
-  const [submitLoading, submitLoadingToggle] = useBoolean();
-
-  // tabIndex
-  const [tabIndex, setTabIndex] = React.useState(0);
-
-  // preflightRes
-  const [preflightRes, setPreflightRes] = React.useState<Preflight>();
-
+  // HANDLERS
   const handleSubmit = () => {
     if (tabIndex == 0) handlePreflight();
     if (tabIndex == 1) handleRequest();
@@ -168,17 +186,9 @@ const Search = () => {
       target && entitlementTargets.push(target?.id);
     });
 
-    userRequestPreflight(
-      {
-        targets: entitlementTargets,
-      },
-      {
-        baseURL: "http://127.0.0.1:3100",
-        headers: {
-          Prefer: "code=200, example=ex_1",
-        },
-      }
-    )
+    userRequestPreflight({
+      targets: entitlementTargets,
+    })
       .then((res) => {
         setPreflightRes(res);
         setTabIndex(1);
@@ -190,37 +200,28 @@ const Search = () => {
       .finally(() => {
         submitLoadingToggle.off();
       });
-
-    // navigate({ to: "/search2" });
   };
 
   const handleRequest = () => {
     preflightRes &&
       // test
-      userPostRequests(
-        {
-          preflightId: preflightRes?.id,
-          reason: accessReason,
-          groupOptions: [
-            // @TODO: add in group options, after dynamic UI is supported (next scope of work)
-            //   {
-            //     id: preflightRes?.id,
-            //     timing: { startTime: new Date().toISOString() },
-            //   },
-          ],
-        },
-        {
-          baseURL: "http://127.0.0.1:3100",
-          headers: {
-            Prefer: "code=200, example=ex_1",
-          },
-        }
-      )
+      userPostRequests({
+        preflightId: preflightRes?.id,
+        reason: accessReason,
+        groupOptions: preflightRes.accessGroups.map((g) => {
+          return {
+            id: g.id,
+            timing: {
+              durationSeconds: g.timeConstraints.maxDurationSeconds,
+            },
+          };
+        }),
+      })
         .then((res) => {
           console.log(res);
           submitLoadingToggle.on();
           // redirect to request...
-          navigate({ to: `/request/${"REPLACEME"}` });
+          navigate({ to: `/requests/${res.id}` });
           // clear state
           setChecked([]);
           setInputValue("");
@@ -229,8 +230,6 @@ const Search = () => {
           console.log(err);
         });
   };
-
-  const [accessReason, setAccessReason] = React.useState<string>("");
 
   return (
     <UserLayout>
@@ -246,6 +245,7 @@ const Search = () => {
             <TabPanel>
               <Box minH="200px">
                 <CommandNew
+                  shouldFilter={false}
                   // open={modal.isOpen}
                   // onOpenChange={modal.onToggle}
                   label="Global Command Menu"
@@ -289,7 +289,7 @@ const Search = () => {
                         All resources
                       </Text>
                       <Flex color="neutrals.500">
-                        {targets.data?.targets.length}&nbsp;total
+                        {allTargets.length}&nbsp;total
                       </Flex>
                     </Center>
                     {entitlements.data?.entitlements.map((kind) => {
@@ -335,6 +335,7 @@ const Search = () => {
                       borderColor="neutrals.300"
                       p={1}
                       pt={2}
+                      overflowY="scroll"
                     >
                       <Center as={CommandNew.Empty} minH="200px">
                         No results found.
@@ -342,85 +343,28 @@ const Search = () => {
                       <CommandNew.Group
                       // heading="Permissions"
                       >
-                        {targetsLoading ? (
+                        {/* {allTargets.length === 0 ? (
                           <Center as={CommandNew.Loading} minH="200px">
                             <Spinner />
                           </Center>
                         ) : (
-                          targets.data &&
-                          targets.data.targets.map((target) => {
-                            return (
-                              <Flex
-                                alignContent="flex-start"
-                                p={2}
-                                rounded="md"
-                                _selected={{
-                                  "bg": "neutrals.100",
-                                  "#description": {
-                                    display: "block",
-                                  },
-                                }}
-                                _checked={{
-                                  "#checked": {
-                                    display: "block",
-                                  },
-                                }}
-                                pos="relative"
-                                key={target.id}
-                                // this value is used by the command palette
-                                value={target.id}
-                                as={CommandNew.Item}
-                              >
-                                <TargetComponent target={target} />
-                                <CheckCircleIcon
-                                  id="checked"
-                                  position="absolute"
-                                  display="none"
-                                  top={2}
-                                  right={2}
-                                  h="12px"
-                                  w="12px"
-                                  color={"brandBlue.300"}
-                                />
-                                {/* @TODO: review me as a part of CF-1028 */}
-                                {/* <Box
-                                  rounded="md"
-                                  w="24ch"
-                                  zIndex={9999}
-                                  pos="absolute"
-                                  top={4}
-                                  right={4}
-                                  id="description"
-                                  display="none"
-                                  textStyle="Body/ExtraSmall"
-                                  p={1}
-                                >
-                                  Admin access to {target.fields[0].value}{" "}
-                                  account
-                                </Box> */}
-                                <Box
-                                  rounded="md"
-                                  w="24ch"
-                                  bg="white"
-                                  border="1px solid"
-                                  borderColor="neutrals.300"
-                                  zIndex={9999}
-                                  pos="absolute"
-                                  bottom={-4}
-                                  right={0}
-                                  id="description"
-                                  display="none"
-                                  textStyle="Body/ExtraSmall"
-                                  p={1}
-                                >
-                                  Admin access to {target.fields[0].value}{" "}
-                                  account
-                                </Box>
-                              </Flex>
-                            );
-                          })
+                          allTargets.slice(undefined, 5).map(targetComponent)
+                        )} */}
+                        {allTargets.length === 0 && (
+                          <Center as={CommandNew.Loading} minH="200px">
+                            <Spinner />
+                          </Center>
                         )}
+                        <List
+                          height={TARGETS * TARGET_HEIGHT}
+                          itemCount={filteredItems.length}
+                          itemSize={TARGET_HEIGHT}
+                          width="100%"
+                        >
+                          {targetComponent}
+                        </List>
                       </CommandNew.Group>
+                      <Text>Filter len: {filteredItems.length}</Text>
                     </Stack>
                   </CommandNew.List>
                 </CommandNew>

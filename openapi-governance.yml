@@ -1,13 +1,13 @@
 openapi: 3.0.0
 info:
   title: Approvals Governance API
-  version: "1.0"
+  version: '1.0'
   contact:
     name: Common Fate
-    url: "https://commonfate.io"
+    url: 'https://commonfate.io'
   description: An API for programmatically managing access rules in Granted Approvals.
 servers:
-  - url: "http://localhost:8889"
+  - url: 'http://localhost:8889'
 paths:
   /gov/v1/access-rules:
     get:
@@ -15,8 +15,8 @@ paths:
       tags:
         - Governance
       responses:
-        "200":
-          $ref: "#/components/responses/ListAccessRulesDetailResponse"
+        '200':
+          $ref: '#/components/responses/ListAccessRulesDetailResponse'
       operationId: gov-list-access-rules
       description: List all access rules
       parameters:
@@ -37,15 +37,15 @@ paths:
       summary: Create Access Rule
       operationId: gov-create-access-rule
       responses:
-        "201":
+        '201':
           description: Created
           content:
             application/json:
               schema:
                 $ref: ./openapi.yml#/components/schemas/AccessRule
-        "400":
+        '400':
           $ref: ./openapi.yml#/components/responses/ErrorResponse
-        "401":
+        '401':
           $ref: ./openapi.yml#/components/responses/ErrorResponse
       description: Create an access rule
       requestBody:
@@ -53,19 +53,19 @@ paths:
       tags:
         - Governance
     parameters: []
-  "/gov/v1/access-rules/{ruleId}":
+  '/gov/v1/access-rules/{ruleId}':
     get:
       summary: Get Access Rule
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
                 $ref: ./openapi.yml#/components/schemas/AccessRule
-        "401":
+        '401':
           $ref: ./openapi.yml#/components/responses/ErrorResponse
-        "404":
+        '404':
           $ref: ./openapi.yml#/components/responses/ErrorResponse
       operationId: gov-get-access-rule
       description: Get an Access Rule.
@@ -81,26 +81,26 @@ paths:
       summary: Update Access Rule
       operationId: gov-update-access-rule
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
                 $ref: ./openapi.yml#/components/schemas/AccessRule
-        "400":
+        '400':
           description: Bad Request
-        "401":
+        '401':
           description: Unauthorized
-        "404":
+        '404':
           description: Not Found
-        "500":
+        '500':
           description: Internal Server Error
       requestBody:
         $ref: ./openapi.yml#/components/requestBodies/CreateAccessRuleRequest
       description: Updates an Access Rule. Updating a rule creates a new version.
       tags:
         - Governance
-  "/gov/v1/access-rules/{ruleId}/archive":
+  '/gov/v1/access-rules/{ruleId}/delete':
     parameters:
       - schema:
           type: string
@@ -109,22 +109,22 @@ paths:
         required: true
     post:
       summary: Archive Access Rule
-      operationId: gov-archive-access-rule
+      operationId: gov-delete-access-rule
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
                 $ref: ./openapi.yml#/components/schemas/AccessRule
-        "401":
+        '401':
           $ref: ./openapi.yml#/components/responses/ErrorResponse
-        "404":
+        '404':
           $ref: ./openapi.yml#/components/responses/ErrorResponse
-        "500":
+        '500':
           $ref: ./openapi.yml#/components/responses/ErrorResponse
       description: |-
-        Marks an access rule as archived.
+        Deletes an Access Rule
         Any pending requests for this access rule will be cancelled.
       tags:
         - Governance
@@ -183,7 +183,7 @@ components:
       content:
         application/json:
           schema:
-            description: ""
+            description: ''
             type: object
             properties:
               timeConstraints:
@@ -211,7 +211,7 @@ components:
       content:
         application/json:
           schema:
-            description: ""
+            description: ''
             type: object
             properties:
               groups:

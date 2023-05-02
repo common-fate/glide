@@ -2,10 +2,12 @@ package accesssvc
 
 import (
 	"context"
+	"errors"
 
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/auth"
 	"github.com/common-fate/common-fate/pkg/gevent"
+	"github.com/common-fate/common-fate/pkg/types"
 )
 
 // type CreateRequestResult struct {
@@ -25,30 +27,43 @@ import (
 // 	Create CreateRequests
 // }
 
-func (s *Service) RevokeRequest(ctx context.Context, in access.RequestWithGroupsWithTargets) (*access.Request, error) {
+func (s *Service) RevokeRequest(ctx context.Context, in access.RequestWithGroupsWithTargets) (*access.RequestWithGroupsWithTargets, error) {
 
-	u := auth.UserFromContext(ctx)
+	//before emitting the event to start revoking we want to make sure the request is valid to be revoked
 
-	//revoke each group in the request
-
+	//check that all the groups have grants attached
+	var canRevokeRequest bool
 	for _, group := range in.Groups {
-		_, err := s.Workflow.Revoke(ctx, group, u.ID, u.Email)
+		for _, target := range group.Targets {
+			if target.Grant == nil {
+				continue
+			}
 
-		if err != nil {
-			return nil, err
+			grantCanRevoke := target.Grant.Status == types.RequestAccessGroupTargetStatusACTIVE ||
+				target.Grant.Status == types.RequestAccessGroupTargetStatusPENDINGPROVISIONING
+
+			if grantCanRevoke || target.Grant.End.After(s.Clock.Now()) {
+				canRevokeRequest = true
+			}
 		}
+	}
+	//check that they all are in the proper state to be revoked
 
+	if !canRevokeRequest {
+		return nil, errors.New("failed to revoke request, not all targets provisioned")
 	}
 
+	user := auth.UserFromContext(ctx)
 	//emit request group revoke event
-	err := s.EventPutter.Put(ctx, gevent.RequestRevoked{
-		Request: in.Request,
+	err := s.EventPutter.Put(ctx, gevent.RequestRevokeInitiated{
+		Request: in,
+		Revoker: gevent.UserFromIdentityUser(*user),
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	return &in.Request, nil
+	return &in, nil
 
 }
 

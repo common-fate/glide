@@ -10,7 +10,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/common-fate/common-fate/pkg/access"
-	"github.com/common-fate/common-fate/pkg/config"
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/handler"
 	"github.com/common-fate/common-fate/pkg/service/requestroutersvc"
@@ -18,10 +17,14 @@ import (
 	"github.com/common-fate/common-fate/pkg/types"
 )
 
+//go:generate go run github.com/golang/mock/mockgen -destination=mocks/eventputter.go -package=mocks . EventPutter
+type EventPutter interface {
+	Put(ctx context.Context, detail gevent.EventTyper) error
+}
 type Granter struct {
-	Cfg           config.TargetGroupGranterConfig
 	DB            ddb.Storage
 	RequestRouter *requestroutersvc.Service
+	EventPutter   EventPutter
 }
 type WorkflowInput struct {
 	Grant access.GroupTarget `json:"grant"`
@@ -67,11 +70,7 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (GrantState,
 	if err != nil {
 		return GrantState{}, err
 	}
-	_ = runtime
-	eventsBus, err := gevent.NewSender(ctx, gevent.SenderOpts{EventBusARN: g.Cfg.EventBusArn})
-	if err != nil {
-		return GrantState{}, err
-	}
+
 	var grantResponse *msg.GrantResponse
 	switch in.Action {
 	case ACTIVATE:
@@ -79,21 +78,15 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (GrantState,
 		grantResponse, err = func() (out *msg.GrantResponse, err error) {
 			defer func() {
 				if r := recover(); r != nil {
-					log.Errorw("recovered panic while granting access", "error", r, "target group", grant.TargetGroupFrom)
-					err = fmt.Errorf("internal server error invoking targetgroup:handler:kind %s:%s:%s", grant.TargetGroupFrom, routeResult.Handler.ID, routeResult.Route.Kind)
+					log.Errorw("recovered panic while granting access", "error", r, "target group", grant.TargetKind)
+					err = fmt.Errorf("internal server error invoking targetgroup:handler:kind %s:%s:%s", grant.TargetKind, routeResult.Handler.ID, routeResult.Route.Kind)
 				}
 			}()
-			//set up the arguments to be read by the provider
-			args := map[string]string{}
-			for _, field := range in.Grant.Fields {
-				args[field.FieldTitle] = field.Value.Value
-			}
-
 			req := msg.Grant{
 				Subject: string(grant.RequestedBy.Email),
 				Target: msg.Target{
 					Kind:      routeResult.Route.Kind,
-					Arguments: args,
+					Arguments: grant.FieldsToMap(),
 				},
 				Request: msg.AccessRequest{
 					ID: grant.ID,
@@ -107,21 +100,16 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (GrantState,
 		err = func() (err error) {
 			defer func() {
 				if r := recover(); r != nil {
-					log.Errorw("recovered panic while deactivating access", "error", r, "target group", grant.TargetGroupFrom)
-					err = fmt.Errorf("internal server error invoking targetgroup:handler:kind %s:%s:%s", grant.TargetGroupFrom, routeResult.Handler.ID, routeResult.Route.Kind)
+					log.Errorw("recovered panic while deactivating access", "error", r, "target group", grant.TargetKind)
+					err = fmt.Errorf("internal server error invoking targetgroup:handler:kind %s:%s:%s", grant.TargetKind, routeResult.Handler.ID, routeResult.Route.Kind)
 				}
 			}()
-			//set up the arguments to be read by the provider
-			args := map[string]string{}
-			for _, field := range in.Grant.Fields {
-				args[field.FieldTitle] = field.Value.Value
-			}
 
 			req := msg.Revoke{
 				Subject: string(grant.RequestedBy.Email),
 				Target: msg.Target{
 					Kind:      routeResult.Route.Kind,
-					Arguments: args,
+					Arguments: grant.FieldsToMap(),
 				},
 				Request: msg.AccessRequest{
 					ID: grant.ID,
@@ -140,7 +128,7 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (GrantState,
 		log.Errorf("error while handling granter event", "error", err.Error(), "event", in)
 		grant.Grant.Status = types.RequestAccessGroupTargetStatusERROR
 
-		eventErr := eventsBus.Put(ctx, gevent.GrantFailed{Grant: grant, Reason: err.Error()})
+		eventErr := g.EventPutter.Put(ctx, gevent.GrantFailed{Grant: grant, Reason: err.Error()})
 		if eventErr != nil {
 			return GrantState{}, errors.Wrapf(err, "failed to emit event, emit error: %s", eventErr.Error())
 		}
@@ -152,48 +140,15 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (GrantState,
 	switch in.Action {
 	case ACTIVATE:
 		grant.Grant.Status = types.RequestAccessGroupTargetStatusACTIVE
-		evt = &gevent.GrantActivated{Grant: *grant.Grant}
+		evt = &gevent.GrantActivated{Grant: grant}
 	case DEACTIVATE:
 		grant.Grant.Status = types.RequestAccessGroupTargetStatusEXPIRED
-		evt = &gevent.GrantExpired{Grant: *grant.Grant}
+		evt = &gevent.GrantExpired{Grant: grant}
 
-		//check to see if all targets are expired or failed and update the requests status to complete
-
-		q := storage.GetRequestGroupWithTargets{RequestID: grant.RequestID, GroupID: grant.GroupID}
-
-		_, err = g.DB.Query(ctx, &q)
-		if err != nil {
-			return GrantState{}, err
-		}
-		isComplete := true
-		for _, target := range q.Result.Targets {
-			if target.Grant.Status != types.RequestAccessGroupTargetStatusEXPIRED {
-				isComplete = false
-			}
-			if target.Grant.Status != types.RequestAccessGroupTargetStatusERROR {
-				isComplete = false
-			}
-		}
-
-		//if all targets grants are complete then update the requests status
-		if isComplete {
-			//update the request status to complete
-			req := storage.GetRequestWithGroupsWithTargets{ID: grant.RequestID}
-			_, err = g.DB.Query(ctx, &req)
-			if err != nil {
-				return GrantState{}, err
-			}
-			req.Result.Request.RequestStatus = types.COMPLETE
-
-			err = g.DB.Put(ctx, req.Result)
-			if err != nil {
-				return GrantState{}, err
-			}
-		}
 	}
 
 	log.Infow("emitting event", "event", evt, "action", in.Action)
-	err = eventsBus.Put(ctx, evt)
+	err = g.EventPutter.Put(ctx, evt)
 	if err != nil {
 		return GrantState{}, err
 	}
@@ -201,6 +156,7 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (GrantState,
 		Grant: grant,
 	}
 
+	// Should be fine, it there is potential that
 	items = append(items, &grant)
 
 	if grantResponse != nil {
@@ -209,9 +165,7 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (GrantState,
 			Instructions:  grantResponse.AccessInstructions,
 			GroupTargetID: grant.TargetGroupID,
 		}
-
 		items = append(items, &instructions)
-
 		//Save the new grant status and the instructions
 		err = g.DB.PutBatch(ctx, items...)
 		// If there is an error writing instructions, don't return the error.

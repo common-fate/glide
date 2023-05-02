@@ -117,25 +117,24 @@ func (a *API) GovUpdateAccessRule(w http.ResponseWriter, r *http.Request, ruleId
 }
 
 // Archive Access Rule
-// (POST /api/v1/gov/access-rules/{ruleId}/archive)
-func (a *API) GovArchiveAccessRule(w http.ResponseWriter, r *http.Request, ruleId string) {
+// (POST /api/v1/gov/access-rules/{ruleId}/delete)
+func (a *API) GovDeleteAccessRule(w http.ResponseWriter, r *http.Request, ruleId string) {
 	ctx := r.Context()
 	q := storage.GetAccessRule{ID: ruleId}
 	_, err := a.DB.Query(ctx, &q)
 
 	if err == ddb.ErrNoItems {
-		apio.Error(ctx, w, &apio.APIError{Err: errors.New("this rule doesn't exist"), Status: http.StatusNotFound})
+		apio.Error(ctx, w, &apio.APIError{Err: errors.New("this rule doesn't exist or you don't have permission to archive it"), Status: http.StatusNotFound})
 		return
 	}
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
-
-	c, err := a.Rules.ArchiveAccessRule(ctx, "bot_governance_api", *q.Result)
+	err = a.DB.Delete(ctx, q.Result)
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
-	apio.JSON(ctx, w, c.ToAPI(), http.StatusOK)
+	apio.JSON(ctx, w, nil, http.StatusNoContent)
 }

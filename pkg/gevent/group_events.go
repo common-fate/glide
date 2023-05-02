@@ -1,6 +1,9 @@
 package gevent
 
-import "github.com/common-fate/common-fate/pkg/access"
+import (
+	"github.com/common-fate/common-fate/pkg/access"
+	"github.com/common-fate/common-fate/pkg/types"
+)
 
 //new AccessGroup Requests
 
@@ -11,9 +14,10 @@ const (
 )
 
 type AccessGroupReviewed struct {
-	AccessGroup   access.Group `json:"group"`
-	ReviewerID    string       `json:"reviewerId"`
-	ReviewerEmail string       `json:"reviewerEmail"`
+	// Override timing has not yet been applied to this group if it was present on the review
+	AccessGroup access.GroupWithTargets `json:"group"`
+	Reviewer    User                    `json:"reviewer"`
+	Review      types.ReviewRequest     `json:"review"`
 }
 
 func (AccessGroupReviewed) EventType() string {
@@ -21,9 +25,9 @@ func (AccessGroupReviewed) EventType() string {
 }
 
 type AccessGroupApproved struct {
-	AccessGroup   access.Group `json:"group"`
-	ReviewerID    string       `json:"reviewerId"`
-	ReviewerEmail string       `json:"reviewerEmail"`
+	AccessGroup    access.GroupWithTargets                `json:"group"`
+	ApprovalMethod types.RequestAccessGroupApprovalMethod `json:"approvalMethod"`
+	Reviewer       User                                   `json:"reviewer"`
 }
 
 func (AccessGroupApproved) EventType() string {
@@ -31,9 +35,8 @@ func (AccessGroupApproved) EventType() string {
 }
 
 type AccessGroupDeclined struct {
-	AccessGroup   access.Group `json:"group"`
-	ReviewerID    string       `json:"reviewerId"`
-	ReviewerEmail string       `json:"reviewerEmail"`
+	AccessGroup access.GroupWithTargets `json:"group"`
+	Reviewer    User                    `json:"reviewer"`
 }
 
 func (AccessGroupDeclined) EventType() string {

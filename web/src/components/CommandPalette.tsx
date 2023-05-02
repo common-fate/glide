@@ -84,7 +84,7 @@
 //           target: { provider: { type: string | undefined } };
 //         }) => ({
 //           name: rule.name,
-//           action: () => nav({ to: `/access/request/${rule.id}` }),
+//           action: () => nav({ to: `/access/requests/${rule.id}` }),
 //           // @ts-ignore
 //           icon: (props) => (
 //             <ProviderIcon
@@ -105,7 +105,7 @@
 //           name: favorite.name,
 //           action: () =>
 //             nav({
-//               to: `/access/request/${favorite.ruleId}?favorite=${favorite.id}`,
+//               to: `/access/requests/${favorite.ruleId}?favorite=${favorite.id}`,
 //             }),
 //           icon: StarIcon,
 //           type: "favorite",

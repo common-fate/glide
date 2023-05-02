@@ -40,7 +40,8 @@ export const Navbar: React.FC = () => {
 
   const user = useUser();
   const auth = useCognito();
-
+  const { data: requests } = useUserListRequests({ filter: "UPCOMING" });
+  const { data: reviews } = useUserListReviews({ status: "PENDING" });
   const { isOpen, onOpen, onClose } = useDisclosure();
   const modal = useDisclosure();
 
@@ -69,7 +70,16 @@ export const Navbar: React.FC = () => {
       modal.isOpen ? modal.onClose() : modal.onOpen();
     }
   });
-
+  const showReqCount = useMemo(
+    () => requests?.requests && requests?.requests.length > 0,
+    [requests]
+  );
+  const showRewCount = useMemo(
+    () =>
+      reviews?.requests &&
+      reviews.requests.filter((r) => r.status === "PENDING").length > 0,
+    [reviews]
+  );
   return (
     <Box as="section">
       <Box
@@ -121,13 +131,10 @@ export const Navbar: React.FC = () => {
                   // bottom={-4}
                   // left="50%"
                 >
-                  <TabsStyledButton href="/search" w="95px" pr={0}>
-                    Search
-                  </TabsStyledButton>
                   {/* I've hardcoded widths here to prevent the bold/unbold text from 
-                  altering the containing divs width. Reduces *jittering* */}
-                  {/* <TabsStyledButton
-                    href="/requests"
+               altering the containing divs width. Reduces *jittering* */}
+                  <TabsStyledButton
+                    href="/search"
                     w={showReqCount ? "190px" : "142px"}
                     pr={showReqCount ? 10 : undefined}
                   >
@@ -139,14 +146,14 @@ export const Navbar: React.FC = () => {
                         count={requests?.requests?.length ?? 0}
                       />
                     )}
-                  </TabsStyledButton> */}
+                  </TabsStyledButton>
                   <TabsStyledButton
                     href="/reviews?status=pending"
                     w="125px"
-                    pr={0}
+                    pr={showReqCount ? 10 : undefined}
                   >
                     Reviews
-                    {/* {showRewCount && (
+                    {showRewCount && (
                       <Counter
                         pos="absolute"
                         right={2}
@@ -156,10 +163,7 @@ export const Navbar: React.FC = () => {
                           ).length ?? 0
                         }
                       />
-                    )} */}
-                  </TabsStyledButton>
-                  <TabsStyledButton href="/request/123" w="125px" pr={0}>
-                    Request
+                    )}
                   </TabsStyledButton>
                 </ButtonGroup>
               )}

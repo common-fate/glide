@@ -3,8 +3,8 @@ package access
 import (
 	"time"
 
+	"github.com/common-fate/common-fate/pkg/cache"
 	"github.com/common-fate/common-fate/pkg/storage/keys"
-	"github.com/common-fate/common-fate/pkg/target"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 )
@@ -18,10 +18,10 @@ type GroupTarget struct {
 	RequestedBy   RequestedBy         `json:"requestedBy" dynamodbav:"requestedBy"`
 	// The id of the cache.Target which was used to select this on the request.
 	// the cache item is subject to be deleted so this cacheID may not always exist in the future after the grant is created
-	TargetCacheID   string      `json:"cacheId" dynamodbav:"cacheId"`
-	TargetGroupID   string      `json:"targetGroupId" dynamodbav:"targetGroupId"`
-	TargetGroupFrom target.From `json:"targetGroupFrom" dynamodbav:"targetGroupFrom"`
-	Fields          []Field     `json:"fields" dynamodbav:"fields"`
+	TargetCacheID string     `json:"cacheId" dynamodbav:"cacheId"`
+	TargetGroupID string     `json:"targetGroupId" dynamodbav:"targetGroupId"`
+	TargetKind    cache.Kind `json:"targetGroupFrom" dynamodbav:"targetGroupFrom"`
+	Fields        []Field    `json:"fields" dynamodbav:"fields"`
 	// The grant will be populated when this target is submitted to be provisioned
 	// The start and end time are calculated and stored on the grant when it is provisioned
 	Grant     *Grant    `json:"grant" dynamodbav:"grant"`
@@ -29,6 +29,14 @@ type GroupTarget struct {
 	UpdatedAt time.Time `json:"updatedAt" dynamodbav:"updatedAt"`
 	// request reviewers are users who have one or more groups to review on the request as a whole
 	RequestReviewers []string `json:"requestReviewers" dynamodbav:"requestReviewers, set"`
+}
+
+func (g *GroupTarget) FieldsToMap() map[string]string {
+	args := make(map[string]string)
+	for _, field := range g.Fields {
+		args[field.ID] = field.Value.Value
+	}
+	return args
 }
 
 type Grant struct {
@@ -66,14 +74,14 @@ func (f *Field) ToAPI() types.TargetField {
 }
 func (g *GroupTarget) ToAPI() types.RequestAccessGroupTarget {
 	grant := types.RequestAccessGroupTarget{
-		AccessGroupId:   g.GroupID,
-		Id:              g.ID,
-		RequestId:       g.RequestID,
-		Status:          types.RequestAccessGroupTargetStatusPENDINGPROVISIONING,
-		Fields:          []types.TargetField{},
-		TargetGroupFrom: g.TargetGroupFrom.ToAPI(),
-		TargetGroupId:   g.TargetGroupID,
-		RequestedBy:     types.RequestRequestedBy(g.RequestedBy),
+		AccessGroupId: g.GroupID,
+		Id:            g.ID,
+		RequestId:     g.RequestID,
+		Status:        types.RequestAccessGroupTargetStatusPENDINGPROVISIONING,
+		Fields:        []types.TargetField{},
+		TargetKind:    g.TargetKind.ToAPI(),
+		TargetGroupId: g.TargetGroupID,
+		RequestedBy:   types.RequestRequestedBy(g.RequestedBy),
 	}
 	if g.Grant != nil {
 		grant.Status = g.Grant.Status

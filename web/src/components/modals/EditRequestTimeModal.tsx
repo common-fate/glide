@@ -72,14 +72,14 @@ const EditRequestTimeModal = ({ accessGroup, ...props }: Props) => {
   useEffect(() => {
     const data: ApproveRequestFormData = {
       timing: {
-        durationSeconds: accessGroup.time.durationSeconds,
-        startTime: accessGroup.time.startTime,
+        durationSeconds: accessGroup.requestedTiming.durationSeconds,
+        startTime: accessGroup.requestedTiming.startTime,
       },
-      when: accessGroup.time.startTime ? "scheduled" : "asap",
+      when: accessGroup.requestedTiming.startTime ? "scheduled" : "asap",
     };
 
-    if (accessGroup.time.startTime) {
-      const d = new Date(Date.parse(accessGroup.time.startTime));
+    if (accessGroup.requestedTiming.startTime) {
+      const d = new Date(Date.parse(accessGroup.requestedTiming.startTime));
       // This native datetime input needs a specific format as shown here, we take input in local time and it is converted to UTC for the api call
       data.timing.startTime = format(d, "yyyy-MM-dd'T'HH:mm");
     }
@@ -128,7 +128,9 @@ const EditRequestTimeModal = ({ accessGroup, ...props }: Props) => {
                         {...rest}
                         max={maxDurationSeconds}
                         min={60}
-                        defaultValue={accessGroup.time.durationSeconds}
+                        defaultValue={
+                          accessGroup.requestedTiming.durationSeconds
+                        }
                         hideUnusedElements
                       >
                         <Weeks />
