@@ -160,6 +160,54 @@ const Home = () => {
                             {request.data.requestedBy.email}
                           </Text>
                         </Box>
+                        {request.data.status == "ACTIVE" && (
+                          <ButtonGroup
+                            ml="auto"
+                            variant="brandSecondary"
+                            spacing={2}
+                          >
+                            <Button
+                              size="sm"
+                              onClick={() => {
+                                console.log("revoke");
+                                //@ts-ignore
+                                userRevokeRequest(request.data?.id)
+                                  .then((e) => {
+                                    console.log(e);
+                                  })
+                                  .catch((e) => {
+                                    console.log(e);
+                                  });
+                              }}
+                            >
+                              Revoke
+                            </Button>
+                          </ButtonGroup>
+                        )}
+                        {request.data.status == "PENDING" && (
+                          <ButtonGroup
+                            ml="auto"
+                            variant="brandSecondary"
+                            spacing={2}
+                          >
+                            <Button
+                              size="sm"
+                              onClick={() => {
+                                console.log("cancel");
+                                //@ts-ignore
+                                userCancelRequest(request.data?.id)
+                                  .then((e) => {
+                                    console.log(e);
+                                  })
+                                  .catch((e) => {
+                                    console.log(e);
+                                  });
+                              }}
+                            >
+                              Cancel
+                            </Button>
+                          </ButtonGroup>
+                        )}
                       </Flex>
                     ) : (
                       <Flex h="42px">
@@ -220,6 +268,20 @@ type AccessGroupProps = {
 
 export const HeaderStatusCell = ({ group }: AccessGroupProps) => {
   if (group.status === "PENDING_APPROVAL") {
+    if (group.requestStatus === "CANCELLED") {
+      return (
+        <Box
+          as="span"
+          flex="1"
+          textAlign="left"
+          sx={{
+            p: { lineHeight: "120%", textStyle: "Body/Extra Small" },
+          }}
+        >
+          <Text color="neutrals.700">Cancelled</Text>
+        </Box>
+      );
+    }
     return (
       <Box
         as="span"
@@ -298,6 +360,7 @@ export const HeaderStatusCell = ({ group }: AccessGroupProps) => {
             <Text color="neutrals.700">Revoked</Text>
           </Box>
         );
+
       case "COMPLETE":
         return (
           <Box
@@ -605,44 +668,6 @@ export const ApproveRejectDuration = ({
             }}
           >
             Reject
-          </Button>
-        </ButtonGroup>
-      )}
-      {!isReviewer && group.requestStatus == "ACTIVE" && (
-        <ButtonGroup ml="auto" variant="brandSecondary" spacing={2}>
-          <Button
-            size="sm"
-            onClick={() => {
-              console.log("revoke");
-              userRevokeRequest(group.requestId)
-                .then((e) => {
-                  console.log(e);
-                })
-                .catch((e) => {
-                  console.log(e);
-                });
-            }}
-          >
-            Revoke
-          </Button>
-        </ButtonGroup>
-      )}
-      {!isReviewer && group.requestStatus == "PENDING" && (
-        <ButtonGroup ml="auto" variant="brandSecondary" spacing={2}>
-          <Button
-            size="sm"
-            onClick={() => {
-              console.log("cancel");
-              userCancelRequest(group.requestId)
-                .then((e) => {
-                  console.log(e);
-                })
-                .catch((e) => {
-                  console.log(e);
-                });
-            }}
-          >
-            Cancel
           </Button>
         </ButtonGroup>
       )}
