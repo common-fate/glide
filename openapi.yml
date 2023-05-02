@@ -1939,11 +1939,8 @@ components:
         id: pbn0w5xu3u6cu
       type: string
       enum:
-        - AND
-        - OR
-        - SELECT
         - BEGINS_WITH
-      description: ""
+        - IN
     ResourceFilter:
       title: ResourceFilter
       x-stoplight:
@@ -1959,21 +1956,19 @@ components:
       properties:
         operationType:
           $ref: "#/components/schemas/ResourceFilterOperationTypeEnum"
-        Value:
+        value:
           type: string
-        Attribute:
+        attribute:
           type: string
-        Values:
+        values:
           type: array
           items:
             type: string
         operations:
           $ref: "#/components/schemas/Operation"
-        ValidationError:
-          type: string
       required:
         - operationType
-        - Attribute
+        - attribute
     TargetGroupResource:
       title: TargetGroupResource
       x-stoplight:
