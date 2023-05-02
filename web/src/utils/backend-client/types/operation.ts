@@ -9,9 +9,8 @@ import type { ResourceFilterOperationTypeEnum } from './resourceFilterOperationT
 
 export interface Operation {
   operationType: ResourceFilterOperationTypeEnum;
-  Value?: string;
-  Attribute: string;
-  Values?: string[];
+  value?: string;
+  attribute: string;
+  values?: string[];
   operations?: Operation;
-  ValidationError?: string;
 }

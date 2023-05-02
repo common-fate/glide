@@ -11,6 +11,7 @@ import { TargetStep } from "./steps/Provider";
 import { RequestsStep } from "./steps/Request";
 import { TimeStep } from "./steps/Time";
 import { StepsProvider } from "./StepsContext";
+import { FieldStep } from "./steps/Field";
 
 export interface AccessRuleFormData extends CreateAccessRuleRequestBody {
   approval: { required: boolean; users: string[]; groups: string[] };
@@ -84,6 +85,7 @@ const CreateAccessRuleForm = () => {
         <form onSubmit={methods.handleSubmit(onSubmit)}>
           <VStack w="100%" spacing={6}>
             <StepsProvider>
+              <FieldStep />
               <GeneralStep />
               <TargetStep />
               <TimeStep />

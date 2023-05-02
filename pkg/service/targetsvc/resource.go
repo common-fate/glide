@@ -11,7 +11,12 @@ import (
 func (s *Service) FilterResources(ctx context.Context, resources []types.TargetGroupResource, filter types.ResourceFilter) ([]types.TargetGroupResource, error) {
 	var filteredResponse []types.TargetGroupResource
 	for _, res := range resources {
-		if res.Resource.Match(filter) {
+		matched, err := res.Resource.Match(filter)
+		if err != nil {
+			return nil, err
+		}
+
+		if matched {
 			filteredResponse = append(filteredResponse, res)
 		}
 	}

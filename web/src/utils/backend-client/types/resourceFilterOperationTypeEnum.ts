@@ -11,8 +11,6 @@ export type ResourceFilterOperationTypeEnum = typeof ResourceFilterOperationType
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ResourceFilterOperationTypeEnum = {
-  AND: 'AND',
-  OR: 'OR',
-  SELECT: 'SELECT',
   BEGINS_WITH: 'BEGINS_WITH',
+  IN: 'IN',
 } as const;
