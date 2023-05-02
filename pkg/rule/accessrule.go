@@ -50,14 +50,14 @@ func (a AccessRule) ToAPIDetail() types.AccessRuleDetail {
 		status = types.AccessRuleStatusARCHIVED
 	}
 	approval := types.ApproverConfig{
-		Groups: []string{},
-		Users:  []string{},
+		Groups: &[]string{},
+		Users:  &[]string{},
 	}
 	if a.Approval.Groups != nil {
-		approval.Groups = a.Approval.Groups
+		approval.Groups = &a.Approval.Groups
 	}
 	if a.Approval.Users != nil {
-		approval.Users = a.Approval.Users
+		approval.Users = &a.Approval.Users
 	}
 	return types.AccessRuleDetail{
 		ID:          a.ID,

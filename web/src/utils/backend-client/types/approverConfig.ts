@@ -11,6 +11,6 @@
  */
 export interface ApproverConfig {
   /** The user IDs of the approvers for the request. */
-  users: string[];
-  groups: string[];
+  users?: string[];
+  groups?: string[];
 }

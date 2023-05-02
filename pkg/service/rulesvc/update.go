@@ -5,7 +5,9 @@ import (
 
 	"github.com/common-fate/analytics-go"
 	"github.com/common-fate/common-fate/pkg/rule"
+	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
+	"golang.org/x/sync/errgroup"
 )
 
 type UpdateOpts struct {
@@ -17,6 +19,37 @@ type UpdateOpts struct {
 
 func (s *Service) UpdateRule(ctx context.Context, in *UpdateOpts) (*rule.AccessRule, error) {
 	clk := s.Clock
+
+	//check if user and group exists
+	g, gctx := errgroup.WithContext(ctx)
+	if in.UpdateRequest.Approval.Users != nil {
+		g.Go(func() error {
+			for _, u := range *in.UpdateRequest.Approval.Users {
+
+				userLookup := storage.GetUser{ID: u}
+
+				_, err := s.DB.Query(gctx, &userLookup)
+
+				return err
+			}
+			return nil
+		})
+
+	}
+
+	if in.UpdateRequest.Approval.Groups != nil {
+		g.Go(func() error {
+			for _, u := range *in.UpdateRequest.Approval.Groups {
+
+				groupLookup := storage.GetGroup{ID: u}
+
+				_, err := s.DB.Query(ctx, &groupLookup)
+
+				return err
+			}
+			return nil
+		})
+	}
 
 	var isTargetGroup bool
 	if in.Rule.Target.TargetGroupID != "" {
@@ -34,8 +67,17 @@ func (s *Service) UpdateRule(ctx context.Context, in *UpdateOpts) (*rule.AccessR
 	// fields to be updated
 	newVersion.Description = in.UpdateRequest.Description
 	newVersion.Name = in.UpdateRequest.Name
-	newVersion.Approval.Users = in.UpdateRequest.Approval.Users
-	newVersion.Approval.Groups = in.UpdateRequest.Approval.Groups
+	if in.UpdateRequest.Approval.Users != nil {
+		newVersion.Approval.Users = *in.UpdateRequest.Approval.Users
+
+	} else {
+		newVersion.Approval.Groups = []string{}
+	}
+	if in.UpdateRequest.Approval.Groups != nil {
+		newVersion.Approval.Groups = *in.UpdateRequest.Approval.Groups
+	} else {
+		newVersion.Approval.Groups = []string{}
+	}
 	newVersion.Groups = in.UpdateRequest.Groups
 	newVersion.Metadata.UpdatedBy = in.UpdaterID
 	newVersion.Metadata.UpdatedAt = clk.Now()

@@ -1761,9 +1761,6 @@ components:
           type: array
           items:
             type: string
-      required:
-        - users
-        - groups
     TimeConstraints:
       title: TimeConstraints
       type: object
