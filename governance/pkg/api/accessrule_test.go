@@ -155,6 +155,13 @@ func TestGovCreateAccessRule(t *testing.T) {
 			wantCode: http.StatusBadRequest,
 			wantBody: `{"error":"request body has an error: doesn't match the schema: Error at \"/timeConstraints/maxDurationSeconds\": number must be at least 60"}`,
 		},
+		{
+			name:          "user not exists",
+			give:          `{"target":{"providerId":"string","with":{}},"timeConstraints":{"maxDurationSeconds": 60},"groups":["string"],"name":"string","description":"string","approval":{"groups":[],"users":["123"]}}`,
+			mockCreateErr: ddb.ErrNoItems,
+			wantCode:      http.StatusNotFound,
+			wantBody:      `{"error":"resource not found"}`,
+		},
 	}
 
 	for _, tc := range testcases {

@@ -582,6 +582,12 @@ type GovCreateAccessRuleResponse struct {
 	JSON401 *struct {
 		Error string `json:"error"`
 	}
+	JSON404 *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
 }
 
 // Status returns HTTPResponse.Status
@@ -632,6 +638,18 @@ type GovUpdateAccessRuleResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *externalRef1.AccessRuleDetail
+	JSON400      *struct {
+		Error string `json:"error"`
+	}
+	JSON401 *struct {
+		Error string `json:"error"`
+	}
+	JSON404 *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
 }
 
 // Status returns HTTPResponse.Status
@@ -810,6 +828,24 @@ func ParseGovCreateAccessRuleResponse(rsp *http.Response) (*GovCreateAccessRuleR
 		}
 		response.JSON401 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
 	}
 
 	return response, nil
@@ -879,6 +915,42 @@ func ParseGovUpdateAccessRuleResponse(rsp *http.Response) (*GovUpdateAccessRuleR
 			return nil, err
 		}
 		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
 
 	}
 
@@ -1236,26 +1308,25 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/+xXTXPbNhD9Kztojywpt8lMqpsif1TTpum4bi6pD2tyJSEGAWQBKlE9+u8dgJRFUrQt",
-	"j90mnenJMgi8fdj3+ADeiNyU1mjS3onxjWD6WJHzr00hKQ5MmdDTJM/JufNK0Xk9ITzKjfak40+0Vskc",
-	"vTQ6++CMDmMuX1KJ4ZdlY4l9g4jWslmhCr+/ZZqLsUgzY0mjlem6VN9kO0pZDeKySVxEPDV6Lhdik4iC",
-	"XM7ShpIBiT5jaRWJsZgUpdSAkTF4A2+vPYpE+LUNT51nqSPAgk1lI6MOlLhYEsRnMDt24JfowS9pC8iV",
-	"IojbpYCeikRIT2XE2SvRDCAzrsP/Gkvqkg3kAAPjIYoeeUH+UY3q63VRQwQwWdLUaOcZZaP2wagXvbWb",
-	"TRKtIpkKMX6/7WWyE7fZbFen2x3ts7m83b65+kC5F5tNKPKHLf4T9rvHXY+3x/7E55QuEVVs6htyDhdD",
-	"BXvi9qsnh8o9qGkEd9ZoV+txwmz4vBl5gq4UcB7eTD1tiFlPUzHRECcDk69YUwFzNmXMAke8kjmloZm/",
-	"SOd3/nTH5FGqZ9gP7jA7Ljrcs7cANadBx9HnSExXSuFVSCTPFSUP9LBNrcE4pKEnderBVv6B7n1dffvi",
-	"HZuAks6DmUNNCiJCWk+Vem62fcK8JhUDRExNWRoNp+jDG1mxEmOx9N66cRY2XBo9R0+pNGLI9JPfZjA3",
-	"DJbNgrEs0csclVpDiRoXUi/aR6EDqeGMUXsqYNKkgUtjwPv6ON4OwllIUI06p1BDJGJF7OqyR+kocGmk",
-	"EWPxQzpKRyIRFv0yypctzCpbHWV17e94q29zPnZ3EVwFqFSHqYj4HF00K8RYnJlVz36xIGNJntiJ8fs+",
-	"7qlUnrgjBlytAcEie5lXChmcR1/FDsiw5GNFvN7GY/BHeCqSln1JV2XwyGR6MXt3IhIxOZ/+NHt3ctyy",
-	"yM5WfUqkc17b0H1vrklDdIPUQSYb1IrbheiVYUbBjBdhaYdUv+5lL7W/H41aL1XnPbqdl90fjcHDripL",
-	"5PVWsnZj42VhEVQQO+OIy00irHEDmtcXH0DdFn1I8/4NSSStW+/6oKjo3JKzu67Im72eHT0q156Q9PtR",
-	"UpMsAqkXHe3u2+VWyO4ZHSGOngbR0b6RrqX+XeJvksEgyG7Cn1mxuTMRzsgHa7RKpEPeOCPfM8a+57+M",
-	"fm9/fpa+B4gXzyhd6OsBuu3lakyiEO67IKolFO2Dsz5a700lWw2oXX81uL7iEMfjCVZ/x+XReA4QNH2C",
-	"5jgaNEb/O+RfDI2vwHSj/Ra/xgJanBtj9mTQWPmlYfnXNnhe7E/61Xg4NZWOM14OlZppH5yk4HfiFTFE",
-	"P/Z8WOvzHBGSIedLuYpX0H/MtIMn2Bvka9c7wAAdNISK9E890WuwpIvg4cZPLl7W/FK6zrpPUim4IsjD",
-	"tpWiYtDWkxr6/8x7EOLlUw/Njl2bvh/k17AwGr824e46P84yZXJUS+P8+NWrVz+K4K0G5PZjoAW2udz8",
-	"HQAA//8SEgxp8BMAAA==",
+	"H4sIAAAAAAAC/+xX0W7bNhT9FYLboyY5WwdkftOcNDO2okOQ9aXLw410bbOhSPaScmsE+veBpBxLspI4",
+	"TbpmwJ7iSOTh4T2H51I3vNCV0QqVs3x6wwk/1mjdr7oUGB7MCMFhXhRo7Xkt8TwO8K8KrRyq8BOMkaIA",
+	"J7TKPlit/DNbrLAC/8uQNkiuRQRjSK9B+t/fEy74lKeZNqjAiHRTye+yHaUsgtgsD5OQZlotxJI3CS/R",
+	"FiSMX9Ij4WeojEQ+5XlZCcUgMGZOs7fXDnjC3cb4t9aRUAFgSbo2gVEPil+skIV3bH5imVuBY26FW0Cq",
+	"JbKwXfToKU+4cFgFnL0l2gdABBv/v4IK+2Q9OQae8RhFB7RE96hCDfW6iBAeTFQ408o6AtGqfTDqxWBu",
+	"0yTBKoKw5NP321omO3HbzfZ1ut3RPpvL2+3rqw9YON40fpG/TPmfsN897nq8PfYHPqd0Ca9DUd+gtbAc",
+	"W3Ag7nD15FC5RzUN4NZoZaMep0SaztsnT9AVPc7Dm4nDxpgNNOW5YmEwI3Q1KSzZgnQVssAirUWBqS/m",
+	"H8K6nT/tCToQ8hn2AzvMnosO9+wtQOQ06jj8HIipWkq48onkqMbkgRp2qbUYhxT0NKYe28o/Ur2XVbdv",
+	"XrGcSWEd0wsWSbGAkMahQi30tk5QRFIhQPhMV5VW7DU4fyJrknzKV84ZO838hiutFuAwFZqPmT7/c84W",
+	"mpghvSSoKnCiACk3rAIFS6GW3VZomVDsjEA5LFnepoFNQ8C72I63D9mZT1AFqkC/Bk/4GsnGZY/SiefS",
+	"SsOn/Kd0kk54wg24VZAvW+p1tj7K4to/0Fbftj/2d+FdxUDKHlMe8Cm4aF7yKT/T64H9woIEFToky6fv",
+	"h7ivhXRIPTHY1YYBM0BOFLUEYtaBq0MFhJ/ysUbabOPR+8O/5UnHvqjqynskn13M353yhOfns9/m705P",
+	"OhbZ2WpICVVBG+Or7/Q1KhbcIJSXyXi1wnZZ8Mo4I2/GCz+1R2q47uUgtX+cTDqHqneObsdl90ej97Ct",
+	"qwpos5WsW9hwWVh6FfjOOPyySbjRdkTzePFhoLqij2k+vCHxpHPr3RwUFb1bcnbXFbnZq9nRo3LtCUm/",
+	"HyWRZOlJveppd98ut0L2e3SAOHo6xKuHHbQ36+dDfDeY1fNZa5OO0+4yWpOMhk524//My+bO9DlD523Y",
+	"WSId8+EZuoEJ98/Xt/HK29+/isZfANGTztf1AN32Mjyknm8ku9CLEvJuk45t/N4ENPWI2vELxQ4VZ+F5",
+	"6Jbxm7EIxrMMmMJPrG19o8YYfvP8iwH1Akw3+YJU6Fv1hSdQlPc5EigDKlZiHW7LX83zo832DdC1HfRa",
+	"Bpa1hMr0b5WrDTOoSn8EWjvacK90K2F78z4JKdkVssJvW0osR09FHqH/j8xHOvSpqdvW/SC/+olI660J",
+	"d18e0yyTugC50tZNj4+Pf+HeWy3I7XdLB6y5bP4JAAD//5tkSE2bFAAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

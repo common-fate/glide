@@ -10,8 +10,10 @@ import (
 	"github.com/common-fate/apikit/logger"
 	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/pkg/rule"
+	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/pkg/errors"
+	"golang.org/x/sync/errgroup"
 )
 
 // validateTargetAgainstSchema checks that all the arguments match the schema of the provider
@@ -142,6 +144,36 @@ func (s *Service) CreateAccessRule(ctx context.Context, userID string, in types.
 
 	log := logger.Get(ctx).With("user.id", userID, "access_rule.id", id)
 	now := s.Clock.Now()
+	g, gctx := errgroup.WithContext(ctx)
+
+	//check if user and group exists
+	if in.Approval.Users != nil {
+		g.Go(func() error {
+			for _, u := range *in.Approval.Users {
+
+				userLookup := storage.GetUser{ID: u}
+
+				_, err := s.DB.Query(gctx, &userLookup)
+
+				return err
+			}
+			return nil
+		})
+	}
+
+	if in.Approval.Groups != nil {
+		g.Go(func() error {
+			for _, u := range *in.Approval.Groups {
+
+				groupLookup := storage.GetGroup{ID: u}
+
+				_, err := s.DB.Query(ctx, &groupLookup)
+
+				return err
+			}
+			return nil
+		})
+	}
 
 	target, err := s.ProcessTarget(ctx, in.Target)
 	if err != nil {
@@ -153,9 +185,19 @@ func (s *Service) CreateAccessRule(ctx context.Context, userID string, in types.
 		return nil, errors.New("access rule cannot be longer than 6 months")
 	}
 
+	approvals := rule.Approval{}
+
+	if in.Approval.Groups != nil {
+		approvals.Groups = *in.Approval.Groups
+	}
+
+	if in.Approval.Users != nil {
+		approvals.Users = *in.Approval.Users
+	}
+
 	rul := rule.AccessRule{
 		ID:          id,
-		Approval:    rule.Approval(in.Approval),
+		Approval:    approvals,
 		Status:      rule.ACTIVE,
 		Description: in.Description,
 		Name:        in.Name,
