@@ -2,12 +2,15 @@ import { ArrowBackIcon, CheckCircleIcon, SettingsIcon } from "@chakra-ui/icons";
 import {
   Box,
   Button,
+  ButtonProps,
   Center,
+  CenterProps,
+  chakra,
   Container,
+  Divider,
   Flex,
   HStack,
   Input,
-  Spinner,
   Stack,
   TabPanel,
   TabPanels,
@@ -19,14 +22,11 @@ import {
   useEventListener,
 } from "@chakra-ui/react";
 import { useEffect, useMemo, useState } from "react";
-import {
-  FixedSizeList as List,
-  FixedSizeListProps,
-  ListChildComponentProps,
-} from "react-window";
 import { useNavigate } from "react-location";
+import { FixedSizeList as List, ListChildComponentProps } from "react-window";
 import Counter from "../components/Counter";
-import FieldsCodeBlock from "../components/FieldsCodeBlock";
+// @ts-ignore
+import commandScore from "command-score";
 import { ProviderIcon, ShortTypes } from "../components/icons/providerIcon";
 import { UserLayout } from "../components/Layout";
 import {
@@ -38,10 +38,12 @@ import {
 import {
   Preflight,
   Target,
+  TargetField,
   UserListEntitlementTargetsParams,
 } from "../utils/backend-client/types";
-
+import debounce from "lodash.debounce";
 import { Command as CommandNew } from "../utils/cmdk";
+const StyledList = chakra(CommandNew.List);
 // CONSTANTS
 const ACTION_KEY_DEFAULT = ["Ctrl", "Control"];
 const ACTION_KEY_APPLE = ["⌘", "Command"];
@@ -69,6 +71,7 @@ const Search = () => {
     [key: string]: Target;
   }>({});
   const [inputValue, setInputValue] = useState<string>("");
+
   const [checked, setChecked] = useState<string[]>([]);
   const [actionKey, setActionKey] = useState<string[]>(ACTION_KEY_APPLE);
   const [tabIndex, setTabIndex] = useState(0);
@@ -77,6 +80,7 @@ const Search = () => {
   const [allTargets, setAllTargets] = useState<Target[]>([]);
   const [nextToken, setNextToken] = useState<string | undefined>("initial");
   const [submitLoading, submitLoadingToggle] = useBoolean();
+  const [showOnlyChecked, showOnlyCheckedToggle] = useBoolean();
   // EFFECTS
 
   useEffect(() => {
@@ -102,7 +106,6 @@ const Search = () => {
         nextToken: nextToken === "initial" ? undefined : nextToken,
       };
       const result = await userListEntitlementTargets(params);
-      setAllTargets((prevData) => [...prevData, ...result.targets]);
       setTargetKeyMap((tkm) => {
         result.targets.forEach((t) => {
           // the command palette library casts the value to lowercase, so we need to do the same here
@@ -114,18 +117,24 @@ const Search = () => {
     };
     if (nextToken !== undefined) {
       fetchData();
+    } else {
+      setAllTargets(Object.values(targetKeyMap));
     }
   }, [nextToken]);
 
-  // filteredItems with slice 100
+  // this doesn't update if you deselect a target when in the "selected" filter.
+  // this can be considered a desired effect because if you accidentally deselect something you can easily select it again.
+  // if you shift back to the "all" view then it will reset this
   const filteredItems = useMemo(() => {
     if (allTargets.length === 0 || !allTargets) return [];
+    if (showOnlyChecked)
+      return allTargets.filter((t) => checked.includes(t.id.toLowerCase()));
     if (inputValue === "") return allTargets;
     return allTargets.filter((target) => {
-      const key = target.id.toLowerCase();
-      return key.includes(inputValue.toLowerCase());
+      const key = target.id.toLowerCase() + targetFieldsToString(target.fields);
+      return commandScore(key, inputValue.toLowerCase()) > 0;
     });
-  }, [inputValue, allTargets]);
+  }, [inputValue, allTargets, showOnlyChecked]);
 
   const targetComponent: React.FC<ListChildComponentProps> = ({
     index,
@@ -143,34 +152,81 @@ const Search = () => {
         p={2}
         rounded="md"
         _selected={{
-          "bg": "neutrals.100",
-          "#description": {
-            display: "block",
-          },
+          bg: "neutrals.100",
         }}
         key={target.id}
         // this value is used by the command palette
         value={target.id}
         as={CommandNew.Item}
       >
-        <Flex p={6} position="relative">
-          <CheckCircleIcon
-            visibility={
-              checked.includes(target.id.toLowerCase()) ? "visible" : "hidden"
-            }
-            position="absolute"
-            top={0}
-            left={0}
-            boxSize={"12px"}
-            color={"brandBlue.300"}
-          />
-          <ProviderIcon
-            boxSize={"24px"}
-            shortType={target.kind.icon as ShortTypes}
-          />
-        </Flex>
+        <Tooltip
+          key={target.id}
+          label={`${target.kind.publisher}/${target.kind.name}/${target.kind.kind}`}
+          placement="right"
+        >
+          <Flex p={6} position="relative">
+            <CheckCircleIcon
+              visibility={
+                checked.includes(target.id.toLowerCase()) ? "visible" : "hidden"
+              }
+              position="absolute"
+              top={0}
+              left={0}
+              boxSize={"12px"}
+              color={"brandBlue.300"}
+            />
+            <ProviderIcon
+              boxSize={"24px"}
+              shortType={target.kind.icon as ShortTypes}
+            />
+          </Flex>
+        </Tooltip>
 
-        <FieldsCodeBlock fields={target.fields} showTooltips />
+        <HStack>
+          {target.fields.map((field, i) => (
+            <>
+              <Divider
+                orientation="vertical"
+                borderColor={"black"}
+                h="80%"
+                hidden={i === 0}
+              />
+
+              <Tooltip
+                key={field.id}
+                label={
+                  <Stack>
+                    <Text color="white" textStyle={"Body/Small"}>
+                      {field.fieldTitle}
+                    </Text>
+                    <Text color="white" textStyle={"Body/Small"}>
+                      {field.fieldDescription}
+                    </Text>
+                    <Text color="white" textStyle={"Body/Small"}>
+                      {field.valueLabel}
+                    </Text>
+                    <Text color="white" textStyle={"Body/Small"}>
+                      {field.value}
+                    </Text>
+                    <Text color="white" textStyle={"Body/Small"}>
+                      {field.valueDescription}
+                    </Text>
+                  </Stack>
+                }
+                placement="top"
+              >
+                <Stack>
+                  <Text textStyle={"Body/SmallBold"} noOfLines={1}>
+                    {field.fieldTitle}
+                  </Text>
+                  <Text textStyle={"Body/Small"} noOfLines={1}>
+                    {field.valueLabel}
+                  </Text>
+                </Stack>
+              </Tooltip>
+            </>
+          ))}
+        </HStack>
       </Flex>
     );
   };
@@ -230,12 +286,17 @@ const Search = () => {
           navigate({ to: `/requests/${res.id}` });
           // clear state
           setChecked([]);
-          setInputValue("");
+          handleInputChange("");
         })
         .catch((err) => {
           console.log(err);
         });
   };
+
+  // Debounce the setInputValue function with a 500ms delay
+  const handleInputChange = debounce((newValue) => {
+    setInputValue(newValue);
+  }, 500);
 
   return (
     <UserLayout>
@@ -252,8 +313,6 @@ const Search = () => {
               <Box minH="200px">
                 <CommandNew
                   shouldFilter={false}
-                  // open={modal.isOpen}
-                  // onOpenChange={modal.onToggle}
                   label="Global Command Menu"
                   checked={checked}
                   setChecked={setChecked}
@@ -263,116 +322,73 @@ const Search = () => {
                     type="text"
                     placeholder="What do you want to access?"
                     value={inputValue}
-                    onValueChange={setInputValue}
+                    onValueChange={handleInputChange}
                     autoFocus={true}
                     as={CommandNew.Input}
                   />
-                  <Flex mt={2} direction="row" overflowX="scroll">
-                    <Center
-                      // boxSize="90px"
-                      rounded="md"
-                      // w="90px !important"
-                      borderColor="neutrals.300"
-                      bg="white"
-                      borderWidth="1px"
-                      flexDir="column"
-                      textStyle="Body/Small"
+                  <HStack mt={2} overflowX="auto">
+                    <FilterBlock
+                      label="All Resources"
+                      total={allTargets.length}
                       onClick={() => {
-                        setInputValue("");
+                        handleInputChange("");
+                        showOnlyCheckedToggle.off();
                       }}
-                      px={2}
-                      mr={2}
-                      as="button"
-                    >
-                      <Counter size="md" count={checked.length} />
-                      <Text
-                        textStyle="Body/Small"
-                        noOfLines={1}
-                        textOverflow="clip"
-                        w="90px"
-                        textAlign="center"
-                      >
-                        All resources
-                      </Text>
-                      <Flex color="neutrals.500">
-                        {allTargets.length}&nbsp;total
-                      </Flex>
-                    </Center>
+                    />
+                    <FilterBlock
+                      label="Selected"
+                      selected={checked.length}
+                      onClick={() => {
+                        handleInputChange("");
+                        showOnlyCheckedToggle.on();
+                        document.getElementById(":rd:")?.focus();
+                      }}
+                    />
                     {entitlements.data?.entitlements.map((kind) => {
-                      const key =
+                      const key = (
                         kind.publisher +
                         "#" +
                         kind.name +
                         "#" +
                         kind.kind +
-                        "#";
+                        "#"
+                      ).toLowerCase();
                       return (
-                        <Center
-                          boxSize="90px"
-                          rounded="md"
-                          borderColor="neutrals.300"
-                          bg="white"
-                          borderWidth="1px"
-                          textStyle="Body/Small"
-                          flexDir="column"
+                        <FilterBlock
+                          label={kind.kind}
+                          icon={kind.icon as ShortTypes}
                           onClick={() => {
-                            setInputValue(key);
+                            handleInputChange(key);
+                            showOnlyCheckedToggle.off();
                             // then set the focus back to the input
                             // so that the user can continue typing
                             document.getElementById(":rd:")?.focus();
                           }}
-                          px={8}
-                          mr={2}
-                          as="button"
-                        >
-                          <ProviderIcon shortType={kind.icon as ShortTypes} />
-                          {kind.kind}
-                        </Center>
+                          selected={
+                            checked.filter((c) => c.startsWith(key)).length
+                          }
+                        />
                       );
                     })}
-                  </Flex>
-                  <CommandNew.List>
-                    <Stack
-                      // as={Command.List}
-                      mt={2}
-                      spacing={4}
-                      border="1px solid"
-                      rounded="md"
-                      borderColor="neutrals.300"
-                      p={1}
-                      pt={2}
-                      overflowY="scroll"
+                  </HStack>
+                  <StyledList
+                    mt={2}
+                    border="1px solid"
+                    rounded="md"
+                    borderColor="neutrals.300"
+                    p={1}
+                    pt={2}
+                  >
+                    <List
+                      style={{}}
+                      height={TARGETS * TARGET_HEIGHT}
+                      itemCount={filteredItems.length}
+                      itemSize={TARGET_HEIGHT}
+                      width="100%"
                     >
-                      <Center as={CommandNew.Empty} minH="200px">
-                        No results found.
-                      </Center>
-                      <CommandNew.Group
-                      // heading="Permissions"
-                      >
-                        {/* {allTargets.length === 0 ? (
-                          <Center as={CommandNew.Loading} minH="200px">
-                            <Spinner />
-                          </Center>
-                        ) : (
-                          allTargets.slice(undefined, 5).map(targetComponent)
-                        )} */}
-                        {allTargets.length === 0 && (
-                          <Center as={CommandNew.Loading} minH="200px">
-                            <Spinner />
-                          </Center>
-                        )}
-                        <List
-                          height={TARGETS * TARGET_HEIGHT}
-                          itemCount={filteredItems.length}
-                          itemSize={TARGET_HEIGHT}
-                          width="100%"
-                        >
-                          {targetComponent}
-                        </List>
-                      </CommandNew.Group>
-                      <Text>Filter len: {filteredItems.length}</Text>
-                    </Stack>
-                  </CommandNew.List>
+                      {targetComponent}
+                    </List>
+                  </StyledList>
                 </CommandNew>
 
                 <Flex w="100%" mt={4}>
@@ -428,7 +444,7 @@ const Search = () => {
                                 shortType={target.kind.icon as ShortTypes}
                                 mr={2}
                               />
-                              <FieldsCodeBlock fields={target.fields} />
+                              {/* <FieldsCodeBlock fields={target.fields} /> */}
                             </Flex>
                           );
                         })}
@@ -483,3 +499,72 @@ const Search = () => {
 };
 
 export default Search;
+interface FilterBlockProps extends CenterProps {
+  icon?: ShortTypes;
+  total?: number;
+  selected?: number;
+  label: string;
+}
+const FilterBlock: React.FC<FilterBlockProps> = ({
+  label,
+  total,
+  selected,
+  icon,
+  ...rest
+}) => {
+  return (
+    <Center
+      rounded="md"
+      h="84px"
+      borderColor="neutrals.300"
+      bg="white"
+      borderWidth="1px"
+      px={2}
+      flexDirection="column"
+      as={"button"}
+      {...rest}
+    >
+      {icon !== undefined ? (
+        <ProviderIcon shortType={icon} />
+      ) : (
+        <Box boxSize="22px" />
+      )}
+      <Text textStyle="Body/Small" noOfLines={1} textAlign="center">
+        {label}
+      </Text>
+      {total === undefined ? (
+        selected === undefined ? (
+          <Box boxSize="22px" />
+        ) : (
+          <Text
+            textStyle="Body/Small"
+            noOfLines={1}
+            textAlign="center"
+            color="neutrals.500"
+          >
+            {`${selected} selected`}
+          </Text>
+        )
+      ) : (
+        <Text
+          textStyle="Body/Small"
+          noOfLines={1}
+          textAlign="center"
+          color="neutrals.500"
+        >
+          {`${total} total`}
+        </Text>
+      )}
+    </Center>
+  );
+};
+function targetFieldsToString(targetFields: TargetField[]): string {
+  const strings = targetFields.map((targetField) => {
+    // Concatenate the values with a separator
+    const values = [targetField.valueLabel, targetField.valueDescription].join(
+      "; "
+    ); // Use semicolon and space as a separator
+    return values;
+  });
+  return strings.join("; "); // Use newline character as a separator
+}
