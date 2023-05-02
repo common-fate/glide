@@ -153,18 +153,24 @@ const Search = () => {
         value={target.id}
         as={CommandNew.Item}
       >
-        <Flex>
-          <ProviderIcon mr={2} shortType={target.kind.icon as ShortTypes} />
-          <FieldsCodeBlock fields={target.fields} showTooltips />
+        <Flex p={6} position="relative">
+          <CheckCircleIcon
+            visibility={
+              checked.includes(target.id.toLowerCase()) ? "visible" : "hidden"
+            }
+            position="absolute"
+            top={0}
+            left={0}
+            boxSize={"12px"}
+            color={"brandBlue.300"}
+          />
+          <ProviderIcon
+            boxSize={"24px"}
+            shortType={target.kind.icon as ShortTypes}
+          />
         </Flex>
-        <CheckCircleIcon
-          visibility={
-            checked.includes(target.id.toLowerCase()) ? "visible" : "hidden"
-          }
-          h="12px"
-          w="12px"
-          color={"brandBlue.300"}
-        />
+
+        <FieldsCodeBlock fields={target.fields} showTooltips />
       </Flex>
     );
   };
