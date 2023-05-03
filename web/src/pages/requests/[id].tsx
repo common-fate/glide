@@ -695,3 +695,4 @@ export const ApproveRejectDuration = ({
     </Flex>
   );
 };
+export default Home;
