@@ -2,7 +2,11 @@ import {
   Avatar,
   Box,
   Button,
+  Checkbox,
+  CheckboxGroup,
   Flex,
+  FormControl,
+  FormLabel,
   Input,
   Stack,
   Tab,
@@ -17,6 +21,7 @@ import { CommonFateLogo } from "../../components/icons/Logos";
 import { BlurShapesBox } from "../../components/icons/BlurShapes";
 import { useForm } from "react-hook-form";
 import { Helmet } from "react-helmet";
+import StaticProviderSelect from "../../components/StaticProviderSelect";
 
 const Index = () => {
   const [loading, setLoading] = useBoolean(false);
@@ -44,10 +49,13 @@ const Index = () => {
     //       });
   });
 
-  const NO_OF_QS = Object.keys({ name: "test" }).length - 1;
+  // const NO_OF_QS = Object.keys({ name: "test" }).length - 1;
+  const NO_OF_QS = 20;
 
   const isFirstPage = tabIndex === 0;
   const isLastPage = tabIndex === NO_OF_QS;
+
+  // hotkey listen for CMD + ENTER to submit
 
   return (
     <Box bg="neutrals.700" h="100vh" w="100vw">
@@ -58,16 +66,17 @@ const Index = () => {
         {/* LHS TABBED FORM INPUTS */}
         <Flex
           h="100vh"
-          w={{ base: "100%", md: "50%" }}
+          w={{ base: "100%", lg: "66%" }}
           borderRight="1px solid"
           borderRightColor="neutrals.600"
           justifyContent="center"
           alignItems="start"
         >
           <BlurShapesBox
-            display={{ base: "block", md: "none" }}
+            display={{ base: "block", lg: "none" }}
             pos="absolute"
             top={0}
+            left={0}
             zIndex={0}
           />
           <Stack
@@ -79,7 +88,7 @@ const Index = () => {
             zIndex={1}
           >
             <CommonFateLogo h="24px" width="auto" mr="auto" />
-            <Tabs tabIndex={tabIndex}>
+            <Tabs index={tabIndex}>
               <TabPanels>
                 <TabPanel px={0}>
                   <Stack spacing={4}>
@@ -98,18 +107,77 @@ const Index = () => {
                   <Stack spacing={4}>
                     <Box>
                       <Text textStyle="Body/Large" color="neutrals.800">
-                        Choose a name for your Common Fate Account
+                        How did you hear about us?
                       </Text>
                       <Text textStyle="Body/Small" color="neutrals.500">
                         This is what will be displayed to your team
                       </Text>
                     </Box>
-                    <Input type="text" placeholder="Acme Corp" />
+                    <CheckboxGroup
+                      // colorScheme="green"
+                      defaultValue={["naruto", "kakashi"]}
+                    >
+                      <Stack spacing={[1]} direction={{ base: "column" }}>
+                        {[
+                          "Google",
+                          "Hacker News",
+                          "Twitter",
+                          "OSS Tools (like Granted CLI)",
+                          "Other",
+                        ].map((val) => (
+                          <Checkbox value={val}>{val}</Checkbox>
+                        ))}
+                      </Stack>
+                    </CheckboxGroup>
+                    {/* field with textarea */}
+                    <FormControl>
+                      <FormLabel>Other</FormLabel>
+                      <Input
+                        as="textarea"
+                        minH="24px"
+                        placeholder="..."
+                        rows={3}
+                      />
+                    </FormControl>
+                  </Stack>
+                </TabPanel>
+                <TabPanel px={0}>
+                  <Stack spacing={4}>
+                    <Box>
+                      <Text textStyle="Body/Large" color="neutrals.800">
+                        What Cloud Providers/SaaS Applications do you use?
+                      </Text>
+                      <Text textStyle="Body/Small" color="neutrals.500">
+                        Common Fate is actively building integrations
+                      </Text>
+                    </Box>
+                    {/* add in provider select here */}
+                    <StaticProviderSelect />
+                    {/* field with textarea */}
+                    <FormControl>
+                      <FormLabel>Other</FormLabel>
+                      <Input
+                        as="textarea"
+                        minH="24px"
+                        placeholder="..."
+                        rows={3}
+                      />
+                    </FormControl>
                   </Stack>
                 </TabPanel>
               </TabPanels>
             </Tabs>
             <Flex>
+              <Button
+                variant="link"
+                color="neutrals.500"
+                disabled={isFirstPage}
+                onClick={
+                  isFirstPage ? () => null : () => setTabIndex((t) => t - 1)
+                }
+              >
+                Back
+              </Button>
               <Button
                 ml="auto"
                 isLoading={loading}
@@ -124,12 +192,12 @@ const Index = () => {
         </Flex>
         {/* RHS BLURRED SHAPES */}
         <Flex
-          w="50%"
+          w="33%"
           h="100%"
           // blurred
           flexDir="column"
           alignItems="center"
-          display={{ base: "none", md: "block" }}
+          display={{ base: "none", lg: "block" }}
         >
           <BlurShapesBox pos="absolute" top={0} />
           {/* Quote Block: needs to be made into component */}
