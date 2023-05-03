@@ -11,6 +11,7 @@ import {
   RequestAccessGroupApprovalMethod,
   RequestStatus,
 } from "../utils/backend-client/types";
+import { useGetGroupTargetStatus } from "..//utils/backend-client/default/default";
 interface Props extends FlexProps {
   replaceValue?: string;
   value?: string;
@@ -55,9 +56,26 @@ export const StatusCell: React.FC<Props> = ({
     statusColor = "actionInfo.200";
   }
 
+  //Dont pulse status for warning and error status's
+  if (
+    statusColor === "actionWarning.200" ||
+    statusColor === "actionDanger.200"
+  ) {
+    return (
+      <Flex minW="75px" align="center" {...rest}>
+        <Circle bg={statusColor} size="8px" mr={2} />{" "}
+        <Text
+          as="span"
+          css={{ ":first-letter": { textTransform: "uppercase" } }}
+        >
+          {replaceValue ? replaceValue : value.toLowerCase()}
+        </Text>
+      </Flex>
+    );
+  }
   return (
     <Flex minW="75px" align="center" {...rest}>
-      <Circle bg={statusColor} size="8px" mr={2} />{" "}
+      <SkeletonCircle endColor={statusColor} size="8px" mr={2} />{" "}
       <Text as="span" css={{ ":first-letter": { textTransform: "uppercase" } }}>
         {replaceValue ? replaceValue : value.toLowerCase()}
       </Text>
@@ -88,4 +106,93 @@ export const RequestStatusCell: React.FC<RequestStatusCellProps> = ({
       {...rest}
     ></StatusCell>
   );
+};
+
+interface GrantStatusCellProps extends FlexProps {
+  requestId: string;
+  groupId: string;
+  targetId: string;
+}
+
+// RequestStatusCell providers a slim wrapper to remove boilerplate for request statuses
+export const GrantStatusCell: React.FC<GrantStatusCellProps> = ({
+  requestId,
+  groupId,
+  targetId,
+  ...rest
+}) => {
+  const data = useGetGroupTargetStatus(requestId, groupId, targetId, {
+    swr: { refreshInterval: 10000 },
+  });
+  switch (data.data) {
+    case "ACTIVE":
+      return (
+        <StatusCell
+          {...rest}
+          success="ACTIVE"
+          value={data.data}
+          replaceValue={"Active"}
+          fontSize="12px"
+        />
+      );
+    case "AWAITING_START":
+      return (
+        <StatusCell
+          {...rest}
+          info={data.data}
+          value={data.data}
+          replaceValue={"Awaiting Start"}
+          fontSize="12px"
+        />
+      );
+    case "ERROR":
+      return (
+        <StatusCell
+          danger={data.data}
+          value={data.data}
+          replaceValue={"Error"}
+          fontSize="12px"
+        />
+      );
+    case "EXPIRED":
+      return (
+        <StatusCell
+          {...rest}
+          success="ACTIVE"
+          value={data.data}
+          replaceValue={"Expired"}
+          fontSize="12px"
+        />
+      );
+    case "PENDING_PROVISIONING":
+      return (
+        <StatusCell
+          {...rest}
+          info={data.data}
+          value={data.data}
+          replaceValue={"Pending"}
+          fontSize="12px"
+        />
+      );
+    case "REVOKED":
+      return (
+        <StatusCell
+          {...rest}
+          success="ACTIVE"
+          value={data.data}
+          replaceValue={"Revoked"}
+          fontSize="12px"
+        />
+      );
+    default:
+      return (
+        <StatusCell
+          {...rest}
+          success="ACTIVE"
+          value={undefined}
+          replaceValue={"test"}
+          fontSize="12px"
+        />
+      );
+  }
 };

@@ -40,9 +40,8 @@ import {
   Text,
   useBoolean,
   useDisclosure,
-  useToast,
 } from "@chakra-ui/react";
-import { intervalToDuration, format } from "date-fns";
+import { intervalToDuration } from "date-fns";
 import { useState } from "react";
 import { Helmet } from "react-helmet";
 import { Link, MakeGenerics, useMatch } from "react-location";
@@ -54,33 +53,26 @@ import {
   Minutes,
   Weeks,
 } from "../../components/DurationInput";
-
+import FieldsCodeBlock from "../../components/FieldsCodeBlock";
 import { ProviderIcon, ShortTypes } from "../../components/icons/providerIcon";
 import { UserLayout } from "../../components/Layout";
-import { GrantStatusCell, StatusCell } from "../../components/StatusCell";
+import { StatusCell } from "../../components/StatusCell";
 import {
-  getGroupTargetStatus,
-  useGetGroupTargetStatus,
   useUserGetRequest,
   useUserListRequests,
 } from "../../utils/backend-client/default/default";
 import {
-  userCancelRequest,
   userReviewRequest,
   userRevokeRequest,
 } from "../../utils/backend-client/end-user/end-user";
 import {
   RequestAccessGroup,
   RequestAccessGroupTarget,
-  RequestStatus,
 } from "../../utils/backend-client/types";
 import {
   durationString,
   durationStringHoursMinutes,
-  getEndTimeWithDuration,
 } from "../../utils/durationString";
-import { request } from "http";
-import FieldsCodeBlock from "../../components/FieldsCodeBlock";
 
 type MyLocationGenerics = MakeGenerics<{
   Search: {
@@ -96,7 +88,6 @@ const Home = () => {
   const request = useUserGetRequest(requestId, {
     swr: { refreshInterval: 10000 },
   });
-  const toast = useToast();
 
   return (
     <div>
@@ -132,105 +123,39 @@ const Home = () => {
             <GridItem>
               <>
                 <Stack spacing={4}>
-                  <Flex direction="row">
+                  <Flex px={2}>
                     {request.data ? (
-                      <Flex
-                        direction="row"
-                        justifyContent="space-between"
-                        alignItems="flex-start"
-                      >
-                        <Flex>
-                          <Avatar
-                            size="sm"
-                            src={request.data.requestedBy.picture}
-                            name={
-                              request.data.requestedBy.firstName +
-                              " " +
-                              request.data.requestedBy.lastName
-                            }
-                            mr={2}
-                          />
-                          <Stack>
-                            <Flex>
-                              <Text textStyle="Body/Small">
-                                {request.data.requestedBy.firstName +
-                                  " " +
-                                  request.data.requestedBy.lastName}
-                              </Text>
-                              <Text
-                                textStyle="Body/Small"
-                                ml={1}
-                                color="neutrals.500"
-                              >
-                                requested at&nbsp;
-                                {format(
-                                  new Date(
-                                    Date.parse(request.data.requestedAt)
-                                  ),
-                                  "p dd/MM/yy"
-                                )}
-                              </Text>
-                            </Flex>
-
-                            <Text textStyle="Body/Small" color="neutrals.500">
-                              {request.data.requestedBy.email}
+                      <Flex>
+                        <Avatar
+                          size="sm"
+                          src={request.data.requestedBy.picture}
+                          name={
+                            request.data.requestedBy.firstName +
+                            " " +
+                            request.data.requestedBy.lastName
+                          }
+                          mr={2}
+                        />
+                        <Box>
+                          <Flex>
+                            <Text textStyle="Body/Small">
+                              {request.data.requestedBy.firstName +
+                                " " +
+                                request.data.requestedBy.lastName}
                             </Text>
-                          </Stack>
-                        </Flex>
-                        <Flex alignSelf="flex-start" alignContent="flex-end">
-                          {request.data.status == "ACTIVE" && (
-                            <ButtonGroup variant="brandSecondary">
-                              <Button
-                                size="sm"
-                                onClick={() => {
-                                  console.log("revoke");
-                                  //@ts-ignore
-                                  userRevokeRequest(request.data?.id)
-                                    .then((e) => {
-                                      toast({
-                                        title: "Revoke Initiated",
-                                        status: "success",
-                                        variant: "subtle",
-                                        duration: 2200,
-                                        isClosable: true,
-                                      });
-                                    })
-                                    .catch((e) => {
-                                      toast({
-                                        title: "Error Revoking",
-                                        status: "error",
-                                        variant: "subtle",
-                                        duration: 2200,
-                                        isClosable: true,
-                                      });
-                                    });
-                                }}
-                              >
-                                Revoke
-                              </Button>
-                            </ButtonGroup>
-                          )}
-                          {request.data.status == "PENDING" && (
-                            <ButtonGroup variant="brandSecondary">
-                              <Button
-                                size="sm"
-                                onClick={() => {
-                                  console.log("cancel");
-                                  //@ts-ignore
-                                  userCancelRequest(request.data?.id)
-                                    .then((e) => {
-                                      console.log(e);
-                                    })
-                                    .catch((e) => {
-                                      console.log(e);
-                                    });
-                                }}
-                              >
-                                Cancel
-                              </Button>
-                            </ButtonGroup>
-                          )}
-                        </Flex>
+                            <Text
+                              textStyle="Body/Small"
+                              ml={1}
+                              color="neutrals.500"
+                            >
+                              requested at&nbsp;
+                              {request.data.requestedAt}
+                            </Text>
+                          </Flex>
+                          <Text textStyle="Body/Small" color="neutrals.500">
+                            {request.data.requestedBy.email}
+                          </Text>
+                        </Box>
                       </Flex>
                     ) : (
                       <Flex h="42px">
@@ -265,14 +190,14 @@ const Home = () => {
                   </Stack>
                 </Stack>
 
-                {/* <Code
+                <Code
                   maxW="60ch"
                   textOverflow="clip"
                   whiteSpace="pre-wrap"
                   mt={32}
                 >
                   {JSON.stringify({ request }, null, 2)}
-                </Code> */}
+                </Code>
               </>
             </GridItem>
             <GridItem>
@@ -291,21 +216,6 @@ type AccessGroupProps = {
 
 export const HeaderStatusCell = ({ group }: AccessGroupProps) => {
   if (group.status === "PENDING_APPROVAL") {
-    if (group.requestStatus === "CANCELLED") {
-      return (
-        <Box
-          as="span"
-          flex="1"
-          textAlign="left"
-          sx={{
-            p: { lineHeight: "120%", textStyle: "Body/Extra Small" },
-          }}
-        >
-          <Text color="neutrals.700">Cancelled</Text>
-        </Box>
-      );
-    }
-
     return (
       <Box
         as="span"
@@ -316,90 +226,38 @@ export const HeaderStatusCell = ({ group }: AccessGroupProps) => {
         }}
       >
         <Text color="neutrals.700">Review Required</Text>
+        {/* <AvatarGroup size="sm" max={2} ml={-2}>
+          {group.reviewers.map((reviewer) => (
+            <Avatar
+              key={reviewer.id}
+              name={reviewer.firstName + " " + reviewer.lastName}
+              src={reviewer.picture}
+            />
+          ))}
+        </AvatarGroup> */}
       </Box>
     );
   }
 
   if (group.status === "APPROVED") {
-    switch (group.requestStatus) {
-      case "ACTIVE":
-        return (
-          <Flex flex="1">
-            <StatusCell
-              success="ACTIVE"
-              value={group.status}
-              replaceValue={
-                "Active for the next " +
-                durationStringHoursMinutes(
-                  intervalToDuration({
-                    start: new Date(),
-                    end: getEndTimeWithDuration(
-                      group.requestedTiming.startTime
-                        ? group.requestedTiming.startTime
-                        : "",
-                      group.requestedTiming.durationSeconds
-                    ),
-                  })
-                )
-              }
-            />
-          </Flex>
-        );
-      case "PENDING":
-        return (
-          <Box
-            as="span"
-            flex="1"
-            textAlign="left"
-            sx={{
-              p: { lineHeight: "120%", textStyle: "Body/Extra Small" },
-            }}
-          >
-            <Text color="neutrals.700">Pending</Text>
-          </Box>
-        );
-      case "REVOKING":
-        return (
-          <Box
-            as="span"
-            flex="1"
-            textAlign="left"
-            sx={{
-              p: { lineHeight: "120%", textStyle: "Body/Extra Small" },
-            }}
-          >
-            <Text color="neutrals.700">Revoking</Text>
-          </Box>
-        );
-      case "REVOKED":
-        return (
-          <Box
-            as="span"
-            flex="1"
-            textAlign="left"
-            sx={{
-              p: { lineHeight: "120%", textStyle: "Body/Extra Small" },
-            }}
-          >
-            <Text color="neutrals.700">Revoked</Text>
-          </Box>
-        );
-      case "COMPLETE":
-        return (
-          <Box
-            as="span"
-            flex="1"
-            textAlign="left"
-            sx={{
-              p: { lineHeight: "120%", textStyle: "Body/Extra Small" },
-            }}
-          >
-            <Text color="neutrals.700">Complete</Text>
-          </Box>
-        );
-      default:
-        break;
-    }
+    return (
+      <Flex flex="1">
+        <StatusCell
+          success="ACTIVE"
+          value={group.status}
+          replaceValue={
+            "Active for the next " +
+            durationStringHoursMinutes(
+              intervalToDuration({
+                start: new Date(),
+                end: new Date(),
+                // end: new Date(Date.parse(group.grant.end)),
+              })
+            )
+          }
+        />
+      </Flex>
+    );
   }
 
   return null;
@@ -467,28 +325,29 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
                   pos="relative"
                 >
                   <ProviderIcon boxSize="24px" shortType="aws-sso" mr={2} />
-                  <FieldsCodeBlock fields={target.fields} flexWrap="wrap" />
-
-                  <Stack>
-                    <Flex
-                      onClick={(e) => {
-                        e.stopPropagation();
-                      }}
-                    >
-                      <GrantStatusCell
-                        requestId={group.requestId}
-                        groupId={group.id}
-                        targetId={target.id}
-                      />
-                    </Flex>
-                    <Button
-                      variant="brandSecondary"
-                      size="xs"
-                      onClick={() => handleGrantClick(target)}
-                    >
-                      View
-                    </Button>
-                  </Stack>
+                  <FieldsCodeBlock fields={target.fields} />
+                  {false && (
+                    <Spinner
+                      thickness="2px"
+                      speed="0.65s"
+                      emptyColor="neutrals.300"
+                      color="neutrals.800"
+                      size="sm"
+                      top={4}
+                      right={4}
+                      pos="absolute"
+                    />
+                  )}
+                  <Button
+                    variant="brandSecondary"
+                    size="xs"
+                    top={2}
+                    right={2}
+                    pos="absolute"
+                    onClick={() => handleGrantClick(target)}
+                  >
+                    View
+                  </Button>
                 </Flex>
               ))}
             </Stack>
@@ -505,7 +364,7 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
               <ProviderIcon
                 shortType={selectedGrant?.targetKind.icon as ShortTypes}
               />
-              {/* <FieldsCodeBlock fields={selectedGrant?.fields || []} /> */}
+              <FieldsCodeBlock fields={selectedGrant?.fields || []} />
             </Box>
             <Text textStyle="Body/Small">Access Instructions</Text>
 
@@ -692,6 +551,27 @@ export const ApproveRejectDuration = ({
           </Button>
         </ButtonGroup>
       )}
+      {!isReviewer && (
+        <ButtonGroup ml="auto" variant="brandSecondary" spacing={2}>
+          <Button
+            size="sm"
+            onClick={() => {
+              console.log("revoke");
+              userRevokeRequest(group.requestId)
+                .then((e) => {
+                  console.log(e);
+                })
+                .catch((e) => {
+                  console.log(e);
+                });
+            }}
+          >
+            Revoke
+          </Button>
+        </ButtonGroup>
+      )}
     </Flex>
   );
 };
+
+export default Home;

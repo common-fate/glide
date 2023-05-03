@@ -32,6 +32,7 @@ func (n *EventHandler) handleGrantActivated(ctx context.Context, detail json.Raw
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -87,6 +88,15 @@ func (n *EventHandler) handleGrantFailed(ctx context.Context, detail json.RawMes
 func (n *EventHandler) handleGrantRevoked(ctx context.Context, detail json.RawMessage) error {
 	var grantEvent gevent.GrantFailed
 	err := json.Unmarshal(detail, &grantEvent)
+	if err != nil {
+		return err
+	}
+
+	grant := grantEvent.Grant
+
+	grant.Grant.Status = types.RequestAccessGroupTargetStatusREVOKED
+
+	err = n.DB.Put(ctx, &grant)
 	if err != nil {
 		return err
 	}

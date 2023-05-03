@@ -58,6 +58,7 @@ func (g *GroupWithTargets) ToAPI() types.RequestAccessGroup {
 		CreatedAt:       g.Group.CreatedAt,
 		UpdatedAt:       g.Group.UpdatedAt,
 		RequestedBy:     types.RequestRequestedBy(g.Group.RequestedBy),
+		RequestStatus:   g.Group.RequestStatus,
 	}
 	if g.Group.OverrideTiming != nil {
 		ot := g.Group.OverrideTiming.ToAPI()

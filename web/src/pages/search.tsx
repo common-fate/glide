@@ -182,11 +182,13 @@ const Search = () => {
       userPostRequests({
         preflightId: preflightRes?.id,
         reason: accessReason,
+        //@ts-ignore
         groupOptions: preflightRes.accessGroups.map((g) => {
           return {
             id: g.id,
             timing: {
               durationSeconds: g.timeConstraints.maxDurationSeconds,
+              startTime: new Date(),
             },
           };
         }),

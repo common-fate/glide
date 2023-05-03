@@ -27,6 +27,7 @@ func UnmarshalRequestGroup(items []map[string]types.AttributeValue) (*access.Gro
 		if err != nil {
 			return nil, err
 		}
+
 		result.Targets = append(result.Targets, t)
 	}
 
@@ -58,6 +59,7 @@ func UnmarshalRequest(items []map[string]types.AttributeValue) (*access.RequestW
 			if err != nil {
 				return nil, err
 			}
+			g.RequestStatus = result.Request.RequestStatus
 			groups[g.ID] = access.GroupWithTargets{
 				Group: g,
 			}
@@ -69,6 +71,7 @@ func UnmarshalRequest(items []map[string]types.AttributeValue) (*access.RequestW
 			}
 			g := groups[t.GroupID]
 			g.Targets = append(g.Targets, t)
+
 			groups[t.GroupID] = g
 		}
 	}

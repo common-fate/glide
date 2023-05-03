@@ -127,6 +127,7 @@ func (n *EventHandler) handleRequestRevokeInitiated(ctx context.Context, detail 
 	if err != nil {
 		return err
 	}
+
 	items := []ddb.Keyer{}
 
 	for _, group := range requestEvent.Request.Groups {
@@ -169,7 +170,7 @@ func (n *EventHandler) handleRequestStatusChange(ctx context.Context, requestId 
 			if err != nil {
 				return err
 			}
-			request.Result.Request.RequestStatus = types.COMPLETE
+			request.Result.Request.RequestStatus = types.REVOKED
 
 			err = n.DB.Put(ctx, &request.Result.Request)
 			if err != nil {

@@ -809,6 +809,39 @@ paths:
           name: nextToken
           description: pagination token
     parameters: []
+  "/api/v1/requests/{requestid}/groups/{groupid}/target/{targetid}/status":
+    get:
+      summary: Get Group Target
+      tags: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RequestAccessGroupTargetStatus"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      operationId: get-group-target-status
+      description: "Gets grant status for a specific group target if available "
+    parameters:
+      - schema:
+          type: string
+        name: requestid
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: groupid
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: targetid
+        in: path
+        required: true
   /api/v1/requests:
     get:
       summary: List Requests
@@ -937,6 +970,28 @@ paths:
       tags:
         - End User
       description: "Admins and approvers can revoke access previously approved. Effective immediately "
+  "/api/v1/requests/{requestid}/cancel":
+    parameters:
+      - schema:
+          type: string
+        name: requestid
+        in: path
+        required: true
+    post:
+      summary: Revoke an active request
+      operationId: user-cancel-request
+      responses:
+        "200":
+          description: OK
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      tags:
+        - End User
+      description: "Admins and approvers can cancel access before provisioned. Effective immediately "
   "/api/v1/requests/{requestId}":
     get:
       summary: Get Request
@@ -1732,6 +1787,8 @@ components:
           $ref: "#/components/schemas/RequestAccessGroupApprovalMethod"
         accessRule:
           $ref: "#/components/schemas/RequestAccessGroupAccessRule"
+        requestStatus:
+          $ref: "#/components/schemas/RequestStatus"
       required:
         - id
         - requestId
@@ -1742,6 +1799,7 @@ components:
         - requestedBy
         - targets
         - accessRule
+        - requestStatus
     RequestAccessGroupAccessRule:
       title: RequestAccessGroupAccessRule
       type: object
@@ -1868,7 +1926,6 @@ components:
     CreateAccessRequestGroupOptions:
       type: object
       title: CreateAccessRequestGroupOptions
-      description: ""
       x-stoplight:
         id: 6f6c2fa4da748
       properties:
