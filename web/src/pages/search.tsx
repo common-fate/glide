@@ -43,6 +43,7 @@ import {
 } from "../utils/backend-client/types";
 import debounce from "lodash.debounce";
 import { Command as CommandNew } from "../utils/cmdk";
+import { TargetDetail } from "../components/Target";
 const StyledList = chakra(CommandNew.List);
 // CONSTANTS
 const ACTION_KEY_DEFAULT = ["Ctrl", "Control"];
@@ -71,8 +72,8 @@ const Search = () => {
     [key: string]: Target;
   }>({});
   const [inputValue, setInputValue] = useState<string>("");
-
-  const [checked, setChecked] = useState<string[]>([]);
+  const [filterValue, setFilterValue] = useState<string>("");
+  const [checked, setChecked] = useState<Set<string>>(new Set());
   const [actionKey, setActionKey] = useState<string[]>(ACTION_KEY_APPLE);
   const [tabIndex, setTabIndex] = useState(0);
   const [preflightRes, setPreflightRes] = useState<Preflight>();
@@ -96,7 +97,7 @@ const Search = () => {
 
     if (event?.key?.toLowerCase() === "enter" && event[hotkey]) {
       event.preventDefault();
-      checked.length > 0 && handleSubmit();
+      checked.size > 0 && handleSubmit();
     }
   });
 
@@ -122,114 +123,25 @@ const Search = () => {
     }
   }, [nextToken]);
 
+  useEffect(() => {
+    debounce((inputValue) => {
+      setFilterValue(inputValue);
+    }, 300)(inputValue);
+  }, [inputValue]);
+
   // this doesn't update if you deselect a target when in the "selected" filter.
   // this can be considered a desired effect because if you accidentally deselect something you can easily select it again.
   // if you shift back to the "all" view then it will reset this
   const filteredItems = useMemo(() => {
     if (allTargets.length === 0 || !allTargets) return [];
     if (showOnlyChecked)
-      return allTargets.filter((t) => checked.includes(t.id.toLowerCase()));
-    if (inputValue === "") return allTargets;
+      return allTargets.filter((t) => checked.has(t.id.toLowerCase()));
+    if (filterValue === "") return allTargets;
     return allTargets.filter((target) => {
       const key = target.id.toLowerCase() + targetFieldsToString(target.fields);
-      return commandScore(key, inputValue.toLowerCase()) > 0;
+      return commandScore(key, filterValue.toLowerCase()) > 0;
     });
-  }, [inputValue, allTargets, showOnlyChecked]);
-
-  const targetComponent: React.FC<ListChildComponentProps> = ({
-    index,
-    style,
-  }) => {
-    const target = filteredItems[index];
-
-    if (!target) return <></>;
-
-    return (
-      <Flex
-        h={TARGET_HEIGHT}
-        style={style}
-        alignContent="flex-start"
-        p={2}
-        rounded="md"
-        _selected={{
-          bg: "neutrals.100",
-        }}
-        key={target.id}
-        // this value is used by the command palette
-        value={target.id}
-        as={CommandNew.Item}
-      >
-        <Tooltip
-          key={target.id}
-          label={`${target.kind.publisher}/${target.kind.name}/${target.kind.kind}`}
-          placement="right"
-        >
-          <Flex p={6} position="relative">
-            <CheckCircleIcon
-              visibility={
-                checked.includes(target.id.toLowerCase()) ? "visible" : "hidden"
-              }
-              position="absolute"
-              top={0}
-              left={0}
-              boxSize={"12px"}
-              color={"brandBlue.300"}
-            />
-            <ProviderIcon
-              boxSize={"24px"}
-              shortType={target.kind.icon as ShortTypes}
-            />
-          </Flex>
-        </Tooltip>
-
-        <HStack>
-          {target.fields.map((field, i) => (
-            <>
-              <Divider
-                orientation="vertical"
-                borderColor={"black"}
-                h="80%"
-                hidden={i === 0}
-              />
-
-              <Tooltip
-                key={field.id}
-                label={
-                  <Stack>
-                    <Text color="white" textStyle={"Body/Small"}>
-                      {field.fieldTitle}
-                    </Text>
-                    <Text color="white" textStyle={"Body/Small"}>
-                      {field.fieldDescription}
-                    </Text>
-                    <Text color="white" textStyle={"Body/Small"}>
-                      {field.valueLabel}
-                    </Text>
-                    <Text color="white" textStyle={"Body/Small"}>
-                      {field.value}
-                    </Text>
-                    <Text color="white" textStyle={"Body/Small"}>
-                      {field.valueDescription}
-                    </Text>
-                  </Stack>
-                }
-                placement="top"
-              >
-                <Stack>
-                  <Text textStyle={"Body/SmallBold"} noOfLines={1}>
-                    {field.fieldTitle}
-                  </Text>
-                  <Text textStyle={"Body/Small"} noOfLines={1}>
-                    {field.valueLabel}
-                  </Text>
-                </Stack>
-              </Tooltip>
-            </>
-          ))}
-        </HStack>
-      </Flex>
-    );
-  };
+  }, [filterValue, allTargets, showOnlyChecked]);
 
   // HANDLERS
   const handleSubmit = () => {
@@ -285,18 +197,13 @@ const Search = () => {
           // redirect to request...
           navigate({ to: `/requests/${res.id}` });
           // clear state
-          setChecked([]);
-          handleInputChange("");
+          setChecked(new Set());
+          setInputValue("");
         })
         .catch((err) => {
           console.log(err);
         });
   };
-
-  // Debounce the setInputValue function with a 500ms delay
-  const handleInputChange = debounce((newValue) => {
-    setInputValue(newValue);
-  }, 500);
 
   return (
     <UserLayout>
@@ -315,14 +222,27 @@ const Search = () => {
                   shouldFilter={false}
                   label="Global Command Menu"
                   checked={checked}
-                  setChecked={setChecked}
+                  check={(key) =>
+                    setChecked((old) => {
+                      const newSet = new Set(old);
+                      newSet.add(key);
+                      return newSet;
+                    })
+                  }
+                  uncheck={(key) =>
+                    setChecked((old) => {
+                      const newSet = new Set(old);
+                      newSet.delete(key);
+                      return newSet;
+                    })
+                  }
                 >
                   <Input
                     size="lg"
                     type="text"
                     placeholder="What do you want to access?"
                     value={inputValue}
-                    onValueChange={handleInputChange}
+                    onValueChange={setInputValue}
                     autoFocus={true}
                     as={CommandNew.Input}
                   />
@@ -331,15 +251,15 @@ const Search = () => {
                       label="All Resources"
                       total={allTargets.length}
                       onClick={() => {
-                        handleInputChange("");
+                        setInputValue("");
                         showOnlyCheckedToggle.off();
                       }}
                     />
                     <FilterBlock
                       label="Selected"
-                      selected={checked.length}
+                      selected={checked.size}
                       onClick={() => {
-                        handleInputChange("");
+                        setInputValue("");
                         showOnlyCheckedToggle.on();
                         document.getElementById(":rd:")?.focus();
                       }}
@@ -355,17 +275,19 @@ const Search = () => {
                       ).toLowerCase();
                       return (
                         <FilterBlock
+                          key={key}
                           label={kind.kind}
                           icon={kind.icon as ShortTypes}
                           onClick={() => {
-                            handleInputChange(key);
+                            setInputValue(key);
                             showOnlyCheckedToggle.off();
                             // then set the focus back to the input
                             // so that the user can continue typing
                             document.getElementById(":rd:")?.focus();
                           }}
                           selected={
-                            checked.filter((c) => c.startsWith(key)).length
+                            [...checked].filter((id) => id.startsWith(key))
+                              .length
                           }
                         />
                       );
@@ -386,14 +308,14 @@ const Search = () => {
                       itemSize={TARGET_HEIGHT}
                       width="100%"
                     >
-                      {targetComponent}
+                      {TargetListItem(filteredItems, checked)}
                     </List>
                   </StyledList>
                 </CommandNew>
 
                 <Flex w="100%" mt={4}>
                   <Button
-                    disabled={checked.length == 0}
+                    disabled={checked.size == 0}
                     ml="auto"
                     onClick={handleSubmit}
                     isLoading={submitLoading}
@@ -568,3 +490,30 @@ function targetFieldsToString(targetFields: TargetField[]): string {
   });
   return strings.join("; "); // Use newline character as a separator
 }
+
+const TargetListItem = (
+  targets: Target[],
+  checked: Set<string>
+): React.FC<ListChildComponentProps> => {
+  return ({ index, style }) => {
+    const target = targets[index];
+    if (!target) return <></>;
+    return (
+      <TargetDetail
+        as={CommandNew.Item}
+        h={TARGET_HEIGHT}
+        target={target}
+        style={style}
+        _selected={{
+          bg: "neutrals.100",
+        }}
+        key={target.id}
+        // this value is used by the command palette
+        // ts-ignored because the typing doesn't propagate perfectly with the 'as' property
+        // @ts-ignore
+        value={target.id}
+        isChecked={checked.has(target.id.toLowerCase())}
+      />
+    );
+  };
+};
