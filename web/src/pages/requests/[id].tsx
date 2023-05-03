@@ -40,6 +40,7 @@ import {
   Text,
   useBoolean,
   useDisclosure,
+  useToast,
 } from "@chakra-ui/react";
 import { intervalToDuration, format } from "date-fns";
 import { useState } from "react";
@@ -95,6 +96,7 @@ const Home = () => {
   const request = useUserGetRequest(requestId, {
     swr: { refreshInterval: 10000 },
   });
+  const toast = useToast();
 
   return (
     <div>
@@ -185,10 +187,22 @@ const Home = () => {
                                   //@ts-ignore
                                   userRevokeRequest(request.data?.id)
                                     .then((e) => {
-                                      console.log(e);
+                                      toast({
+                                        title: "Revoke Initiated",
+                                        status: "success",
+                                        variant: "subtle",
+                                        duration: 2200,
+                                        isClosable: true,
+                                      });
                                     })
                                     .catch((e) => {
-                                      console.log(e);
+                                      toast({
+                                        title: "Error Revoking",
+                                        status: "error",
+                                        variant: "subtle",
+                                        duration: 2200,
+                                        isClosable: true,
+                                      });
                                     });
                                 }}
                               >
@@ -291,6 +305,7 @@ export const HeaderStatusCell = ({ group }: AccessGroupProps) => {
         </Box>
       );
     }
+
     return (
       <Box
         as="span"
@@ -305,109 +320,86 @@ export const HeaderStatusCell = ({ group }: AccessGroupProps) => {
     );
   }
 
-  return (
-    <Flex flex="1">
-      <StatusCell
-        success="ACTIVE"
-        value={group.status}
-        replaceValue={
-          "Active for the next " +
-          durationStringHoursMinutes(
-            intervalToDuration({
-              start: new Date(),
-              end: getEndTimeWithDuration(
-                group.requestedTiming.startTime
-                  ? group.requestedTiming.startTime
-                  : "",
-                group.requestedTiming.durationSeconds
-              ),
-            })
-          )
-        }
-      />
-    </Flex>
-  );
-
   if (group.status === "APPROVED") {
-    // switch (group.requestStatus) {
-    //   case "ACTIVE":
-    //     return (
-    //       <Flex flex="1">
-    //         <StatusCell
-    //           success="ACTIVE"
-    //           value={group.status}
-    //           replaceValue={
-    //             "Active for the next " +
-    //             durationStringHoursMinutes(
-    //               intervalToDuration({
-    //                 start: new Date(),
-    //                 end: getEndTimeWithDuration(
-    //                   group.requestedTiming.startTime
-    //                     ? group.requestedTiming.startTime
-    //                     : "",
-    //                   group.requestedTiming.durationSeconds
-    //                 ),
-    //               })
-    //             )
-    //           }
-    //         />
-    //       </Flex>
-    //     );
-    //   case "PENDING":
-    //     return (
-    //       <Box
-    //         as="span"
-    //         flex="1"
-    //         textAlign="left"
-    //         sx={{
-    //           p: { lineHeight: "120%", textStyle: "Body/Extra Small" },
-    //         }}
-    //       >
-    //         <Text color="neutrals.700">Pending</Text>
-    //       </Box>
-    //     );
-    //   case "REVOKING":
-    //     return (
-    //       <Box
-    //         as="span"
-    //         flex="1"
-    //         textAlign="left"
-    //         sx={{
-    //           p: { lineHeight: "120%", textStyle: "Body/Extra Small" },
-    //         }}
-    //       >
-    //         <Text color="neutrals.700">Revoking</Text>
-    //       </Box>
-    //     );
-    //   case "REVOKED":
-    //     return (
-    //       <Box
-    //         as="span"
-    //         flex="1"
-    //         textAlign="left"
-    //         sx={{
-    //           p: { lineHeight: "120%", textStyle: "Body/Extra Small" },
-    //         }}
-    //       >
-    //         <Text color="neutrals.700">Revoked</Text>
-    //       </Box>
-    //     );
-    //   case "COMPLETE":
-    //     return (
-    //       <Box
-    //         as="span"
-    //         flex="1"
-    //         textAlign="left"
-    //         sx={{
-    //           p: { lineHeight: "120%", textStyle: "Body/Extra Small" },
-    //         }}
-    //       >
-    //         <Text color="neutrals.700">Complete</Text>
-    //       </Box>
-    //     );
-    //   default:
-    //     break;
-    // }
+    switch (group.requestStatus) {
+      case "ACTIVE":
+        return (
+          <Flex flex="1">
+            <StatusCell
+              success="ACTIVE"
+              value={group.status}
+              replaceValue={
+                "Active for the next " +
+                durationStringHoursMinutes(
+                  intervalToDuration({
+                    start: new Date(),
+                    end: getEndTimeWithDuration(
+                      group.requestedTiming.startTime
+                        ? group.requestedTiming.startTime
+                        : "",
+                      group.requestedTiming.durationSeconds
+                    ),
+                  })
+                )
+              }
+            />
+          </Flex>
+        );
+      case "PENDING":
+        return (
+          <Box
+            as="span"
+            flex="1"
+            textAlign="left"
+            sx={{
+              p: { lineHeight: "120%", textStyle: "Body/Extra Small" },
+            }}
+          >
+            <Text color="neutrals.700">Pending</Text>
+          </Box>
+        );
+      case "REVOKING":
+        return (
+          <Box
+            as="span"
+            flex="1"
+            textAlign="left"
+            sx={{
+              p: { lineHeight: "120%", textStyle: "Body/Extra Small" },
+            }}
+          >
+            <Text color="neutrals.700">Revoking</Text>
+          </Box>
+        );
+      case "REVOKED":
+        return (
+          <Box
+            as="span"
+            flex="1"
+            textAlign="left"
+            sx={{
+              p: { lineHeight: "120%", textStyle: "Body/Extra Small" },
+            }}
+          >
+            <Text color="neutrals.700">Revoked</Text>
+          </Box>
+        );
+      case "COMPLETE":
+        return (
+          <Box
+            as="span"
+            flex="1"
+            textAlign="left"
+            sx={{
+              p: { lineHeight: "120%", textStyle: "Body/Extra Small" },
+            }}
+          >
+            <Text color="neutrals.700">Complete</Text>
+          </Box>
+        );
+      default:
+        break;
+    }
   }
 
   return null;
@@ -475,34 +467,28 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
                   pos="relative"
                 >
                   <ProviderIcon boxSize="24px" shortType="aws-sso" mr={2} />
-                  <FieldsCodeBlock fields={target.fields} />
-                  {true && (
-                    <Spinner
-                      thickness="2px"
-                      speed="0.65s"
-                      emptyColor="neutrals.300"
-                      color="neutrals.800"
-                      size="sm"
-                      top={4}
-                      right={4}
-                      pos="absolute"
-                    />
-                  )}
-                  <GrantStatusBlinker
-                    requestId={group.requestId}
-                    groupId={group.id}
-                    targetId={target.id}
-                  />
-                  <Button
-                    variant="brandSecondary"
-                    size="xs"
-                    top={2}
-                    right={2}
-                    pos="absolute"
-                    onClick={() => handleGrantClick(target)}
-                  >
-                    View
-                  </Button>
+                  <FieldsCodeBlock fields={target.fields} flexWrap="wrap" />
+
+                  <Stack>
+                    <Flex
+                      onClick={(e) => {
+                        e.stopPropagation();
+                      }}
+                    >
+                      <GrantStatusCell
+                        requestId={group.requestId}
+                        groupId={group.id}
+                        targetId={target.id}
+                      />
+                    </Flex>
+                    <Button
+                      variant="brandSecondary"
+                      size="xs"
+                      onClick={() => handleGrantClick(target)}
+                    >
+                      View
+                    </Button>
+                  </Stack>
                 </Flex>
               ))}
             </Stack>
@@ -709,35 +695,3 @@ export const ApproveRejectDuration = ({
     </Flex>
   );
 };
-
-type GrantStatusProps = {
-  requestId: string;
-  groupId: string;
-  targetId: string;
-};
-
-export const GrantStatusBlinker = ({
-  requestId,
-  groupId,
-  targetId,
-}: GrantStatusProps) => {
-  const data = useGetGroupTargetStatus(requestId, groupId, targetId, {
-    swr: { refreshInterval: 10000 },
-  });
-
-  return (
-    <Flex
-      pr="40px"
-      alignSelf="baseline"
-      flexDir="row"
-      alignItems="center"
-      onClick={(e) => {
-        e.stopPropagation();
-      }}
-    >
-      <GrantStatusCell value={data.data} />
-    </Flex>
-  );
-};
-
-export default Home;

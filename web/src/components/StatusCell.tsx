@@ -11,6 +11,7 @@ import {
   RequestAccessGroupApprovalMethod,
   RequestStatus,
 } from "../utils/backend-client/types";
+import { useGetGroupTargetStatus } from "..//utils/backend-client/default/default";
 interface Props extends FlexProps {
   replaceValue?: string;
   value?: string;
@@ -55,6 +56,23 @@ export const StatusCell: React.FC<Props> = ({
     statusColor = "actionInfo.200";
   }
 
+  //Dont pulse status for warning and error status's
+  if (
+    statusColor === "actionWarning.200" ||
+    statusColor === "actionDanger.200"
+  ) {
+    return (
+      <Flex minW="75px" align="center" {...rest}>
+        <Circle bg={statusColor} size="8px" mr={2} />{" "}
+        <Text
+          as="span"
+          css={{ ":first-letter": { textTransform: "uppercase" } }}
+        >
+          {replaceValue ? replaceValue : value.toLowerCase()}
+        </Text>
+      </Flex>
+    );
+  }
   return (
     <Flex minW="75px" align="center" {...rest}>
       <SkeletonCircle endColor={statusColor} size="8px" mr={2} />{" "}
@@ -91,20 +109,28 @@ export const RequestStatusCell: React.FC<RequestStatusCellProps> = ({
 };
 
 interface GrantStatusCellProps extends FlexProps {
-  value: string | undefined;
+  requestId: string;
+  groupId: string;
+  targetId: string;
 }
 
 // RequestStatusCell providers a slim wrapper to remove boilerplate for request statuses
 export const GrantStatusCell: React.FC<GrantStatusCellProps> = ({
-  value,
+  requestId,
+  groupId,
+  targetId,
   ...rest
 }) => {
-  switch (value) {
+  const data = useGetGroupTargetStatus(requestId, groupId, targetId, {
+    swr: { refreshInterval: 10000 },
+  });
+  switch (data.data) {
     case "ACTIVE":
       return (
         <StatusCell
+          {...rest}
           success="ACTIVE"
-          value={value}
+          value={data.data}
           replaceValue={"Active"}
           fontSize="12px"
         />
@@ -112,8 +138,9 @@ export const GrantStatusCell: React.FC<GrantStatusCellProps> = ({
     case "AWAITING_START":
       return (
         <StatusCell
-          info={value}
-          value={value}
+          {...rest}
+          info={data.data}
+          value={data.data}
           replaceValue={"Awaiting Start"}
           fontSize="12px"
         />
@@ -121,8 +148,8 @@ export const GrantStatusCell: React.FC<GrantStatusCellProps> = ({
     case "ERROR":
       return (
         <StatusCell
-          danger={value}
-          value={value}
+          danger={data.data}
+          value={data.data}
           replaceValue={"Error"}
           fontSize="12px"
         />
@@ -130,8 +157,9 @@ export const GrantStatusCell: React.FC<GrantStatusCellProps> = ({
     case "EXPIRED":
       return (
         <StatusCell
+          {...rest}
           success="ACTIVE"
-          value={value}
+          value={data.data}
           replaceValue={"Expired"}
           fontSize="12px"
         />
@@ -139,8 +167,9 @@ export const GrantStatusCell: React.FC<GrantStatusCellProps> = ({
     case "PENDING_PROVISIONING":
       return (
         <StatusCell
-          info={value}
-          value={value}
+          {...rest}
+          info={data.data}
+          value={data.data}
           replaceValue={"Pending"}
           fontSize="12px"
         />
@@ -148,8 +177,9 @@ export const GrantStatusCell: React.FC<GrantStatusCellProps> = ({
     case "REVOKED":
       return (
         <StatusCell
+          {...rest}
           success="ACTIVE"
-          value={value}
+          value={data.data}
           replaceValue={"Revoked"}
           fontSize="12px"
         />
@@ -157,6 +187,7 @@ export const GrantStatusCell: React.FC<GrantStatusCellProps> = ({
     default:
       return (
         <StatusCell
+          {...rest}
           success="ACTIVE"
           value={undefined}
           replaceValue={"test"}
@@ -164,14 +195,4 @@ export const GrantStatusCell: React.FC<GrantStatusCellProps> = ({
         />
       );
   }
-  return (
-    <StatusCell
-      value={value}
-      // success={[RequestStatus.APPROVED, "Automatically approved"]}
-      // danger={[RequestStatus.DECLINED, RequestStatus.CANCELLED]}
-      warning={RequestStatus.PENDING}
-      textStyle="Body/Small"
-      {...rest}
-    ></StatusCell>
-  );
 };
