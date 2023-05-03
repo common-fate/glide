@@ -26,7 +26,6 @@ export const TargetDetail: React.FC<TargetDetailProps> = ({
   return (
     <Flex alignContent="flex-start" p={2} rounded="md" {...rest}>
       <Tooltip
-        key={target.id}
         label={`${target.kind.publisher}/${target.kind.name}/${target.kind.kind}`}
         placement="right"
       >
@@ -57,7 +56,6 @@ export const TargetDetail: React.FC<TargetDetailProps> = ({
             />
 
             <Tooltip
-              key={field.id}
               label={
                 <Stack>
                   <Text color="white" textStyle={"Body/Small"}>

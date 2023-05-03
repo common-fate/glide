@@ -81,6 +81,7 @@ import {
 } from "../../utils/durationString";
 import { request } from "http";
 import FieldsCodeBlock from "../../components/FieldsCodeBlock";
+import { TargetDetail } from "../../components/Target";
 
 type MyLocationGenerics = MakeGenerics<{
   Search: {
@@ -466,8 +467,13 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
                   p={2}
                   pos="relative"
                 >
-                  <ProviderIcon boxSize="24px" shortType="aws-sso" mr={2} />
-                  <FieldsCodeBlock fields={target.fields} flexWrap="wrap" />
+                  <TargetDetail
+                    target={{
+                      fields: target.fields,
+                      id: target.id,
+                      kind: target.targetKind,
+                    }}
+                  />
 
                   <Stack>
                     <Flex
