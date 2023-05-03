@@ -1837,7 +1837,7 @@ components:
           type: string
         targetGroupId:
           type: string
-        kind:
+        targetKind:
           $ref: "#/components/schemas/TargetKind"
         fields:
           type: array
@@ -1852,7 +1852,7 @@ components:
         - requestId
         - accessGroupId
         - targetGroupId
-        - kind
+        - targetKind
         - fields
         - status
         - requestedBy

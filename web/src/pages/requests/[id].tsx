@@ -473,11 +473,12 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
                   p={2}
                   pos="relative"
                 >
-                  {/* <FieldsCodeBlock fields={target.fields} flexWrap="wrap" /> */}
                   <TargetDetail
-                    target={target as Target}
-                    isChecked={false}
-                    width="100%"
+                    target={{
+                      fields: target.fields,
+                      id: target.id,
+                      kind: target.targetKind,
+                    }}
                   />
 
                   <Stack justifyContent="center">
