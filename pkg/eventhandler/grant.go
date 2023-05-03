@@ -43,8 +43,11 @@ func (n *EventHandler) handleGrantExpired(ctx context.Context, detail json.RawMe
 		return err
 	}
 
-	grantEvent.Grant.Grant.Status = types.RequestAccessGroupTargetStatusEXPIRED
-	err = n.DB.Put(ctx, &grantEvent.Grant)
+	grant := grantEvent.Grant
+
+	grant.Grant.Status = types.RequestAccessGroupTargetStatusEXPIRED
+
+	err = n.DB.Put(ctx, &grant)
 	if err != nil {
 		return err
 	}
@@ -60,7 +63,6 @@ func (n *EventHandler) handleGrantExpired(ctx context.Context, detail json.RawMe
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 
@@ -71,6 +73,15 @@ func (n *EventHandler) handleGrantFailed(ctx context.Context, detail json.RawMes
 		return err
 	}
 
+	grant := grantEvent.Grant
+
+	grant.Grant.Status = types.RequestAccessGroupTargetStatusERROR
+
+	err = n.DB.Put(ctx, &grant)
+	if err != nil {
+		return err
+	}
+
 	q := storage.GetRequestGroupWithTargets{RequestID: grantEvent.Grant.RequestID, GroupID: grantEvent.Grant.GroupID}
 
 	_, err = n.DB.Query(ctx, &q)
@@ -82,6 +93,7 @@ func (n *EventHandler) handleGrantFailed(ctx context.Context, detail json.RawMes
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 

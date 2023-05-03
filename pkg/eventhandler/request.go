@@ -183,14 +183,12 @@ func (n *EventHandler) handleRequestStatusChange(ctx context.Context, requestId 
 	allExpired := true
 	for _, group := range request.Result.Groups {
 		for _, target := range group.Targets {
-			if target.Grant.Status != types.RequestAccessGroupTargetStatusEXPIRED {
+			if target.Grant.Status != types.RequestAccessGroupTargetStatusEXPIRED &&
+				target.Grant.Status != types.RequestAccessGroupTargetStatusERROR {
 				allExpired = false
 				break
 			}
-			if target.Grant.Status != types.RequestAccessGroupTargetStatusERROR {
-				allExpired = false
-				break
-			}
+
 		}
 	}
 	//if all grants are expired send out a request completed event
