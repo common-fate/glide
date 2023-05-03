@@ -32,6 +32,7 @@ func (n *EventHandler) handleGrantActivated(ctx context.Context, detail json.Raw
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 

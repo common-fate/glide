@@ -41,7 +41,7 @@ import {
   useBoolean,
   useDisclosure,
 } from "@chakra-ui/react";
-import { intervalToDuration } from "date-fns";
+import { intervalToDuration, format } from "date-fns";
 import { useState } from "react";
 import { Helmet } from "react-helmet";
 import { Link, MakeGenerics, useMatch } from "react-location";
@@ -56,8 +56,10 @@ import {
 
 import { ProviderIcon, ShortTypes } from "../../components/icons/providerIcon";
 import { UserLayout } from "../../components/Layout";
-import { StatusCell } from "../../components/StatusCell";
+import { GrantStatusCell, StatusCell } from "../../components/StatusCell";
 import {
+  getGroupTargetStatus,
+  useGetGroupTargetStatus,
   useUserGetRequest,
   useUserListRequests,
 } from "../../utils/backend-client/default/default";
@@ -77,6 +79,7 @@ import {
   getEndTimeWithDuration,
 } from "../../utils/durationString";
 import { request } from "http";
+import FieldsCodeBlock from "../../components/FieldsCodeBlock";
 
 type MyLocationGenerics = MakeGenerics<{
   Search: {
@@ -127,87 +130,93 @@ const Home = () => {
             <GridItem>
               <>
                 <Stack spacing={4}>
-                  <Flex px={2}>
+                  <Flex direction="row">
                     {request.data ? (
-                      <Flex>
-                        <Avatar
-                          size="sm"
-                          src={request.data.requestedBy.picture}
-                          name={
-                            request.data.requestedBy.firstName +
-                            " " +
-                            request.data.requestedBy.lastName
-                          }
-                          mr={2}
-                        />
-                        <Box>
-                          <Flex>
-                            <Text textStyle="Body/Small">
-                              {request.data.requestedBy.firstName +
-                                " " +
-                                request.data.requestedBy.lastName}
+                      <Flex
+                        direction="row"
+                        justifyContent="space-between"
+                        alignItems="flex-start"
+                      >
+                        <Flex>
+                          <Avatar
+                            size="sm"
+                            src={request.data.requestedBy.picture}
+                            name={
+                              request.data.requestedBy.firstName +
+                              " " +
+                              request.data.requestedBy.lastName
+                            }
+                            mr={2}
+                          />
+                          <Stack>
+                            <Flex>
+                              <Text textStyle="Body/Small">
+                                {request.data.requestedBy.firstName +
+                                  " " +
+                                  request.data.requestedBy.lastName}
+                              </Text>
+                              <Text
+                                textStyle="Body/Small"
+                                ml={1}
+                                color="neutrals.500"
+                              >
+                                requested at&nbsp;
+                                {format(
+                                  new Date(
+                                    Date.parse(request.data.requestedAt)
+                                  ),
+                                  "p dd/MM/yy"
+                                )}
+                              </Text>
+                            </Flex>
+
+                            <Text textStyle="Body/Small" color="neutrals.500">
+                              {request.data.requestedBy.email}
                             </Text>
-                            <Text
-                              textStyle="Body/Small"
-                              ml={1}
-                              color="neutrals.500"
-                            >
-                              requested at&nbsp;
-                              {request.data.requestedAt}
-                            </Text>
-                          </Flex>
-                          <Text textStyle="Body/Small" color="neutrals.500">
-                            {request.data.requestedBy.email}
-                          </Text>
-                        </Box>
-                        {request.data.status == "ACTIVE" && (
-                          <ButtonGroup
-                            ml="auto"
-                            variant="brandSecondary"
-                            spacing={2}
-                          >
-                            <Button
-                              size="sm"
-                              onClick={() => {
-                                console.log("revoke");
-                                //@ts-ignore
-                                userRevokeRequest(request.data?.id)
-                                  .then((e) => {
-                                    console.log(e);
-                                  })
-                                  .catch((e) => {
-                                    console.log(e);
-                                  });
-                              }}
-                            >
-                              Revoke
-                            </Button>
-                          </ButtonGroup>
-                        )}
-                        {request.data.status == "PENDING" && (
-                          <ButtonGroup
-                            ml="auto"
-                            variant="brandSecondary"
-                            spacing={2}
-                          >
-                            <Button
-                              size="sm"
-                              onClick={() => {
-                                console.log("cancel");
-                                //@ts-ignore
-                                userCancelRequest(request.data?.id)
-                                  .then((e) => {
-                                    console.log(e);
-                                  })
-                                  .catch((e) => {
-                                    console.log(e);
-                                  });
-                              }}
-                            >
-                              Cancel
-                            </Button>
-                          </ButtonGroup>
-                        )}
+                          </Stack>
+                        </Flex>
+                        <Flex alignSelf="flex-start" alignContent="flex-end">
+                          {request.data.status == "ACTIVE" && (
+                            <ButtonGroup variant="brandSecondary">
+                              <Button
+                                size="sm"
+                                onClick={() => {
+                                  console.log("revoke");
+                                  //@ts-ignore
+                                  userRevokeRequest(request.data?.id)
+                                    .then((e) => {
+                                      console.log(e);
+                                    })
+                                    .catch((e) => {
+                                      console.log(e);
+                                    });
+                                }}
+                              >
+                                Revoke
+                              </Button>
+                            </ButtonGroup>
+                          )}
+                          {request.data.status == "PENDING" && (
+                            <ButtonGroup variant="brandSecondary">
+                              <Button
+                                size="sm"
+                                onClick={() => {
+                                  console.log("cancel");
+                                  //@ts-ignore
+                                  userCancelRequest(request.data?.id)
+                                    .then((e) => {
+                                      console.log(e);
+                                    })
+                                    .catch((e) => {
+                                      console.log(e);
+                                    });
+                                }}
+                              >
+                                Cancel
+                              </Button>
+                            </ButtonGroup>
+                          )}
+                        </Flex>
                       </Flex>
                     ) : (
                       <Flex h="42px">
@@ -242,14 +251,14 @@ const Home = () => {
                   </Stack>
                 </Stack>
 
-                <Code
+                {/* <Code
                   maxW="60ch"
                   textOverflow="clip"
                   whiteSpace="pre-wrap"
                   mt={32}
                 >
                   {JSON.stringify({ request }, null, 2)}
-                </Code>
+                </Code> */}
               </>
             </GridItem>
             <GridItem>
@@ -296,88 +305,109 @@ export const HeaderStatusCell = ({ group }: AccessGroupProps) => {
     );
   }
 
+  return (
+    <Flex flex="1">
+      <StatusCell
+        success="ACTIVE"
+        value={group.status}
+        replaceValue={
+          "Active for the next " +
+          durationStringHoursMinutes(
+            intervalToDuration({
+              start: new Date(),
+              end: getEndTimeWithDuration(
+                group.requestedTiming.startTime
+                  ? group.requestedTiming.startTime
+                  : "",
+                group.requestedTiming.durationSeconds
+              ),
+            })
+          )
+        }
+      />
+    </Flex>
+  );
+
   if (group.status === "APPROVED") {
-    switch (group.requestStatus) {
-      case "ACTIVE":
-        return (
-          <Flex flex="1">
-            <StatusCell
-              success="ACTIVE"
-              value={group.status}
-              replaceValue={
-                "Active for the next " +
-                durationStringHoursMinutes(
-                  intervalToDuration({
-                    start: new Date(),
-                    end: getEndTimeWithDuration(
-                      group.requestedTiming.startTime
-                        ? group.requestedTiming.startTime
-                        : "",
-                      group.requestedTiming.durationSeconds
-                    ),
-                  })
-                )
-              }
-            />
-          </Flex>
-        );
-      case "PENDING":
-        return (
-          <Box
-            as="span"
-            flex="1"
-            textAlign="left"
-            sx={{
-              p: { lineHeight: "120%", textStyle: "Body/Extra Small" },
-            }}
-          >
-            <Text color="neutrals.700">Pending</Text>
-          </Box>
-        );
-      case "REVOKING":
-        return (
-          <Box
-            as="span"
-            flex="1"
-            textAlign="left"
-            sx={{
-              p: { lineHeight: "120%", textStyle: "Body/Extra Small" },
-            }}
-          >
-            <Text color="neutrals.700">Revoking</Text>
-          </Box>
-        );
-      case "REVOKED":
-        return (
-          <Box
-            as="span"
-            flex="1"
-            textAlign="left"
-            sx={{
-              p: { lineHeight: "120%", textStyle: "Body/Extra Small" },
-            }}
-          >
-            <Text color="neutrals.700">Revoked</Text>
-          </Box>
-        );
-
-      case "COMPLETE":
-        return (
-          <Box
-            as="span"
-            flex="1"
-            textAlign="left"
-            sx={{
-              p: { lineHeight: "120%", textStyle: "Body/Extra Small" },
-            }}
-          >
-            <Text color="neutrals.700">Complete</Text>
-          </Box>
-        );
-
-      default:
-        break;
-    }
+    // switch (group.requestStatus) {
+    //   case "ACTIVE":
+    //     return (
+    //       <Flex flex="1">
+    //         <StatusCell
+    //           success="ACTIVE"
+    //           value={group.status}
+    //           replaceValue={
+    //             "Active for the next " +
+    //             durationStringHoursMinutes(
+    //               intervalToDuration({
+    //                 start: new Date(),
+    //                 end: getEndTimeWithDuration(
+    //                   group.requestedTiming.startTime
+    //                     ? group.requestedTiming.startTime
+    //                     : "",
+    //                   group.requestedTiming.durationSeconds
+    //                 ),
+    //               })
+    //             )
+    //           }
+    //         />
+    //       </Flex>
+    //     );
+    //   case "PENDING":
+    //     return (
+    //       <Box
+    //         as="span"
+    //         flex="1"
+    //         textAlign="left"
+    //         sx={{
+    //           p: { lineHeight: "120%", textStyle: "Body/Extra Small" },
+    //         }}
+    //       >
+    //         <Text color="neutrals.700">Pending</Text>
+    //       </Box>
+    //     );
+    //   case "REVOKING":
+    //     return (
+    //       <Box
+    //         as="span"
+    //         flex="1"
+    //         textAlign="left"
+    //         sx={{
+    //           p: { lineHeight: "120%", textStyle: "Body/Extra Small" },
+    //         }}
+    //       >
+    //         <Text color="neutrals.700">Revoking</Text>
+    //       </Box>
+    //     );
+    //   case "REVOKED":
+    //     return (
+    //       <Box
+    //         as="span"
+    //         flex="1"
+    //         textAlign="left"
+    //         sx={{
+    //           p: { lineHeight: "120%", textStyle: "Body/Extra Small" },
+    //         }}
+    //       >
+    //         <Text color="neutrals.700">Revoked</Text>
+    //       </Box>
+    //     );
+    //   case "COMPLETE":
+    //     return (
+    //       <Box
+    //         as="span"
+    //         flex="1"
+    //         textAlign="left"
+    //         sx={{
+    //           p: { lineHeight: "120%", textStyle: "Body/Extra Small" },
+    //         }}
+    //       >
+    //         <Text color="neutrals.700">Complete</Text>
+    //       </Box>
+    //     );
+    //   default:
+    //     break;
+    // }
   }
 
   return null;
@@ -445,8 +475,8 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
                   pos="relative"
                 >
                   <ProviderIcon boxSize="24px" shortType="aws-sso" mr={2} />
-                  {/* <FieldsCodeBlock fields={target.fields} /> */}
-                  {false && (
+                  <FieldsCodeBlock fields={target.fields} />
+                  {true && (
                     <Spinner
                       thickness="2px"
                       speed="0.65s"
@@ -458,6 +488,11 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
                       pos="absolute"
                     />
                   )}
+                  <GrantStatusBlinker
+                    requestId={group.requestId}
+                    groupId={group.id}
+                    targetId={target.id}
+                  />
                   <Button
                     variant="brandSecondary"
                     size="xs"
@@ -671,6 +706,36 @@ export const ApproveRejectDuration = ({
           </Button>
         </ButtonGroup>
       )}
+    </Flex>
+  );
+};
+
+type GrantStatusProps = {
+  requestId: string;
+  groupId: string;
+  targetId: string;
+};
+
+export const GrantStatusBlinker = ({
+  requestId,
+  groupId,
+  targetId,
+}: GrantStatusProps) => {
+  const data = useGetGroupTargetStatus(requestId, groupId, targetId, {
+    swr: { refreshInterval: 10000 },
+  });
+
+  return (
+    <Flex
+      pr="40px"
+      alignSelf="baseline"
+      flexDir="row"
+      alignItems="center"
+      onClick={(e) => {
+        e.stopPropagation();
+      }}
+    >
+      <GrantStatusCell value={data.data} />
     </Flex>
   );
 };

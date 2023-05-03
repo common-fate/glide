@@ -57,7 +57,7 @@ export const StatusCell: React.FC<Props> = ({
 
   return (
     <Flex minW="75px" align="center" {...rest}>
-      <Circle bg={statusColor} size="8px" mr={2} />{" "}
+      <SkeletonCircle endColor={statusColor} size="8px" mr={2} />{" "}
       <Text as="span" css={{ ":first-letter": { textTransform: "uppercase" } }}>
         {replaceValue ? replaceValue : value.toLowerCase()}
       </Text>
@@ -81,6 +81,92 @@ export const RequestStatusCell: React.FC<RequestStatusCellProps> = ({
   return (
     <StatusCell
       value={isAuto ? "Automatically approved" : value}
+      // success={[RequestStatus.APPROVED, "Automatically approved"]}
+      // danger={[RequestStatus.DECLINED, RequestStatus.CANCELLED]}
+      warning={RequestStatus.PENDING}
+      textStyle="Body/Small"
+      {...rest}
+    ></StatusCell>
+  );
+};
+
+interface GrantStatusCellProps extends FlexProps {
+  value: string | undefined;
+}
+
+// RequestStatusCell providers a slim wrapper to remove boilerplate for request statuses
+export const GrantStatusCell: React.FC<GrantStatusCellProps> = ({
+  value,
+  ...rest
+}) => {
+  switch (value) {
+    case "ACTIVE":
+      return (
+        <StatusCell
+          success="ACTIVE"
+          value={value}
+          replaceValue={"Active"}
+          fontSize="12px"
+        />
+      );
+    case "AWAITING_START":
+      return (
+        <StatusCell
+          info={value}
+          value={value}
+          replaceValue={"Awaiting Start"}
+          fontSize="12px"
+        />
+      );
+    case "ERROR":
+      return (
+        <StatusCell
+          danger={value}
+          value={value}
+          replaceValue={"Error"}
+          fontSize="12px"
+        />
+      );
+    case "EXPIRED":
+      return (
+        <StatusCell
+          success="ACTIVE"
+          value={value}
+          replaceValue={"Expired"}
+          fontSize="12px"
+        />
+      );
+    case "PENDING_PROVISIONING":
+      return (
+        <StatusCell
+          info={value}
+          value={value}
+          replaceValue={"Pending"}
+          fontSize="12px"
+        />
+      );
+    case "REVOKED":
+      return (
+        <StatusCell
+          success="ACTIVE"
+          value={value}
+          replaceValue={"Revoked"}
+          fontSize="12px"
+        />
+      );
+    default:
+      return (
+        <StatusCell
+          success="ACTIVE"
+          value={undefined}
+          replaceValue={"test"}
+          fontSize="12px"
+        />
+      );
+  }
+  return (
+    <StatusCell
+      value={value}
       // success={[RequestStatus.APPROVED, "Automatically approved"]}
       // danger={[RequestStatus.DECLINED, RequestStatus.CANCELLED]}
       warning={RequestStatus.PENDING}
