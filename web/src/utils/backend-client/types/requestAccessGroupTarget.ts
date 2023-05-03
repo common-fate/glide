@@ -18,7 +18,7 @@ export interface RequestAccessGroupTarget {
   requestId: string;
   accessGroupId: string;
   targetGroupId: string;
-  targetKind: TargetKind;
+  kind: TargetKind;
   fields: TargetField[];
   status: RequestAccessGroupTargetStatus;
   requestedBy: RequestRequestedBy;

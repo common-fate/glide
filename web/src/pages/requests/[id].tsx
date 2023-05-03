@@ -54,6 +54,7 @@ import {
   Minutes,
   Weeks,
 } from "../../components/DurationInput";
+import { FixedSizeList as List, ListChildComponentProps } from "react-window";
 
 import { ProviderIcon, ShortTypes } from "../../components/icons/providerIcon";
 import { UserLayout } from "../../components/Layout";
@@ -73,7 +74,10 @@ import {
   RequestAccessGroup,
   RequestAccessGroupTarget,
   RequestStatus,
+  Target,
+  TargetField,
 } from "../../utils/backend-client/types";
+
 import {
   durationString,
   durationStringHoursMinutes,
@@ -81,6 +85,7 @@ import {
 } from "../../utils/durationString";
 import { request } from "http";
 import FieldsCodeBlock from "../../components/FieldsCodeBlock";
+import { TargetDetail } from "../../components/Target";
 
 type MyLocationGenerics = MakeGenerics<{
   Search: {
@@ -132,12 +137,14 @@ const Home = () => {
             <GridItem>
               <>
                 <Stack spacing={4}>
-                  <Flex direction="row">
+                  <Flex direction="row" w="100%">
                     {request.data ? (
                       <Flex
                         direction="row"
                         justifyContent="space-between"
                         alignItems="flex-start"
+                        w="100%"
+                        mr="10px"
                       >
                         <Flex>
                           <Avatar
@@ -466,20 +473,20 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
                   p={2}
                   pos="relative"
                 >
-                  <ProviderIcon boxSize="24px" shortType="aws-sso" mr={2} />
-                  <FieldsCodeBlock fields={target.fields} flexWrap="wrap" />
+                  {/* <FieldsCodeBlock fields={target.fields} flexWrap="wrap" /> */}
+                  <TargetDetail
+                    target={target as Target}
+                    isChecked={false}
+                    width="100%"
+                  />
 
-                  <Stack>
+                  <Stack justifyContent="center">
                     <Flex
                       onClick={(e) => {
                         e.stopPropagation();
                       }}
                     >
-                      <GrantStatusCell
-                        requestId={group.requestId}
-                        groupId={group.id}
-                        targetId={target.id}
-                      />
+                      <GrantStatusCell targetStatus={target.status} />
                     </Flex>
                     <Button
                       variant="brandSecondary"
@@ -503,7 +510,7 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
           <ModalBody>
             <Box>
               <ProviderIcon
-                shortType={selectedGrant?.targetKind.icon as ShortTypes}
+                shortType={selectedGrant?.kind.icon as ShortTypes}
               />
               {/* <FieldsCodeBlock fields={selectedGrant?.fields || []} /> */}
             </Box>

@@ -79,7 +79,7 @@ func (g *GroupTarget) ToAPI() types.RequestAccessGroupTarget {
 		RequestId:     g.RequestID,
 		Status:        types.RequestAccessGroupTargetStatusPENDINGPROVISIONING,
 		Fields:        []types.TargetField{},
-		TargetKind:    g.TargetKind.ToAPI(),
+		Kind:          g.TargetKind.ToAPI(),
 		TargetGroupId: g.TargetGroupID,
 		RequestedBy:   types.RequestRequestedBy(g.RequestedBy),
 	}

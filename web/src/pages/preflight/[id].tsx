@@ -12,7 +12,7 @@ import { Helmet } from "react-helmet";
 import { Link, useMatch } from "react-location";
 
 import { UserLayout } from "../../components/Layout";
-import { useUserGetPreflight } from "../../utils/backend-client/default/default";
+// import { useUserGetPreflight } from "../../utils/backend-client/default/default";
 
 const Home = () => {
   const {
@@ -20,7 +20,6 @@ const Home = () => {
   } = useMatch();
 
   const toast = useToast();
-  const { data: preflight } = useUserGetPreflight(preflightId);
   return (
     <div>
       <UserLayout>

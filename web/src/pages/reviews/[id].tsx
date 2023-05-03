@@ -68,11 +68,13 @@ import {
 import {
   RequestAccessGroup,
   RequestAccessGroupTarget,
+  Target,
 } from "../../utils/backend-client/types";
 import {
   durationString,
   durationStringHoursMinutes,
 } from "../../utils/durationString";
+import { TargetDetail } from "src/components/Target";
 
 type MyLocationGenerics = MakeGenerics<{
   Search: {
@@ -325,19 +327,9 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
                   pos="relative"
                 >
                   <ProviderIcon boxSize="24px" shortType="aws-sso" mr={2} />
-                  <FieldsCodeBlock fields={target.fields} />
-                  {false && (
-                    <Spinner
-                      thickness="2px"
-                      speed="0.65s"
-                      emptyColor="neutrals.300"
-                      color="neutrals.800"
-                      size="sm"
-                      top={4}
-                      right={4}
-                      pos="absolute"
-                    />
-                  )}
+                  {/* <FieldsCodeBlock fields={target.fields} /> */}
+
+                  <TargetDetail target={target as Target} isChecked={false} />
                   <Button
                     variant="brandSecondary"
                     size="xs"
@@ -362,7 +354,7 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
           <ModalBody>
             <Box>
               <ProviderIcon
-                shortType={selectedGrant?.targetKind.icon as ShortTypes}
+                shortType={selectedGrant?.kind.icon as ShortTypes}
               />
               <FieldsCodeBlock fields={selectedGrant?.fields || []} />
             </Box>
