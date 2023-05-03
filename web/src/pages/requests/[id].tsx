@@ -542,6 +542,7 @@ export const ApproveRejectDuration = ({
   );
 
   const [isEditing, setIsEditing] = useBoolean();
+  const toast = useToast();
 
   return (
     <Flex
@@ -673,7 +674,25 @@ export const ApproveRejectDuration = ({
               // @TODO: add in admin approval API methods
               userReviewRequest(group.requestId, group.id, {
                 decision: "APPROVED",
-              });
+              })
+                .then((e) => {
+                  toast({
+                    title: "Revoke Initiated",
+                    status: "success",
+                    variant: "subtle",
+                    duration: 2200,
+                    isClosable: true,
+                  });
+                })
+                .catch((e) => {
+                  toast({
+                    title: "Error Revoking",
+                    status: "error",
+                    variant: "subtle",
+                    duration: 2200,
+                    isClosable: true,
+                  });
+                });
             }}
           >
             Approve
@@ -685,7 +704,25 @@ export const ApproveRejectDuration = ({
               // @TODO: add in admin approval API methods
               userReviewRequest(group.requestId, group.id, {
                 decision: "DECLINED",
-              });
+              })
+                .then((e) => {
+                  toast({
+                    title: "Revoke Initiated",
+                    status: "success",
+                    variant: "subtle",
+                    duration: 2200,
+                    isClosable: true,
+                  });
+                })
+                .catch((e) => {
+                  toast({
+                    title: "Error Revoking",
+                    status: "error",
+                    variant: "subtle",
+                    duration: 2200,
+                    isClosable: true,
+                  });
+                });
             }}
           >
             Reject
