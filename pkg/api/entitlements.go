@@ -78,7 +78,9 @@ func (a *API) UserListEntitlementTargets(w http.ResponseWriter, r *http.Request,
 		results = q.Result
 	}
 
-	res := types.ListTargetsResponse{}
+	res := types.ListTargetsResponse{
+		Targets: []types.Target{},
+	}
 	if qo.NextPage != "" {
 		res.Next = &qo.NextPage
 	}

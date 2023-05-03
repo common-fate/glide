@@ -459,22 +459,6 @@ export const AuditLog: React.FC<{ request?: Request }> = ({ request }) => {
           Audit Log
         </Box>
         <Skeleton h={30} w="100%" />
-        <Flex>
-          {/* TODO: network me */}
-          <Avatar size="sm" name="Jordi" mr={2} />
-          <Box pos="relative">
-            <Textarea w="100%" minH="160px" placeholder="Add a note..." />
-            <Button
-              variant="brandSecondary"
-              size="xs"
-              pos="absolute"
-              bottom={2}
-              right={2}
-            >
-              Submit
-            </Button>
-          </Box>
-        </Flex>
       </VStack>
     );
   }

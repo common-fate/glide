@@ -2,12 +2,15 @@ import { ArrowBackIcon, CheckCircleIcon, SettingsIcon } from "@chakra-ui/icons";
 import {
   Box,
   Button,
+  ButtonProps,
   Center,
+  CenterProps,
+  chakra,
   Container,
+  Divider,
   Flex,
   HStack,
   Input,
-  Spinner,
   Stack,
   TabPanel,
   TabPanels,
@@ -19,14 +22,11 @@ import {
   useEventListener,
 } from "@chakra-ui/react";
 import { useEffect, useMemo, useState } from "react";
-import {
-  FixedSizeList as List,
-  FixedSizeListProps,
-  ListChildComponentProps,
-} from "react-window";
 import { useNavigate } from "react-location";
+import { FixedSizeList as List, ListChildComponentProps } from "react-window";
 import Counter from "../components/Counter";
-import FieldsCodeBlock from "../components/FieldsCodeBlock";
+// @ts-ignore
+import commandScore from "command-score";
 import { ProviderIcon, ShortTypes } from "../components/icons/providerIcon";
 import { UserLayout } from "../components/Layout";
 import {
@@ -38,10 +38,13 @@ import {
 import {
   Preflight,
   Target,
+  TargetField,
   UserListEntitlementTargetsParams,
 } from "../utils/backend-client/types";
-
+import debounce from "lodash.debounce";
 import { Command as CommandNew } from "../utils/cmdk";
+import { TargetDetail } from "../components/Target";
+const StyledList = chakra(CommandNew.List);
 // CONSTANTS
 const ACTION_KEY_DEFAULT = ["Ctrl", "Control"];
 const ACTION_KEY_APPLE = ["⌘", "Command"];
@@ -69,7 +72,8 @@ const Search = () => {
     [key: string]: Target;
   }>({});
   const [inputValue, setInputValue] = useState<string>("");
-  const [checked, setChecked] = useState<string[]>([]);
+  const [filterValue, setFilterValue] = useState<string>("");
+  const [checked, setChecked] = useState<Set<string>>(new Set());
   const [actionKey, setActionKey] = useState<string[]>(ACTION_KEY_APPLE);
   const [tabIndex, setTabIndex] = useState(0);
   const [preflightRes, setPreflightRes] = useState<Preflight>();
@@ -77,6 +81,7 @@ const Search = () => {
   const [allTargets, setAllTargets] = useState<Target[]>([]);
   const [nextToken, setNextToken] = useState<string | undefined>("initial");
   const [submitLoading, submitLoadingToggle] = useBoolean();
+  const [showOnlyChecked, showOnlyCheckedToggle] = useBoolean();
   // EFFECTS
 
   useEffect(() => {
@@ -92,7 +97,7 @@ const Search = () => {
 
     if (event?.key?.toLowerCase() === "enter" && event[hotkey]) {
       event.preventDefault();
-      checked.length > 0 && handleSubmit();
+      checked.size > 0 && handleSubmit();
     }
   });
 
@@ -102,7 +107,6 @@ const Search = () => {
         nextToken: nextToken === "initial" ? undefined : nextToken,
       };
       const result = await userListEntitlementTargets(params);
-      setAllTargets((prevData) => [...prevData, ...result.targets]);
       setTargetKeyMap((tkm) => {
         result.targets.forEach((t) => {
           // the command palette library casts the value to lowercase, so we need to do the same here
@@ -114,66 +118,30 @@ const Search = () => {
     };
     if (nextToken !== undefined) {
       fetchData();
+    } else {
+      setAllTargets(Object.values(targetKeyMap));
     }
   }, [nextToken]);
 
-  // filteredItems with slice 100
+  useEffect(() => {
+    debounce((inputValue) => {
+      setFilterValue(inputValue);
+    }, 300)(inputValue);
+  }, [inputValue]);
+
+  // this doesn't update if you deselect a target when in the "selected" filter.
+  // this can be considered a desired effect because if you accidentally deselect something you can easily select it again.
+  // if you shift back to the "all" view then it will reset this
   const filteredItems = useMemo(() => {
     if (allTargets.length === 0 || !allTargets) return [];
-    if (inputValue === "") return allTargets;
+    if (showOnlyChecked)
+      return allTargets.filter((t) => checked.has(t.id.toLowerCase()));
+    if (filterValue === "") return allTargets;
     return allTargets.filter((target) => {
-      const key = target.id.toLowerCase();
-      return key.includes(inputValue.toLowerCase());
+      const key = target.id.toLowerCase() + targetFieldsToString(target.fields);
+      return commandScore(key, filterValue.toLowerCase()) > 0;
     });
-  }, [inputValue, allTargets]);
-
-  const targetComponent: React.FC<ListChildComponentProps> = ({
-    index,
-    style,
-  }) => {
-    const target = filteredItems[index];
-
-    if (!target) return <></>;
-
-    return (
-      <Flex
-        h={TARGET_HEIGHT}
-        style={style}
-        alignContent="flex-start"
-        p={2}
-        rounded="md"
-        _selected={{
-          "bg": "neutrals.100",
-          "#description": {
-            display: "block",
-          },
-        }}
-        key={target.id}
-        // this value is used by the command palette
-        value={target.id}
-        as={CommandNew.Item}
-      >
-        <Flex p={6} position="relative">
-          <CheckCircleIcon
-            visibility={
-              checked.includes(target.id.toLowerCase()) ? "visible" : "hidden"
-            }
-            position="absolute"
-            top={0}
-            left={0}
-            boxSize={"12px"}
-            color={"brandBlue.300"}
-          />
-          <ProviderIcon
-            boxSize={"24px"}
-            shortType={target.kind.icon as ShortTypes}
-          />
-        </Flex>
-
-        <FieldsCodeBlock fields={target.fields} showTooltips />
-      </Flex>
-    );
-  };
+  }, [filterValue, allTargets, showOnlyChecked]);
 
   // HANDLERS
   const handleSubmit = () => {
@@ -214,11 +182,13 @@ const Search = () => {
       userPostRequests({
         preflightId: preflightRes?.id,
         reason: accessReason,
+        //@ts-ignore
         groupOptions: preflightRes.accessGroups.map((g) => {
           return {
             id: g.id,
             timing: {
               durationSeconds: g.timeConstraints.maxDurationSeconds,
+              startTime: new Date(),
             },
           };
         }),
@@ -229,7 +199,7 @@ const Search = () => {
           // redirect to request...
           navigate({ to: `/requests/${res.id}` });
           // clear state
-          setChecked([]);
+          setChecked(new Set());
           setInputValue("");
         })
         .catch((err) => {
@@ -252,11 +222,22 @@ const Search = () => {
               <Box minH="200px">
                 <CommandNew
                   shouldFilter={false}
-                  // open={modal.isOpen}
-                  // onOpenChange={modal.onToggle}
                   label="Global Command Menu"
                   checked={checked}
-                  setChecked={setChecked}
+                  check={(key) =>
+                    setChecked((old) => {
+                      const newSet = new Set(old);
+                      newSet.add(key);
+                      return newSet;
+                    })
+                  }
+                  uncheck={(key) =>
+                    setChecked((old) => {
+                      const newSet = new Set(old);
+                      newSet.delete(key);
+                      return newSet;
+                    })
+                  }
                 >
                   <Input
                     size="lg"
@@ -267,117 +248,76 @@ const Search = () => {
                     autoFocus={true}
                     as={CommandNew.Input}
                   />
-                  <Flex mt={2} direction="row" overflowX="scroll">
-                    <Center
-                      // boxSize="90px"
-                      rounded="md"
-                      // w="90px !important"
-                      borderColor="neutrals.300"
-                      bg="white"
-                      borderWidth="1px"
-                      flexDir="column"
-                      textStyle="Body/Small"
+                  <HStack mt={2} overflowX="auto">
+                    <FilterBlock
+                      label="All Resources"
+                      total={allTargets.length}
                       onClick={() => {
                         setInputValue("");
+                        showOnlyCheckedToggle.off();
                       }}
-                      px={2}
-                      mr={2}
-                      as="button"
-                    >
-                      <Counter size="md" count={checked.length} />
-                      <Text
-                        textStyle="Body/Small"
-                        noOfLines={1}
-                        textOverflow="clip"
-                        w="90px"
-                        textAlign="center"
-                      >
-                        All resources
-                      </Text>
-                      <Flex color="neutrals.500">
-                        {allTargets.length}&nbsp;total
-                      </Flex>
-                    </Center>
+                    />
+                    <FilterBlock
+                      label="Selected"
+                      selected={checked.size}
+                      onClick={() => {
+                        setInputValue("");
+                        showOnlyCheckedToggle.on();
+                        document.getElementById(":rd:")?.focus();
+                      }}
+                    />
                     {entitlements.data?.entitlements.map((kind) => {
-                      const key =
+                      const key = (
                         kind.publisher +
                         "#" +
                         kind.name +
                         "#" +
                         kind.kind +
-                        "#";
+                        "#"
+                      ).toLowerCase();
                       return (
-                        <Center
-                          boxSize="90px"
-                          rounded="md"
-                          borderColor="neutrals.300"
-                          bg="white"
-                          borderWidth="1px"
-                          textStyle="Body/Small"
-                          flexDir="column"
+                        <FilterBlock
+                          key={key}
+                          label={kind.kind}
+                          icon={kind.icon as ShortTypes}
                           onClick={() => {
                             setInputValue(key);
+                            showOnlyCheckedToggle.off();
                             // then set the focus back to the input
                             // so that the user can continue typing
                             document.getElementById(":rd:")?.focus();
                           }}
-                          px={8}
-                          mr={2}
-                          as="button"
-                        >
-                          <ProviderIcon shortType={kind.icon as ShortTypes} />
-                          {kind.kind}
-                        </Center>
+                          selected={
+                            [...checked].filter((id) => id.startsWith(key))
+                              .length
+                          }
+                        />
                       );
                     })}
-                  </Flex>
-                  <CommandNew.List>
-                    <Stack
-                      // as={Command.List}
-                      mt={2}
-                      spacing={4}
-                      border="1px solid"
-                      rounded="md"
-                      borderColor="neutrals.300"
-                      p={1}
-                      pt={2}
-                      overflowY="scroll"
+                  </HStack>
+                  <StyledList
+                    mt={2}
+                    border="1px solid"
+                    rounded="md"
+                    borderColor="neutrals.300"
+                    p={1}
+                    pt={2}
+                  >
+                    <List
+                      style={{}}
+                      height={TARGETS * TARGET_HEIGHT}
+                      itemCount={filteredItems.length}
+                      itemSize={TARGET_HEIGHT}
+                      width="100%"
                     >
-                      <Center as={CommandNew.Empty} minH="200px">
-                        No results found.
-                      </Center>
-                      <CommandNew.Group
-                      // heading="Permissions"
-                      >
-                        {/* {allTargets.length === 0 ? (
-                          <Center as={CommandNew.Loading} minH="200px">
-                            <Spinner />
-                          </Center>
-                        ) : (
-                          allTargets.slice(undefined, 5).map(targetComponent)
-                        )} */}
-                        {allTargets.length === 0 && (
-                          <Center as={CommandNew.Loading} minH="200px">
-                            <Spinner />
-                          </Center>
-                        )}
-                        <List
-                          height={TARGETS * TARGET_HEIGHT}
-                          itemCount={filteredItems.length}
-                          itemSize={TARGET_HEIGHT}
-                          width="100%"
-                        >
-                          {targetComponent}
-                        </List>
-                      </CommandNew.Group>
-                      <Text>Filter len: {filteredItems.length}</Text>
-                    </Stack>
-                  </CommandNew.List>
+                      {TargetListItem(filteredItems, checked)}
+                    </List>
+                  </StyledList>
                 </CommandNew>
 
                 <Flex w="100%" mt={4}>
                   <Button
-                    disabled={checked.length == 0}
+                    disabled={checked.size == 0}
                     ml="auto"
                     onClick={handleSubmit}
                     isLoading={submitLoading}
@@ -428,7 +368,7 @@ const Search = () => {
                                 shortType={target.kind.icon as ShortTypes}
                                 mr={2}
                               />
-                              <FieldsCodeBlock fields={target.fields} />
+                              {/* <FieldsCodeBlock fields={target.fields} /> */}
                             </Flex>
                           );
                         })}
@@ -483,3 +423,99 @@ const Search = () => {
 };
 
 export default Search;
+interface FilterBlockProps extends CenterProps {
+  icon?: ShortTypes;
+  total?: number;
+  selected?: number;
+  label: string;
+}
+const FilterBlock: React.FC<FilterBlockProps> = ({
+  label,
+  total,
+  selected,
+  icon,
+  ...rest
+}) => {
+  return (
+    <Center
+      rounded="md"
+      h="84px"
+      borderColor="neutrals.300"
+      bg="white"
+      borderWidth="1px"
+      px={2}
+      flexDirection="column"
+      as={"button"}
+      {...rest}
+    >
+      {icon !== undefined ? (
+        <ProviderIcon shortType={icon} />
+      ) : (
+        <Box boxSize="22px" />
+      )}
+      <Text textStyle="Body/Small" noOfLines={1} textAlign="center">
+        {label}
+      </Text>
+      {total === undefined ? (
+        selected === undefined ? (
+          <Box boxSize="22px" />
+        ) : (
+          <Text
+            textStyle="Body/Small"
+            noOfLines={1}
+            textAlign="center"
+            color="neutrals.500"
+          >
+            {`${selected} selected`}
+          </Text>
+        )
+      ) : (
+        <Text
+          textStyle="Body/Small"
+          noOfLines={1}
+          textAlign="center"
+          color="neutrals.500"
+        >
+          {`${total} total`}
+        </Text>
+      )}
+    </Center>
+  );
+};
+function targetFieldsToString(targetFields: TargetField[]): string {
+  const strings = targetFields.map((targetField) => {
+    // Concatenate the values with a separator
+    const values = [targetField.valueLabel, targetField.valueDescription].join(
+      "; "
+    ); // Use semicolon and space as a separator
+    return values;
+  });
+  return strings.join("; "); // Use newline character as a separator
+}
+
+const TargetListItem = (
+  targets: Target[],
+  checked: Set<string>
+): React.FC<ListChildComponentProps> => {
+  return ({ index, style }) => {
+    const target = targets[index];
+    if (!target) return <></>;
+    return (
+      <TargetDetail
+        as={CommandNew.Item}
+        h={TARGET_HEIGHT}
+        target={target}
+        style={style}
+        _selected={{
+          bg: "neutrals.100",
+        }}
+        key={target.id}
+        // this value is used by the command palette
+        // ts-ignored because the typing doesn't propagate perfectly with the 'as' property
+        // @ts-ignore
+        value={target.id}
+        isChecked={checked.has(target.id.toLowerCase())}
+      />
+    );
+  };
+};
