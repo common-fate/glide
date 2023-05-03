@@ -53,9 +53,16 @@ func (s *Service) RevokeRequest(ctx context.Context, in access.RequestWithGroups
 		return nil, errors.New("failed to revoke request, not all targets provisioned")
 	}
 
+	//now that we know the request is valid we can update the request type to revoking
+	in.Request.RequestStatus = types.REVOKING
+
+	err := s.DB.Put(ctx, &in.Request)
+	if err != nil {
+		return nil, err
+	}
 	user := auth.UserFromContext(ctx)
 	//emit request group revoke event
-	err := s.EventPutter.Put(ctx, gevent.RequestRevokeInitiated{
+	err = s.EventPutter.Put(ctx, gevent.RequestRevokeInitiated{
 		Request: in,
 		Revoker: gevent.UserFromIdentityUser(*user),
 	})

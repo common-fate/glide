@@ -90,6 +90,28 @@ func (a *API) UserGetRequest(w http.ResponseWriter, r *http.Request, requestId s
 	apio.JSON(ctx, w, q.Result.ToAPI(), http.StatusOK)
 }
 
+// Get Preflight
+// (GET /api/v1/preflight/{preflightId})
+func (a *API) UserGetPreflight(w http.ResponseWriter, r *http.Request, preflightId string) {
+	ctx := r.Context()
+	user := auth.UserFromContext(ctx)
+	q := storage.GetPreflight{
+		ID:     preflightId,
+		UserId: user.ID,
+	}
+	_, err := a.DB.Query(ctx, &q)
+	if err == ddb.ErrNoItems {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusNotFound))
+		return
+	}
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+
+	apio.JSON(ctx, w, q.Result.ToAPI(), http.StatusOK)
+}
+
 // (POST /api/v1/preflight)
 func (a *API) UserRequestPreflight(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -291,4 +313,22 @@ func (a *API) UserListReviews(w http.ResponseWriter, r *http.Request, params typ
 	}
 
 	apio.JSON(ctx, w, res, http.StatusOK)
+}
+
+func (a *API) GetGroupTargetStatus(w http.ResponseWriter, r *http.Request, requestid string, groupid string, targetid string) {
+	ctx := r.Context()
+
+	q := storage.GetRequestGroupTarget{RequestID: requestid, GroupID: groupid, TargetID: targetid}
+	_, err := a.DB.Query(ctx, &q)
+	if err == ddb.ErrNoItems {
+		//grant not found return 404
+		apio.Error(ctx, w, apio.NewRequestError(errors.New("request not found or you don't have access to it"), http.StatusNotFound))
+		return
+	}
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+
+	apio.JSON(ctx, w, q.Result.Grant.Status, http.StatusOK)
 }

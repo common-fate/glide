@@ -11,6 +11,7 @@ import type { RequestRequestedBy } from './requestRequestedBy';
 import type { RequestAccessGroupTarget } from './requestAccessGroupTarget';
 import type { RequestAccessGroupApprovalMethod } from './requestAccessGroupApprovalMethod';
 import type { RequestAccessGroupAccessRule } from './requestAccessGroupAccessRule';
+import type { RequestStatus } from './requestStatus';
 
 export interface RequestAccessGroup {
   id: string;
@@ -24,4 +25,5 @@ export interface RequestAccessGroup {
   targets: RequestAccessGroupTarget[];
   approvalMethod?: RequestAccessGroupApprovalMethod;
   accessRule: RequestAccessGroupAccessRule;
+  requestStatus: RequestStatus;
 }

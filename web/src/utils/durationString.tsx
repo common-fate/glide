@@ -27,3 +27,12 @@ export const durationStringHoursMinutes = (d?: Duration): string => {
     });
   } else return "";
 };
+
+export const getEndTimeWithDuration = (
+  start: string,
+  durationSeconds: number
+): Date => {
+  const d = new Date(start);
+  d.setSeconds(durationSeconds);
+  return d;
+};

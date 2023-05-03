@@ -1,5 +1,5 @@
 // @ts-ignore
-
+// @ts-nocheck
 import * as RadixDialog from "@radix-ui/react-dialog";
 import * as React from "react";
 
@@ -83,8 +83,9 @@ type CommandProps = Children &
      */
     value?: string;
     /** checked */
-    checked?: string[];
-    setChecked?: React.Dispatch<React.SetStateAction<string[]>>;
+    checked: Set<string>;
+    check: (id: string) => void;
+    uncheck: (id: string) => void;
     /**
      * Event handler called when the selected item of the menu changes.
      */
@@ -124,8 +125,9 @@ type Store = {
   ) => void;
   emit: () => void;
   // we want to pass checked/setChecked to the store as well
-  checked: string[];
-  setChecked: React.Dispatch<React.SetStateAction<string[]>>;
+  checked: Set<string>;
+  check: (id: string) => void;
+  uncheck: (id: string) => void;
 };
 
 const LIST_SELECTOR = `[cmdk-list-sizer=""]`;
@@ -235,9 +237,10 @@ const Command = React.forwardRef<HTMLDivElement, CommandProps>(
           listeners.current.forEach((l) => l());
         },
         checked: props.checked,
-        setChecked: props.setChecked,
+        check: props.check,
+        uncheck: props.uncheck,
       };
-    }, [props.checked, props.setChecked]);
+    }, [props.checked]);
 
     const context: Context = React.useMemo(
       () => ({
@@ -473,38 +476,6 @@ const Command = React.forwardRef<HTMLDivElement, CommandProps>(
       if (item) store.setState("value", item.getAttribute(VALUE_ATTR));
     }
 
-    // checkbox handle (add or remove selected from checked array)
-    // function updateSelectedToCheckbox() {
-    //   if (props.checked && props.setChecked) {
-    //     const selected = getSelectedItem();
-    //     const value = selected?.getAttribute(VALUE_ATTR);
-    //     const checked = props.checked;
-
-    //     // add checked
-    //     // if (store.checked.includes(value)) {
-    //     //   console.log("called updateSelectedToCheckbox: found and removing");
-    //     //   let curr = store.checked;
-    //     //   curr = curr.filter((item) => item !== value);
-    //     //   store.setChecked(curr);
-    //     // } else {
-    //     //   console.log("called updateSelectedToCheckbox: not found, appending");
-    //     //   store.setChecked((curr) => [...curr, value]);
-    //     // }
-
-    //     // props.setChecked([]);
-
-    //     // if (checked.includes(value)) {
-    //     //   //   props.setChecked(["1, 2, 3"]);
-    //     //   //   props.setChecked(checked.filter((item) => item !== value));
-    //     //   props.setChecked((prev) => prev.filter((item) => item !== value));
-    //     // } else {
-    //     //   //   props.setChecked(["1, 2, 3", "4"]);
-    //     //   //   props.setChecked([...checked, value]);
-    //     //   props.setChecked((prev) => [...prev, value]);
-    //     // }
-    //   }
-    // }
-
     function updateSelectedByChange(change: 1 | -1) {
       const selected = getSelectedItem();
       const items = getValidItems();
@@ -630,9 +601,6 @@ const Command = React.forwardRef<HTMLDivElement, CommandProps>(
                 e.preventDefault();
                 const item = getSelectedItem();
 
-                // TODO: add to checked array
-                // updateSelectedToCheckbox();
-
                 if (item) {
                   const event = new Event(SELECT_EVENT);
                   item.dispatchEvent(event);
@@ -641,26 +609,21 @@ const Command = React.forwardRef<HTMLDivElement, CommandProps>(
                   // console.log(store);
 
                   // add checkbox state handling, add/remove
-                  if (props.checked && props.setChecked) {
-                    const selected = getSelectedItem();
-                    const value = selected?.getAttribute(VALUE_ATTR);
-                    const checked = props.checked;
+                  const selected = getSelectedItem();
+                  const value = selected?.getAttribute(VALUE_ATTR);
 
-                    if (typeof value == "string") {
-                      // add checked
-                      if (checked.includes(value)) {
-                        console.log(
-                          "called updateSelectedToCheckbox: found and removing"
-                        );
-                        let curr = checked;
-                        curr = curr.filter((item) => item !== value);
-                        props.setChecked(curr);
-                      } else {
-                        console.log(
-                          "called updateSelectedToCheckbox: not found, appending"
-                        );
-                        props.setChecked((curr) => [...curr, value]);
-                      }
+                  if (typeof value == "string") {
+                    // add checked
+                    if (props.checked.has(value)) {
+                      console.log(
+                        "called updateSelectedToCheckbox: found and removing"
+                      );
+                      props.uncheck(value);
+                    } else {
+                      console.log(
+                        "called updateSelectedToCheckbox: not found, appending"
+                      );
+                      props.check(value);
                     }
                   }
                 }
@@ -726,7 +689,8 @@ const Item = React.forwardRef<HTMLDivElement, ItemProps>(
         : state.filtered.items.get(id) > 0
     );
 
-    const checked = store.checked.includes(value.current);
+    const checked =
+      value.current !== undefined ? store.checked.has(value.current) : false;
 
     // console.log({ checked, store: store.checked });
 
@@ -750,16 +714,11 @@ const Item = React.forwardRef<HTMLDivElement, ItemProps>(
       select();
       propsRef.current.onSelect?.(value.current);
 
-      // add checkbox state handling, add/remove
-      if (store.checked && store.setChecked) {
-        // add checked
-        if (store.checked.includes(value.current)) {
-          let curr = store.checked;
-          curr = curr.filter((item) => item !== value.current);
-          store.setChecked(curr);
-        } else {
-          store.setChecked((curr) => [...curr, value.current]);
-        }
+      // add checked
+      if (store.checked.has(value.current)) {
+        store.uncheck(value.current);
+      } else {
+        store.check(value.current);
       }
     }
 

@@ -96,11 +96,10 @@ func (s *Service) Revoke(ctx context.Context, requestID string, groupID string, 
 			return ErrGrantInactive
 		}
 
-		err := s.Runtime.Revoke(ctx, target.ID)
+		err = s.Runtime.Revoke(ctx, target.ID)
 		if err != nil {
 			return err
 		}
-
 		//emit request group revoke event
 		err = s.Eventbus.Put(ctx, gevent.GrantRevoked{
 			Grant: target,

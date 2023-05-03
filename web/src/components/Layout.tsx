@@ -30,9 +30,9 @@ export const UserLayout: React.FC<{ children?: React.ReactNode }> = ({
   children,
 }) => {
   return (
-    <main>
+    <Box as="main" h="100%" minH="100vh">
       <Navbar />
       {children}
-    </main>
+    </Box>
   );
 };

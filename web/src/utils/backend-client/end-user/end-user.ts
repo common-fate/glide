@@ -139,3 +139,17 @@ export const userRevokeRequest = (
     }
   
 
+/**
+ * Admins and approvers can cancel access before provisioned. Effective immediately 
+ * @summary Revoke an active request
+ */
+export const userCancelRequest = (
+    requestid: string,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<void>(
+      {url: `/api/v1/requests/${requestid}/cancel`, method: 'post'
+    },
+      options);
+    }
+  
+
