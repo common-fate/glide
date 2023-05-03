@@ -9,7 +9,7 @@ import (
 // FilterResources will loop over all existing resources
 // with the filter operation provided to filter out resouces.
 func (s *Service) FilterResources(ctx context.Context, resources []types.TargetGroupResource, filter types.ResourceFilter) ([]types.TargetGroupResource, error) {
-	var filteredResponse []types.TargetGroupResource
+	filteredResponse := make([]types.TargetGroupResource, 0)
 	for _, res := range resources {
 		matched, err := res.Resource.Match(filter)
 		if err != nil {

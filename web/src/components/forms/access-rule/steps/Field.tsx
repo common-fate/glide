@@ -1,4 +1,4 @@
-import { FormControl, FormLabel, Text, VStack } from "@chakra-ui/react";
+import { FormControl, FormLabel, HStack, Text, VStack } from "@chakra-ui/react";
 import React from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import { durationString } from "../../../../utils/durationString";
@@ -34,7 +34,10 @@ export const FieldStep: React.FC = () => {
           !!methods.formState.errors.timeConstraints?.maxDurationSeconds
         }
       >
-        <TargetGroupField resourceType="" />
+        <HStack>
+          <TargetGroupField resourceType="" />
+          {/* <TargetGroupField resourceType="" /> */}
+        </HStack>
       </FormControl>
     </FormStep>
   );

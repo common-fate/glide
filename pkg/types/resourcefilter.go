@@ -23,7 +23,7 @@ func (o *Operation) Match(r *Resource) (bool, error) {
 	case BEGINSWITH:
 		{
 			if v, ok := r.Attributes[o.Attribute]; ok {
-				return strings.HasPrefix(v, *o.Value), nil
+				return strings.HasPrefix(strings.ToLower(v), strings.ToLower(*o.Value)), nil
 			}
 
 			return false, fmt.Errorf("attribute %s not found", o.Attribute)

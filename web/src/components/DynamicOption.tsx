@@ -17,20 +17,20 @@ export const DynamicOption: React.FC<{
   value: string;
 }> = ({ label, value }) => {
   return (
-    <WrapItem>
+    <WrapItem p={"4px"}>
       <Popover trigger="hover">
         <PopoverTrigger>
           <Flex
             textStyle={"Body/Small"}
             rounded="full"
-            bg="neutrals.300"
+            bg="neutrals.100"
             py={1}
             px={4}
           >
             {label}{" "}
           </Flex>
         </PopoverTrigger>
-        <PopoverContent maxW="180px">
+        <PopoverContent>
           <PopoverArrow />
           <PopoverBody>
             <Text fontWeight="semibold" textStyle={"Body/Medium"}>
