@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/target"
+	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 	"github.com/pkg/errors"
 
 	"github.com/common-fate/common-fate/pkg/types"
@@ -105,7 +106,7 @@ func (s *Service) CreateGroup(ctx context.Context, req types.CreateTargetGroupRe
 	now := s.Clock.Now()
 	group := target.Group{
 		ID:        req.Id,
-		Schema:    schema,
+		Schema:    InternalSchemaFromSDKSchema(schema, response.JSON200.Schema.Resources.Types),
 		From:      target.FromFieldFromAPI(req.From),
 		Icon:      icon,
 		CreatedAt: now,
@@ -120,4 +121,27 @@ func (s *Service) CreateGroup(ctx context.Context, req types.CreateTargetGroupRe
 		return nil, err
 	}
 	return &group, nil
+}
+
+func InternalSchemaFromSDKSchema(schema providerregistrysdk.Target, resources map[string]interface{}) target.GroupSchema {
+	groupSchema := target.GroupSchema{
+		Target: target.TargetSchema{
+			Type:       schema.Type,
+			Properties: map[string]target.TargetField{},
+		},
+	}
+	for k, v := range schema.Properties {
+		tf := target.TargetField{
+			Description: v.Description,
+			Resource:    v.Resource,
+			Title:       v.Title,
+			Type:        v.Type,
+		}
+		if v.Resource != nil {
+			rs := resources[*v.Resource]
+			tf.ResourceSchema = &rs
+		}
+		groupSchema.Target.Properties[k] = tf
+	}
+	return groupSchema
 }

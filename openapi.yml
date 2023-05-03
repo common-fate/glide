@@ -1454,6 +1454,8 @@ components:
           type: string
         description:
           type: string
+        resourceSchema:
+          type: object
       required:
         - id
         - title

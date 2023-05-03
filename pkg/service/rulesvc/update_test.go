@@ -11,7 +11,6 @@ import (
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/ddb/ddbmock"
-	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
@@ -71,7 +70,7 @@ func TestUpdateAccessRule(t *testing.T) {
 						Kind:      "Account",
 						Version:   "v1.1.1",
 					},
-					Schema:    providerregistrysdk.Target{},
+					Schema:    target.GroupSchema{},
 					Icon:      "",
 					CreatedAt: now,
 					UpdatedAt: now,
@@ -125,7 +124,7 @@ func TestUpdateAccessRule(t *testing.T) {
 						Kind:      "Account",
 						Version:   "v1.1.1",
 					},
-					Schema:    providerregistrysdk.Target{},
+					Schema:    target.GroupSchema{},
 					Icon:      "",
 					CreatedAt: now,
 					UpdatedAt: now,
@@ -155,7 +154,7 @@ func TestUpdateAccessRule(t *testing.T) {
 					Kind:      "Account",
 					Version:   "v1.1.1",
 				},
-				Schema:    providerregistrysdk.Target{},
+				Schema:    target.GroupSchema{},
 				Icon:      "",
 				CreatedAt: now,
 				UpdatedAt: now,

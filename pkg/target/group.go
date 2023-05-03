@@ -10,6 +10,23 @@ import (
 	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 )
 
+type TargetField struct {
+	Description *string `json:"description,omitempty" dynamodbav:"description"`
+	// If specified, the type of the resource the field should be populated from.
+	Resource       *string                             `json:"resource,omitempty" dynamodbav:"resource"`
+	ResourceSchema *interface{}                        `json:"resourceSchema,omitempty" dynamodbav:"resourceSchema"`
+	Title          *string                             `json:"title,omitempty" dynamodbav:"title"`
+	Type           providerregistrysdk.TargetFieldType `json:"type" dynamodbav:"type"`
+}
+type TargetSchema struct {
+	// the actual properties of the target.
+	Properties map[string]TargetField `json:"properties" dynamodbav:"properties"`
+	// included for compatibility with JSON Schema - all targets are currently objects.
+	Type providerregistrysdk.TargetType `json:"type" dynamodbav:"type"`
+}
+type GroupSchema struct {
+	Target TargetSchema `json:"target" dynamodbav:"target"`
+}
 type Group struct {
 	//user defined e.g. 'okta'
 	ID string `json:"id" dynamodbav:"id"`
@@ -19,7 +36,7 @@ type Group struct {
 	From From `json:"from" dynamodbav:"from"`
 
 	// Schema is denomalised and saved here for efficiency
-	Schema providerregistrysdk.Target `json:"schema" dynamodbav:"schema"`
+	Schema GroupSchema `json:"schema" dynamodbav:"schema"`
 
 	// reference to the SVG icon for the target group
 	Icon string `json:"icon" dynamodbav:"icon"`
@@ -76,12 +93,16 @@ func (r *Group) ToAPI() types.TargetGroup {
 		AdditionalProperties: make(map[string]types.TargetGroupSchemaArgument),
 	}
 
-	for key, field := range r.Schema.Properties {
+	for key, field := range r.Schema.Target.Properties {
 		ta := types.TargetGroupSchemaArgument{
 			Id:          key,
 			Description: field.Description,
 		}
-
+		if field.ResourceSchema != nil {
+			// TODO this may lead to runtime errors if the response from the pdk provider was bad
+			m := (*field.ResourceSchema).(map[string]interface{})
+			ta.ResourceSchema = &m
+		}
 		if field.Title != nil {
 			ta.Title = *field.Title
 		}

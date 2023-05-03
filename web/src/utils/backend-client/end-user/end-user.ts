@@ -21,25 +21,17 @@ import type { ErrorType } from '../../custom-instance'
 
 
   
-  // eslint-disable-next-line
-  type SecondParameter<T extends (...args: any) => any> = T extends (
-  config: any,
-  args: infer P,
-) => any
-  ? P
-  : never;
-
-/**
+  /**
  * Returns a Common Fate user.
  * @summary Get a user
  */
 export const userGetUser = (
     userId: string,
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<User>(
       {url: `/api/v1/users/${userId}`, method: 'get'
     },
-      options);
+      );
     }
   
 
@@ -50,15 +42,15 @@ export type UserGetUserQueryResult = NonNullable<Awaited<ReturnType<typeof userG
 export type UserGetUserQueryError = ErrorType<void>
 
 export const useUserGetUser = <TError = ErrorType<void>>(
- userId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userGetUser>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+ userId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userGetUser>>, TError> & { swrKey?: Key, enabled?: boolean },  }
 
   ) => {
 
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
+  const {swr: swrOptions} = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false && !!(userId)
     const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserGetUserKey(userId) : null);
-  const swrFn = () => userGetUser(userId, requestOptions);
+  const swrFn = () => userGetUser(userId, );
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
@@ -74,11 +66,11 @@ export const useUserGetUser = <TError = ErrorType<void>>(
  */
 export const userGetMe = (
     
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<AuthUserResponseResponse>(
       {url: `/api/v1/users/me`, method: 'get'
     },
-      options);
+      );
     }
   
 
@@ -89,15 +81,15 @@ export type UserGetMeQueryResult = NonNullable<Awaited<ReturnType<typeof userGet
 export type UserGetMeQueryError = ErrorType<void>
 
 export const useUserGetMe = <TError = ErrorType<void>>(
-  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userGetMe>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userGetMe>>, TError> & { swrKey?: Key, enabled?: boolean },  }
 
   ) => {
 
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
+  const {swr: swrOptions} = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false
     const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserGetMeKey() : null);
-  const swrFn = () => userGetMe(requestOptions);
+  const swrFn = () => userGetMe();
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
@@ -115,13 +107,13 @@ export const userReviewRequest = (
     requestId: string,
     groupId: string,
     reviewRequestBody: ReviewRequestBody,
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<ReviewResponseResponse>(
       {url: `/api/v1/requests/${requestId}/review/${groupId}`, method: 'post',
       headers: {'Content-Type': 'application/json', },
       data: reviewRequestBody
     },
-      options);
+      );
     }
   
 
@@ -131,11 +123,11 @@ export const userReviewRequest = (
  */
 export const userRevokeRequest = (
     requestid: string,
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<void>(
       {url: `/api/v1/requests/${requestid}/revoke`, method: 'post'
     },
-      options);
+      );
     }
   
 
@@ -145,11 +137,11 @@ export const userRevokeRequest = (
  */
 export const userCancelRequest = (
     requestid: string,
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<void>(
       {url: `/api/v1/requests/${requestid}/cancel`, method: 'post'
     },
-      options);
+      );
     }
   
 

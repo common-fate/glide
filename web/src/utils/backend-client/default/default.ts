@@ -202,11 +202,11 @@ export const userRequestPreflight = (
  */
 export const userGetPreflight = (
     preflightId: string,
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<Preflight>(
       {url: `/api/v1/preflight/${preflightId}`, method: 'get'
     },
-      options);
+      );
     }
   
 
@@ -217,15 +217,15 @@ export type UserGetPreflightQueryResult = NonNullable<Awaited<ReturnType<typeof 
 export type UserGetPreflightQueryError = ErrorType<ErrorResponseResponse>
 
 export const useUserGetPreflight = <TError = ErrorType<ErrorResponseResponse>>(
- preflightId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userGetPreflight>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+ preflightId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userGetPreflight>>, TError> & { swrKey?: Key, enabled?: boolean },  }
 
   ) => {
 
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
+  const {swr: swrOptions} = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false && !!(preflightId)
     const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserGetPreflightKey(preflightId) : null);
-  const swrFn = () => userGetPreflight(preflightId, requestOptions);
+  const swrFn = () => userGetPreflight(preflightId, );
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
@@ -283,11 +283,11 @@ export const getGroupTargetStatus = (
     requestid: string,
     groupid: string,
     targetid: string,
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<RequestAccessGroupTargetStatus>(
       {url: `/api/v1/requests/${requestid}/groups/${groupid}/target/${targetid}/status`, method: 'get'
     },
-      options);
+      );
     }
   
 
@@ -302,15 +302,15 @@ export type GetGroupTargetStatusQueryError = ErrorType<ErrorResponseResponse>
 export const useGetGroupTargetStatus = <TError = ErrorType<ErrorResponseResponse>>(
  requestid: string,
     groupid: string,
-    targetid: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getGroupTargetStatus>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+    targetid: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getGroupTargetStatus>>, TError> & { swrKey?: Key, enabled?: boolean },  }
 
   ) => {
 
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
+  const {swr: swrOptions} = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false && !!(requestid && groupid && targetid)
     const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetGroupTargetStatusKey(requestid,groupid,targetid) : null);
-  const swrFn = () => getGroupTargetStatus(requestid,groupid,targetid, requestOptions);
+  const swrFn = () => getGroupTargetStatus(requestid,groupid,targetid, );
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 

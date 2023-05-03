@@ -80,6 +80,7 @@ export * from './targetGroupFrom';
 export * from './targetGroupResource';
 export * from './targetGroupSchema';
 export * from './targetGroupSchemaArgument';
+export * from './targetGroupSchemaArgumentResourceSchema';
 export * from './targetKind';
 export * from './targetRoute';
 export * from './user';

@@ -8,6 +8,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	cache "github.com/common-fate/common-fate/pkg/cache"
 	target "github.com/common-fate/common-fate/pkg/target"
 	types "github.com/common-fate/common-fate/pkg/types"
 	gomock "github.com/golang/mock/gomock"
@@ -81,7 +82,7 @@ func (mr *MockTargetServiceMockRecorder) DeleteGroup(arg0, arg1 interface{}) *go
 }
 
 // FilterResources mocks base method.
-func (m *MockTargetService) FilterResources(arg0 context.Context, arg1 []types.TargetGroupResource, arg2 []types.Operation) ([]types.TargetGroupResource, error) {
+func (m *MockTargetService) FilterResources(arg0 context.Context, arg1 []cache.TargetGroupResource, arg2 []types.Operation) ([]types.TargetGroupResource, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FilterResources", arg0, arg1, arg2)
 	ret0, _ := ret[0].([]types.TargetGroupResource)

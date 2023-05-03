@@ -8,7 +8,6 @@ import (
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/target"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 )
 
 func (s *Service) RefreshCachedTargets(ctx context.Context) error {
@@ -122,7 +121,7 @@ func createResourceAccessRuleMapping(resources []cache.TargetGroupResource, acce
 			// a target may have multiple fields of teh same type, so be sure to apply matching for each of the fields on the target that match the type
 			// filter policy execution would go here, only append the resource if it matches
 			target := accessRuleMap[ar.ID][resource.TargetGroupID].targetGroup
-			for id, field := range target.Schema.Properties {
+			for id, field := range target.Schema.Target.Properties {
 				if field.Resource != nil && *field.Resource == resource.ResourceType {
 					accessRuleMap[ar.ID][resource.TargetGroupID].fields[id] = append(accessRuleMap[ar.ID][resource.TargetGroupID].fields[id], resource.Resource)
 				}
@@ -150,14 +149,14 @@ func createResourceAccessRuleMapping(resources []cache.TargetGroupResource, acce
 
 // GetSchemaField is a helper which returns a zero field if it's not found
 // in practice this should not return a zero field
-func GetSchemaField(schema providerregistrysdk.Target, fieldID string) providerregistrysdk.TargetField {
-	if schema.Properties == nil {
-		return providerregistrysdk.TargetField{}
+func GetSchemaField(schema target.GroupSchema, fieldID string) target.TargetField {
+	if schema.Target.Properties == nil {
+		return target.TargetField{}
 	}
-	if field, ok := schema.Properties[fieldID]; ok {
+	if field, ok := schema.Target.Properties[fieldID]; ok {
 		return field
 	}
-	return providerregistrysdk.TargetField{}
+	return target.TargetField{}
 }
 
 // WithFallback returns the value if it is not nil, else returns the fallback
