@@ -90,6 +90,28 @@ func (a *API) UserGetRequest(w http.ResponseWriter, r *http.Request, requestId s
 	apio.JSON(ctx, w, q.Result.ToAPI(), http.StatusOK)
 }
 
+// Get Preflight
+// (GET /api/v1/preflight/{preflightId})
+func (a *API) UserGetPreflight(w http.ResponseWriter, r *http.Request, preflightId string) {
+	ctx := r.Context()
+	user := auth.UserFromContext(ctx)
+	q := storage.GetPreflight{
+		ID:     preflightId,
+		UserId: user.ID,
+	}
+	_, err := a.DB.Query(ctx, &q)
+	if err == ddb.ErrNoItems {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusNotFound))
+		return
+	}
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+
+	apio.JSON(ctx, w, q.Result.ToAPI(), http.StatusOK)
+}
+
 // (POST /api/v1/preflight)
 func (a *API) UserRequestPreflight(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()

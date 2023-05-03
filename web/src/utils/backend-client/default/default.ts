@@ -186,6 +186,44 @@ export const userRequestPreflight = (
   
 
 /**
+ * @summary Get Preflight
+ */
+export const userGetPreflight = (
+    preflightId: string,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<Preflight>(
+      {url: `/api/v1/preflight/${preflightId}`, method: 'get'
+    },
+      options);
+    }
+  
+
+export const getUserGetPreflightKey = (preflightId: string,) => [`/api/v1/preflight/${preflightId}`];
+
+    
+export type UserGetPreflightQueryResult = NonNullable<Awaited<ReturnType<typeof userGetPreflight>>>
+export type UserGetPreflightQueryError = ErrorType<ErrorResponseResponse>
+
+export const useUserGetPreflight = <TError = ErrorType<ErrorResponseResponse>>(
+ preflightId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userGetPreflight>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && !!(preflightId)
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserGetPreflightKey(preflightId) : null);
+  const swrFn = () => userGetPreflight(preflightId, requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+/**
  * Lists requests where the user is a reviewer
  * @summary List Reviews
  */

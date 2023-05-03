@@ -209,6 +209,9 @@ func UnmarshalRequestsBottomToTop(items []map[string]types.AttributeValue) ([]ac
 			if err != nil {
 				return nil, nil, err
 			}
+			for _, v := range groups {
+				r.Groups = append(r.Groups, v)
+			}
 			result = append(result, r)
 			groups = make(map[string]access.GroupWithTargets)
 		}
