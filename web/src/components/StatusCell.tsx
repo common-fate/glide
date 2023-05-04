@@ -12,7 +12,6 @@ import {
   RequestAccessGroupTargetStatus,
   RequestStatus,
 } from "../utils/backend-client/types";
-import { useGetGroupTargetStatus } from "..//utils/backend-client/default/default";
 interface Props extends FlexProps {
   replaceValue?: string;
   value?: string;

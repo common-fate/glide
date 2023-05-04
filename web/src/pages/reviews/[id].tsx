@@ -329,7 +329,13 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
                   <ProviderIcon boxSize="24px" shortType="aws-sso" mr={2} />
                   {/* <FieldsCodeBlock fields={target.fields} /> */}
 
-                  <TargetDetail target={target as Target} isChecked={false} />
+                  <TargetDetail
+                    target={{
+                      fields: target.fields,
+                      id: target.id,
+                      kind: target.targetKind,
+                    }}
+                  />
                   <Button
                     variant="brandSecondary"
                     size="xs"
@@ -354,7 +360,7 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
           <ModalBody>
             <Box>
               <ProviderIcon
-                shortType={selectedGrant?.kind.icon as ShortTypes}
+                shortType={selectedGrant?.targetKind.icon as ShortTypes}
               />
               <FieldsCodeBlock fields={selectedGrant?.fields || []} />
             </Box>

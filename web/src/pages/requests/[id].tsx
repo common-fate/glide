@@ -60,8 +60,6 @@ import { ProviderIcon, ShortTypes } from "../../components/icons/providerIcon";
 import { UserLayout } from "../../components/Layout";
 import { GrantStatusCell, StatusCell } from "../../components/StatusCell";
 import {
-  getGroupTargetStatus,
-  useGetGroupTargetStatus,
   useUserGetRequest,
   useUserListRequests,
 } from "../../utils/backend-client/default/default";
@@ -511,7 +509,7 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
           <ModalBody>
             <Box>
               <ProviderIcon
-                shortType={selectedGrant?.kind.icon as ShortTypes}
+                shortType={selectedGrant?.targetKind.icon as ShortTypes}
               />
               {/* <FieldsCodeBlock fields={selectedGrant?.fields || []} /> */}
             </Box>

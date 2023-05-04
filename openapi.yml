@@ -687,6 +687,27 @@ paths:
           name: kind
           description: filter targets by kind
     parameters: []
+  "/api/v1/preflight/{preflightId}":
+    parameters:
+      - schema:
+          type: string
+        name: preflightId
+        in: path
+        required: true
+    get:
+      summary: Get Preflight
+      operationId: user-get-preflight
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Preflight"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
   /api/v1/preflight:
     parameters: []
     post:
