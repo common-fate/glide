@@ -98,6 +98,11 @@ func (r *Group) ToAPI() types.TargetGroup {
 			Id:          key,
 			Description: field.Description,
 		}
+
+		if field.Resource != nil {
+			ta.Resource = field.Resource
+		}
+
 		if field.ResourceSchema != nil {
 			// TODO this may lead to runtime errors if the response from the pdk provider was bad
 			m := (*field.ResourceSchema).(map[string]interface{})

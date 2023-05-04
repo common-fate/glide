@@ -33,12 +33,7 @@ export const FieldStep: React.FC = () => {
         isInvalid={
           !!methods.formState.errors.timeConstraints?.maxDurationSeconds
         }
-      >
-        <HStack>
-          <TargetGroupField resourceType="" />
-          {/* <TargetGroupField resourceType="" /> */}
-        </HStack>
-      </FormControl>
+      ></FormControl>
     </FormStep>
   );
 };

@@ -85,9 +85,9 @@ const CreateAccessRuleForm = () => {
         <form onSubmit={methods.handleSubmit(onSubmit)}>
           <VStack w="100%" spacing={6}>
             <StepsProvider>
-              <FieldStep />
               <GeneralStep />
               <TargetStep />
+              {/* <FieldStep /> */}
               <TimeStep />
               <RequestsStep />
               <ApprovalStep />

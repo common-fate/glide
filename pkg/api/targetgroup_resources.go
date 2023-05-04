@@ -11,13 +11,13 @@ import (
 
 // List Target Group Resources
 // (GET /api/v1/admin/target-groups/{Id}/resources/{resourceType})
-func (a *API) AdminGetTargetGroupResources(w http.ResponseWriter, r *http.Request, Id string, resourceType string) {
+func (a *API) AdminGetTargetGroupResources(w http.ResponseWriter, r *http.Request, id string, resourceType string) {
 	ctx := r.Context()
 
 	// TODO: Need to change to passed targetgroupid
 	q := storage.ListCachedTargetGroupResourceForTargetGroupAndResourceType{
-		TargetGroupID: "common-fate-aws",
-		ResourceType:  "Account",
+		TargetGroupID: id,
+		ResourceType:  resourceType,
 	}
 	_, err := a.DB.Query(ctx, &q)
 	if err == ddb.ErrNoItems {
@@ -34,7 +34,7 @@ func (a *API) AdminGetTargetGroupResources(w http.ResponseWriter, r *http.Reques
 
 // List Target Group Resources
 // (POST /api/v1/admin/target-groups/{Id}/resources/{resourceType}/filters)
-func (a *API) AdminFilterTargetGroupResources(w http.ResponseWriter, r *http.Request, Id string, resourceType string) {
+func (a *API) AdminFilterTargetGroupResources(w http.ResponseWriter, r *http.Request, id string, resourceType string) {
 	ctx := r.Context()
 
 	var resourceFilter types.AdminFilterTargetGroupResourcesJSONRequestBody
@@ -46,8 +46,8 @@ func (a *API) AdminFilterTargetGroupResources(w http.ResponseWriter, r *http.Req
 
 	// TODO: Need to change to passed targetgroupid
 	q := storage.ListCachedTargetGroupResourceForTargetGroupAndResourceType{
-		TargetGroupID: "common-fate-aws",
-		ResourceType:  "Account",
+		TargetGroupID: id,
+		ResourceType:  resourceType,
 	}
 	_, err = a.DB.Query(ctx, &q)
 	if err == ddb.ErrNoItems {
