@@ -1,6 +1,6 @@
 package keys
 
-const TargetGroupKey = "TARGET_GROUPV2#"
+const TargetGroupKey = "TARGET_GROUP#"
 
 type targetGroupKeys struct {
 	PK1 string
