@@ -1803,6 +1803,8 @@ components:
           type: array
           items:
             type: string
+        finalTiming:
+          $ref: "#/components/schemas/RequestAccessGroupFinalTiming"
       required:
         - id
         - requestId
@@ -1859,6 +1861,26 @@ components:
           format: time
       required:
         - durationSeconds
+    RequestAccessGroupFinalTiming:
+      title: RequestAccessGroupFinalTiming
+      type: object
+      x-stoplight:
+        id: 80b306d6a3bb7
+      description: "The final timing made for the grant, denormalised onto hte group "
+      properties:
+        startTime:
+          type: string
+          description: iso8601 timestamp in UTC timezone
+          x-go-type: time.Time
+          format: time
+        endTime:
+          type: string
+          description: iso8601 timestamp in UTC timezone
+          x-go-type: time.Time
+          format: time
+      required:
+        - startTime
+        - endTime
     RequestAccessGroupTarget:
       description: A temporary assignment of a user to a principal.
       type: object

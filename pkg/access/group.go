@@ -24,6 +24,7 @@ type Group struct {
 	// Also denormalised across all the request items
 	RequestStatus   types.RequestStatus `json:"requestStatus" dynamodbav:"requestStatus"`
 	RequestedTiming Timing              `json:"requestedTiming" dynamodbav:"requestedTiming"`
+	FinalTiming     *FinalTiming        `json:"finalTiming" dynamodbav:"finalTiming"`
 	OverrideTiming  *Timing             `json:"overrideTimings,omitempty" dynamodbav:"overrideTimings,omitempty"`
 	RequestedBy     RequestedBy         `json:"requestedBy" dynamodbav:"requestedBy"`
 	CreatedAt       time.Time           `json:"createdAt" dynamodbav:"createdAt"`
@@ -32,6 +33,11 @@ type Group struct {
 	RequestReviewers []string `json:"requestReviewers" dynamodbav:"requestReviewers, set"`
 	// groupReviewers are the users who are able to review this access group
 	GroupReviewers []string `json:"groupReviewers" dynamodbav:"groupReviewers, set"`
+}
+
+type FinalTiming struct {
+	Start time.Time `json:"start" dynamodbav:"start"`
+	End   time.Time `json:"end" dynamodbav:"end"`
 }
 
 type GroupWithTargets struct {
@@ -59,6 +65,12 @@ func (g *GroupWithTargets) ToAPI() types.RequestAccessGroup {
 		UpdatedAt:       g.Group.UpdatedAt,
 		RequestedBy:     types.RequestRequestedBy(g.Group.RequestedBy),
 		RequestStatus:   g.Group.RequestStatus,
+	}
+	if g.Group.FinalTiming != nil {
+		out.FinalTiming = &types.RequestAccessGroupFinalTiming{
+			StartTime: g.Group.FinalTiming.Start,
+			EndTime:   g.Group.FinalTiming.End,
+		}
 	}
 	if g.Group.GroupReviewers != nil {
 		out.GroupReviewers = &g.Group.GroupReviewers

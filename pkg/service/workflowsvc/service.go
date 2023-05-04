@@ -47,6 +47,17 @@ func (s *Service) Grant(ctx context.Context, requestID string, groupID string) (
 
 	start, end := group.Group.GetInterval(access.WithNow(s.Clk.Now()))
 
+	//update the group with the start and end time
+
+	group.Group.FinalTiming = &access.FinalTiming{
+		Start: start,
+		End:   end,
+	}
+	err = s.DB.Put(ctx, &group.Group)
+	if err != nil {
+		return nil, err
+	}
+
 	log.Infow("found group and calculated timing", "group", group, "start", start, "end", end)
 	for i, target := range group.Targets {
 		target.Grant = &access.Grant{

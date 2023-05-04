@@ -53,6 +53,7 @@ export * from './request';
 export * from './requestAccessGroup';
 export * from './requestAccessGroupAccessRule';
 export * from './requestAccessGroupApprovalMethod';
+export * from './requestAccessGroupFinalTiming';
 export * from './requestAccessGroupStatus';
 export * from './requestAccessGroupTarget';
 export * from './requestAccessGroupTargetAccessInstructions';

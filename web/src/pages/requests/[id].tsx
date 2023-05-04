@@ -341,11 +341,10 @@ export const HeaderStatusCell = ({ group }: AccessGroupProps) => {
                 durationStringHoursMinutes(
                   intervalToDuration({
                     start: new Date(),
-                    end: getEndTimeWithDuration(
-                      group.requestedTiming.startTime
-                        ? group.requestedTiming.startTime
-                        : "",
-                      group.requestedTiming.durationSeconds
+                    end: new Date(
+                      group.finalTiming?.endTime
+                        ? group.finalTiming?.endTime
+                        : ""
                     ),
                   })
                 )
