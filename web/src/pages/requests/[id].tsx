@@ -284,7 +284,7 @@ const Home = () => {
               </>
             </GridItem>
             <GridItem>
-              <AuditLog />
+              <AuditLog request={request.data} />
             </GridItem>
           </Grid>
         </Container>
@@ -341,11 +341,10 @@ export const HeaderStatusCell = ({ group }: AccessGroupProps) => {
                 durationStringHoursMinutes(
                   intervalToDuration({
                     start: new Date(),
-                    end: getEndTimeWithDuration(
-                      group.requestedTiming.startTime
-                        ? group.requestedTiming.startTime
-                        : "",
-                      group.requestedTiming.durationSeconds
+                    end: new Date(
+                      group.finalTiming?.endTime
+                        ? group.finalTiming?.endTime
+                        : ""
                     ),
                   })
                 )
@@ -523,22 +522,6 @@ export const TargetGrantInstructionsModal = (props: Props) => {
   if (props.groupTarget) {
     const data = useGetGroupTargetInstructions(props.groupTarget?.id);
 
-    if (!data.data) {
-      return (
-        <Modal {...props}>
-          <ModalOverlay />
-          <ModalContent>
-            <ModalHeader></ModalHeader>
-            <ModalCloseButton />
-            <ModalBody>
-              <Box></Box>
-
-              <Text></Text>
-            </ModalBody>
-          </ModalContent>
-        </Modal>
-      );
-    }
     return (
       <Modal {...props} isCentered motionPreset="slideInBottom" size="xl">
         <ModalOverlay />
@@ -568,7 +551,7 @@ export const TargetGrantInstructionsModal = (props: Props) => {
 
               <Flex direction="column" py="20px">
                 <Text textStyle="Body/Small">Access Instructions</Text>
-                <Code>{data.data}</Code>
+                <Code>{data.data?.instructions.instructions}</Code>
               </Flex>
             </Flex>
           </ModalBody>
@@ -734,7 +717,6 @@ export const ApproveRejectDuration = ({
             </PopoverContent>
           </Portal>
         </Popover>
-        {/* {durationString(durationSeconds)} */}
       </Flex>
       <ButtonGroup ml="auto" variant="brandSecondary" spacing={2}>
         <Button

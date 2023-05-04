@@ -329,5 +329,63 @@ func (a *API) GetGroupTargetInstructions(w http.ResponseWriter, r *http.Request,
 		return
 	}
 
-	apio.JSON(ctx, w, q.Result.Instructions, http.StatusOK)
+	res := types.AccessInstructionsResponse{
+		Instructions: types.RequestAccessGroupTargetAccessInstructions{
+			Instructions: &q.Result.Instructions,
+		},
+	}
+
+	apio.JSON(ctx, w, res, http.StatusOK)
+}
+
+func (a *API) UserListRequestEvents(w http.ResponseWriter, r *http.Request, requestId string) {
+	ctx := r.Context()
+	u := auth.UserFromContext(ctx)
+	canView := auth.IsAdmin(ctx)
+	q := storage.GetRequestWithGroupsWithTargets{ID: requestId}
+	_, err := a.DB.Query(ctx, &q)
+	if err == ddb.ErrNoItems {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusUnauthorized))
+		return
+	} else if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	if !canView {
+		if q.Result.Request.RequestedBy.ID == u.ID {
+			canView = true
+		} else {
+			qrv := storage.GetRequestReviewer{RequestID: requestId, ReviewerID: u.ID}
+			_, err = a.DB.Query(ctx, &qrv)
+			if err == ddb.ErrNoItems {
+				// user is not a reviewer of this request or the requestor
+				apio.Error(ctx, w, apio.NewRequestError(err, http.StatusNotFound))
+				return
+			} else if err != nil {
+				apio.Error(ctx, w, err)
+				return
+			}
+			canView = true
+		}
+	}
+	if !canView {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusNotFound))
+		return
+	}
+
+	qre := &storage.ListRequestEvents{
+		RequestID: requestId,
+	}
+	_, err = a.DB.Query(ctx, qre)
+	if err != nil && err != ddb.ErrNoItems {
+		apio.Error(ctx, w, err)
+		return
+	}
+	res := types.ListRequestEventsResponse{
+		Events: make([]types.RequestEvent, len(qre.Result)),
+	}
+	for i, re := range qre.Result {
+		res.Events[i] = re.ToAPI()
+	}
+	apio.JSON(ctx, w, res, http.StatusOK)
 }
