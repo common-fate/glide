@@ -23,7 +23,7 @@ import type {
   UserListRequestsParams,
   Request,
   CreateAccessRequestRequestBody,
-  RequestAccessGroupTargetAccessInstructions
+  AccessInstructionsResponseResponse
 } from '.././types'
 import { customInstance } from '../../custom-instance'
 import type { ErrorType } from '../../custom-instance'
@@ -363,7 +363,7 @@ export const useUserGetRequest = <TError = ErrorType<ErrorResponseResponse>>(
 export const getGroupTargetInstructions = (
     targetId: string,
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<RequestAccessGroupTargetAccessInstructions>(
+      return customInstance<AccessInstructionsResponseResponse>(
       {url: `/api/v1/targets/${targetId}/access-instructions`, method: 'get'
     },
       options);

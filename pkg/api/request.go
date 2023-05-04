@@ -329,5 +329,11 @@ func (a *API) GetGroupTargetInstructions(w http.ResponseWriter, r *http.Request,
 		return
 	}
 
-	apio.JSON(ctx, w, q.Result.Instructions, http.StatusOK)
+	res := types.AccessInstructionsResponse{
+		Instructions: types.RequestAccessGroupTargetAccessInstructions{
+			Instructions: &q.Result.Instructions,
+		},
+	}
+
+	apio.JSON(ctx, w, res, http.StatusOK)
 }

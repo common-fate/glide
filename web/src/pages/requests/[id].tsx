@@ -523,22 +523,6 @@ export const TargetGrantInstructionsModal = (props: Props) => {
   if (props.groupTarget) {
     const data = useGetGroupTargetInstructions(props.groupTarget?.id);
 
-    if (!data.data) {
-      return (
-        <Modal {...props}>
-          <ModalOverlay />
-          <ModalContent>
-            <ModalHeader></ModalHeader>
-            <ModalCloseButton />
-            <ModalBody>
-              <Box></Box>
-
-              <Text></Text>
-            </ModalBody>
-          </ModalContent>
-        </Modal>
-      );
-    }
     return (
       <Modal {...props} isCentered motionPreset="slideInBottom" size="xl">
         <ModalOverlay />
@@ -568,7 +552,7 @@ export const TargetGrantInstructionsModal = (props: Props) => {
 
               <Flex direction="column" py="20px">
                 <Text textStyle="Body/Small">Access Instructions</Text>
-                <Code>{data.data}</Code>
+                <Code>{data.data?.instructions.instructions}</Code>
               </Flex>
             </Flex>
           </ModalBody>

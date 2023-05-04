@@ -1076,11 +1076,7 @@ paths:
       tags: []
       responses:
         "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/RequestAccessGroupTargetAccessInstructions"
+          $ref: "#/components/responses/AccessInstructionsResponse"
         "404":
           $ref: "#/components/responses/ErrorResponse"
         "500":
@@ -2416,6 +2412,17 @@ components:
                         valueDescription: The Amazon Resource Name (ARN) of the role to assume in the SSO instance
                         value: "arn:aws:iam::123456789012:role/MyRole"
                 next: string
+    AccessInstructionsResponse:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              instructions:
+                $ref: "#/components/schemas/RequestAccessGroupTargetAccessInstructions"
+            required:
+              - instructions
   examples: {}
   securitySchemes: {}
   requestBodies:

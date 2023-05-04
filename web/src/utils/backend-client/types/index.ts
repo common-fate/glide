@@ -1,3 +1,4 @@
+export * from './accessInstructionsResponseResponse';
 export * from './accessRule';
 export * from './accessRuleApproverConfig';
 export * from './accessRuleMetadata';
