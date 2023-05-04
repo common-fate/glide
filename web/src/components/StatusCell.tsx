@@ -9,9 +9,9 @@ import {
 import React from "react";
 import {
   RequestAccessGroupApprovalMethod,
+  RequestAccessGroupTargetStatus,
   RequestStatus,
 } from "../utils/backend-client/types";
-import { useGetGroupTargetStatus } from "..//utils/backend-client/default/default";
 interface Props extends FlexProps {
   replaceValue?: string;
   value?: string;
@@ -109,28 +109,21 @@ export const RequestStatusCell: React.FC<RequestStatusCellProps> = ({
 };
 
 interface GrantStatusCellProps extends FlexProps {
-  requestId: string;
-  groupId: string;
-  targetId: string;
+  targetStatus: RequestAccessGroupTargetStatus;
 }
 
 // RequestStatusCell providers a slim wrapper to remove boilerplate for request statuses
 export const GrantStatusCell: React.FC<GrantStatusCellProps> = ({
-  requestId,
-  groupId,
-  targetId,
+  targetStatus,
   ...rest
 }) => {
-  const data = useGetGroupTargetStatus(requestId, groupId, targetId, {
-    swr: { refreshInterval: 10000 },
-  });
-  switch (data.data) {
+  switch (targetStatus) {
     case "ACTIVE":
       return (
         <StatusCell
           {...rest}
           success="ACTIVE"
-          value={data.data}
+          value={targetStatus}
           replaceValue={"Active"}
           fontSize="12px"
         />
@@ -139,8 +132,8 @@ export const GrantStatusCell: React.FC<GrantStatusCellProps> = ({
       return (
         <StatusCell
           {...rest}
-          info={data.data}
-          value={data.data}
+          info={targetStatus}
+          value={targetStatus}
           replaceValue={"Awaiting Start"}
           fontSize="12px"
         />
@@ -148,8 +141,8 @@ export const GrantStatusCell: React.FC<GrantStatusCellProps> = ({
     case "ERROR":
       return (
         <StatusCell
-          danger={data.data}
-          value={data.data}
+          danger={targetStatus}
+          value={targetStatus}
           replaceValue={"Error"}
           fontSize="12px"
         />
@@ -159,7 +152,7 @@ export const GrantStatusCell: React.FC<GrantStatusCellProps> = ({
         <StatusCell
           {...rest}
           success="ACTIVE"
-          value={data.data}
+          value={targetStatus}
           replaceValue={"Expired"}
           fontSize="12px"
         />
@@ -168,8 +161,8 @@ export const GrantStatusCell: React.FC<GrantStatusCellProps> = ({
       return (
         <StatusCell
           {...rest}
-          info={data.data}
-          value={data.data}
+          info={targetStatus}
+          value={targetStatus}
           replaceValue={"Pending"}
           fontSize="12px"
         />
@@ -179,7 +172,7 @@ export const GrantStatusCell: React.FC<GrantStatusCellProps> = ({
         <StatusCell
           {...rest}
           success="ACTIVE"
-          value={data.data}
+          value={targetStatus}
           replaceValue={"Revoked"}
           fontSize="12px"
         />

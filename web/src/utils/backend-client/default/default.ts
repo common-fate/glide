@@ -20,7 +20,6 @@ import type {
   CreatePreflightRequestBody,
   ListRequestsResponseResponse,
   UserListReviewsParams,
-  RequestAccessGroupTargetStatus,
   UserListRequestsParams,
   Request,
   CreateAccessRequestRequestBody
@@ -170,22 +169,6 @@ export const useUserListEntitlementTargets = <TError = ErrorType<ErrorResponseRe
 }
 
 /**
- * Verify and validate a collection of request items
- * @summary Submit Preflight
- */
-export const userRequestPreflight = (
-    createPreflightRequestBody: CreatePreflightRequestBody,
- options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<Preflight>(
-      {url: `/api/v1/preflight`, method: 'post',
-      headers: {'Content-Type': 'application/json', },
-      data: createPreflightRequestBody
-    },
-      options);
-    }
-  
-
-/**
  * @summary Get Preflight
  */
 export const userGetPreflight = (
@@ -224,6 +207,22 @@ export const useUserGetPreflight = <TError = ErrorType<ErrorResponseResponse>>(
 }
 
 /**
+ * Verify and validate a collection of request items
+ * @summary Submit Preflight
+ */
+export const userRequestPreflight = (
+    createPreflightRequestBody: CreatePreflightRequestBody,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<Preflight>(
+      {url: `/api/v1/preflight`, method: 'post',
+      headers: {'Content-Type': 'application/json', },
+      data: createPreflightRequestBody
+    },
+      options);
+    }
+  
+
+/**
  * Lists requests where the user is a reviewer
  * @summary List Reviews
  */
@@ -254,51 +253,6 @@ export const useUserListReviews = <TError = ErrorType<ErrorResponseResponse>>(
   const isEnabled = swrOptions?.enabled !== false
     const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserListReviewsKey(params) : null);
   const swrFn = () => userListReviews(params, requestOptions);
-
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
-
-  return {
-    swrKey,
-    ...query
-  }
-}
-
-/**
- * Gets grant status for a specific group target if available 
- * @summary Get Group Target
- */
-export const getGroupTargetStatus = (
-    requestid: string,
-    groupid: string,
-    targetid: string,
- options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<RequestAccessGroupTargetStatus>(
-      {url: `/api/v1/requests/${requestid}/groups/${groupid}/target/${targetid}/status`, method: 'get'
-    },
-      options);
-    }
-  
-
-export const getGetGroupTargetStatusKey = (requestid: string,
-    groupid: string,
-    targetid: string,) => [`/api/v1/requests/${requestid}/groups/${groupid}/target/${targetid}/status`];
-
-    
-export type GetGroupTargetStatusQueryResult = NonNullable<Awaited<ReturnType<typeof getGroupTargetStatus>>>
-export type GetGroupTargetStatusQueryError = ErrorType<ErrorResponseResponse>
-
-export const useGetGroupTargetStatus = <TError = ErrorType<ErrorResponseResponse>>(
- requestid: string,
-    groupid: string,
-    targetid: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getGroupTargetStatus>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
-
-  ) => {
-
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
-
-  const isEnabled = swrOptions?.enabled !== false && !!(requestid && groupid && targetid)
-    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetGroupTargetStatusKey(requestid,groupid,targetid) : null);
-  const swrFn = () => getGroupTargetStatus(requestid,groupid,targetid, requestOptions);
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 

@@ -103,9 +103,13 @@ func (t Timing) ToAnalytics() analytics.Timing {
 
 // TimingFromRequestTiming converts from the api type to the internal type
 func TimingFromRequestTiming(r types.RequestAccessGroupTiming) Timing {
+	start := time.Now()
+	if r.StartTime != nil {
+		start = *r.StartTime
+	}
 	return Timing{
 		Duration:  time.Second * time.Duration(r.DurationSeconds),
-		StartTime: r.StartTime,
+		StartTime: &start,
 	}
 }
 

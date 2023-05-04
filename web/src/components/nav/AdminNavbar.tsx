@@ -102,7 +102,7 @@ export const AdminNavbar: React.FC = () => {
                 <HStack spacing="4">
                   <Button
                     as={Link}
-                    to={"/search"}
+                    to={"/requests"}
                     size="md"
                     variant="link"
                     px={3}

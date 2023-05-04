@@ -9,12 +9,15 @@ import {
   Input,
   Stack,
   Text,
+  useBoolean,
   useEventListener,
+  useToast,
 } from "@chakra-ui/react";
 import debounce from "lodash.debounce";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FixedSizeList as ReactWindowList } from "react-window";
 import {
+  CreatePreflightRequestBody,
   Target,
   TargetField,
   TargetKind,
@@ -25,10 +28,13 @@ import { ProviderIcon, ShortTypes } from "./icons/providerIcon";
 // @ts-ignore
 import {
   userListEntitlementTargets,
+  userRequestPreflight,
   useUserListEntitlements,
   useUserListEntitlementTargets,
 } from "../utils/backend-client/default/default";
 import { TargetDetail } from "./Target";
+import { useNavigate } from "react-location";
+import axios from "axios";
 const IS_MAC = /(Mac|iPhone|iPod|iPad)/i.test(
   navigator.userAgent || navigator.platform || "unknown"
 );
@@ -77,12 +83,43 @@ const Search: React.FC<SearchProps> = ({ targets, entitlements }) => {
   const [actionKey] = useState<string[]>(
     IS_MAC ? ACTION_KEY_APPLE : ACTION_KEY_DEFAULT
   );
+  const [submitLoading, submitLoadingToggle] = useBoolean();
+  const navigate = useNavigate();
+  const toast = useToast();
+  const handleSubmit = async () => {
+    try {
+      const preflightRequest: CreatePreflightRequestBody = {
+        targets: targets
+          .filter((t) => checked.has(t.id.toLowerCase()))
+          .map((t) => t.id),
+      };
+      submitLoadingToggle.on();
+      const preflightResponse = await userRequestPreflight(preflightRequest);
+      navigate({ to: `/preflight/${preflightResponse.id}` });
+    } catch (err) {
+      let description: string | undefined;
+      if (axios.isAxiosError(err)) {
+        // @ts-ignore
+        description = err?.response?.data.error;
+      }
+      toast({
+        title: "Error submitting request",
+        description,
+        status: "error",
+        variant: "subtle",
+        duration: 2200,
+        isClosable: true,
+      });
+    } finally {
+      submitLoadingToggle.off();
+    }
+  };
   // Watch keys for cmd Enter submit
   useEventListener("keydown", (event) => {
     const hotkey = IS_MAC ? "metaKey" : "ctrlKey";
     if (event?.key?.toLowerCase() === "enter" && event[hotkey]) {
       event.preventDefault();
-      // checked.size > 0 && handleSubmit();
+      checked.size > 0 && handleSubmit();
     }
   });
 
@@ -215,8 +252,8 @@ const Search: React.FC<SearchProps> = ({ targets, entitlements }) => {
           <Button
             disabled={checked.size == 0}
             ml="auto"
-            // onClick={handleSubmit}
-            // isLoading={submitLoading}
+            onClick={handleSubmit}
+            isLoading={submitLoading}
             loadingText="Processing request..."
           >
             Next ({actionKey[0]}+Enter)

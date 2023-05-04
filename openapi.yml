@@ -687,6 +687,27 @@ paths:
           name: kind
           description: filter targets by kind
     parameters: []
+  "/api/v1/preflight/{preflightId}":
+    parameters:
+      - schema:
+          type: string
+        name: preflightId
+        in: path
+        required: true
+    get:
+      summary: Get Preflight
+      operationId: user-get-preflight
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Preflight"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
   /api/v1/preflight:
     parameters: []
     post:
@@ -780,27 +801,6 @@ paths:
       description: Verify and validate a collection of request items
       requestBody:
         $ref: "#/components/requestBodies/CreatePreflightRequest"
-  "/api/v1/preflight/{preflightId}":
-    parameters:
-      - schema:
-          type: string
-        name: preflightId
-        in: path
-        required: true
-    get:
-      summary: Get Preflight
-      operationId: user-get-preflight
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Preflight"
-        "404":
-          $ref: "#/components/responses/ErrorResponse"
-        "500":
-          $ref: "#/components/responses/ErrorResponse"
   /api/v1/reviews:
     get:
       summary: List Reviews
@@ -830,39 +830,6 @@ paths:
           name: nextToken
           description: pagination token
     parameters: []
-  "/api/v1/requests/{requestid}/groups/{groupid}/target/{targetid}/status":
-    get:
-      summary: Get Group Target
-      tags: []
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/RequestAccessGroupTargetStatus"
-        "404":
-          $ref: "#/components/responses/ErrorResponse"
-        "500":
-          $ref: "#/components/responses/ErrorResponse"
-      operationId: get-group-target-status
-      description: "Gets grant status for a specific group target if available "
-    parameters:
-      - schema:
-          type: string
-        name: requestid
-        in: path
-        required: true
-      - schema:
-          type: string
-        name: groupid
-        in: path
-        required: true
-      - schema:
-          type: string
-        name: targetid
-        in: path
-        required: true
   /api/v1/requests:
     get:
       summary: List Requests
