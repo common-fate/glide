@@ -1,7 +1,6 @@
 package api
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/common-fate/apikit/apio"
@@ -15,18 +14,11 @@ import (
 
 func (a *API) AdminDeleteAccessRule(w http.ResponseWriter, r *http.Request, ruleId string) {
 	ctx := r.Context()
-	q := storage.GetAccessRule{ID: ruleId}
-	_, err := a.DB.Query(ctx, &q)
-
-	if err == ddb.ErrNoItems {
-		apio.Error(ctx, w, &apio.APIError{Err: errors.New("this rule doesn't exist or you don't have permission to archive it"), Status: http.StatusNotFound})
+	err := a.Rules.DeleteRule(ctx, ruleId)
+	if err == rulesvc.ErrUserNotAuthorized {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusUnauthorized))
 		return
 	}
-	if err != nil {
-		apio.Error(ctx, w, err)
-		return
-	}
-	err = a.DB.Delete(ctx, q.Result)
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return

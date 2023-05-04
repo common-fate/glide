@@ -57,6 +57,9 @@ func (s *Service) UpdateRule(ctx context.Context, in *UpdateOpts) (*rule.AccessR
 		MaxDurationSeconds: in.Rule.TimeConstraints.MaxDurationSeconds,
 		RequiresApproval:   in.Rule.Approval.IsRequired(),
 	})
-
+	err = s.Cache.RefreshCachedTargets(ctx)
+	if err != nil {
+		return nil, err
+	}
 	return &rul, nil
 }
