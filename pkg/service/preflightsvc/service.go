@@ -53,9 +53,7 @@ func (s *Service) ValidateAccessToAllTargets(ctx context.Context, user identity.
 	}
 
 	// user must have access to all targets
-	filter := cache.NewFilterTargetsByGroups(user.Groups)
-	filter.Filter(targets)
-	filtered := filter.Dump()
+	filtered := cache.Filter(targets, user.Groups)
 	if len(filtered) < len(targets) {
 		return nil, ErrUserNotAuthorisedForRequestedTarget
 	}

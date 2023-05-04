@@ -85,11 +85,29 @@ func TestFilterTargetsByGroups(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tf := NewFilterTargetsByGroups(tt.args.groups)
-			tf.Filter(tt.args.targets)
-			if got := tf.Dump(); !reflect.DeepEqual(got, tt.want) {
+			got := Filter(tt.args.targets, tt.args.groups)
+
+			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("FilterForRules() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func BenchmarkFilterTargetsByGroups(b *testing.B) {
+	// Create some test data
+	targets := make([]Target, 10000)
+	for i := range targets {
+		targets[i] = Target{IDPGroupsWithAccess: make(map[string]struct{})}
+		targets[i].IDPGroupsWithAccess["group1"] = struct{}{}
+		if i%2 == 0 {
+			targets[i].IDPGroupsWithAccess["group2"] = struct{}{}
+		}
+	}
+
+	// Benchmark the method
+	for n := 0; n < b.N; n++ {
+		Filter(targets, []string{"group1", "group2"})
+
 	}
 }

@@ -20,11 +20,13 @@ import (
 	"github.com/common-fate/common-fate/pkg/identity/identitysync"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/service/accesssvc"
+	"github.com/common-fate/common-fate/pkg/service/cachesvc"
 	"github.com/common-fate/common-fate/pkg/service/cognitosvc"
 	"github.com/common-fate/common-fate/pkg/service/handlersvc"
 	"github.com/common-fate/common-fate/pkg/service/healthchecksvc"
 	"github.com/common-fate/common-fate/pkg/service/internalidentitysvc"
 	"github.com/common-fate/common-fate/pkg/service/preflightsvc"
+	"github.com/common-fate/common-fate/pkg/service/requestroutersvc"
 	"github.com/common-fate/common-fate/pkg/service/rulesvc"
 	"github.com/common-fate/common-fate/pkg/service/targetsvc"
 	"github.com/common-fate/common-fate/pkg/target"
@@ -93,6 +95,7 @@ type AccessService interface {
 
 // AccessRuleService can create and get rules
 type AccessRuleService interface {
+	DeleteRule(ctx context.Context, id string) error
 	CreateAccessRule(ctx context.Context, userID string, in types.CreateAccessRuleRequest) (*rule.AccessRule, error)
 	UpdateRule(ctx context.Context, in *rulesvc.UpdateOpts) (*rule.AccessRule, error)
 }
@@ -200,11 +203,23 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 			Rules: &rulesvc.Service{
 				Clock: clk,
 				DB:    db,
+				Cache: &cachesvc.Service{
+					DB: db,
+					RequestRouter: &requestroutersvc.Service{
+						DB: db,
+					},
+				},
 			},
 		},
 		Rules: &rulesvc.Service{
 			Clock: clk,
 			DB:    db,
+			Cache: &cachesvc.Service{
+				DB: db,
+				RequestRouter: &requestroutersvc.Service{
+					DB: db,
+				},
+			},
 		},
 
 		DB:               db,

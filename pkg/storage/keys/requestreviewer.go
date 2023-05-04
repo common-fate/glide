@@ -1,6 +1,6 @@
 package keys
 
-const RequestReviewerKey = "REQUEST_REVIEWER#"
+const RequestReviewerKey = "REQUEST_REVIEWERV2#"
 
 type requestReviewerKeys struct {
 	PK1 string

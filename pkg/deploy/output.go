@@ -32,7 +32,6 @@ type Output struct {
 	WebhookLogGroupName           string `json:"WebhookLogGroupName"`
 	APILogGroupName               string `json:"APILogGroupName"`
 	IDPSyncLogGroupName           string `json:"IDPSyncLogGroupName"`
-	AccessHandlerLogGroupName     string `json:"AccessHandlerLogGroupName"`
 	EventBusLogGroupName          string `json:"EventBusLogGroupName"`
 	EventsHandlerLogGroupName     string `json:"EventsHandlerLogGroupName"`
 	GranterLogGroupName           string `json:"GranterLogGroupName"`

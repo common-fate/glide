@@ -48,7 +48,6 @@ func TestOutputStructMatchesTSType(t *testing.T) {
 		WebhookLogGroupName:           "abcdefg",
 		APILogGroupName:               "abcdefg",
 		IDPSyncLogGroupName:           "abcdefg",
-		AccessHandlerLogGroupName:     "abcdefg",
 		EventBusLogGroupName:          "abcdefg",
 		EventsHandlerLogGroupName:     "abcdefg",
 		GranterLogGroupName:           "abcdefg",
@@ -109,7 +108,6 @@ func TestOutput_Get(t *testing.T) {
 		WebhookURL                    string
 		APILogGroupName               string
 		IDPSyncLogGroupName           string
-		AccessHandlerLogGroupName     string
 		EventBusLogGroupName          string
 		EventsHandlerLogGroupName     string
 		GranterLogGroupName           string
@@ -176,7 +174,6 @@ func TestOutput_Get(t *testing.T) {
 				WebhookURL:                    tt.fields.WebhookURL,
 				APILogGroupName:               tt.fields.APILogGroupName,
 				IDPSyncLogGroupName:           tt.fields.IDPSyncLogGroupName,
-				AccessHandlerLogGroupName:     tt.fields.AccessHandlerLogGroupName,
 				EventBusLogGroupName:          tt.fields.EventBusLogGroupName,
 				EventsHandlerLogGroupName:     tt.fields.EventsHandlerLogGroupName,
 				GranterLogGroupName:           tt.fields.GranterLogGroupName,

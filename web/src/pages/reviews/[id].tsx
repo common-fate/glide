@@ -57,6 +57,7 @@ import FieldsCodeBlock from "../../components/FieldsCodeBlock";
 import { ProviderIcon, ShortTypes } from "../../components/icons/providerIcon";
 import { UserLayout } from "../../components/Layout";
 import { StatusCell } from "../../components/StatusCell";
+import { TargetDetail } from "../../components/Target";
 import {
   useUserGetRequest,
   useUserListRequests,
@@ -74,7 +75,6 @@ import {
   durationString,
   durationStringHoursMinutes,
 } from "../../utils/durationString";
-import { TargetDetail } from "src/components/Target";
 
 type MyLocationGenerics = MakeGenerics<{
   Search: {
