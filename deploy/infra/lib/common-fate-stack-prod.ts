@@ -1,7 +1,7 @@
 import * as cdk from "aws-cdk-lib";
 
 import { Construct } from "constructs";
-import { AccessHandler } from "./constructs/access-handler";
+
 import { AppBackend } from "./constructs/app-backend";
 import { AppFrontend } from "./constructs/app-frontend";
 import { WebUserPool } from "./constructs/app-user-pool";
@@ -240,15 +240,6 @@ export class CommonFateStackProd extends cdk.Stack {
       appName,
     });
 
-    const accessHandler = new AccessHandler(this, "AccessHandler", {
-      appName,
-      eventBus: events.getEventBus(),
-      eventBusSourceName: events.getEventBusSourceName(),
-      providerConfig: providerConfig.valueAsString,
-      remoteConfigUrl: remoteConfigUrl.valueAsString,
-      remoteConfigHeaders: remoteConfigHeaders.valueAsString,
-    });
-
     //KMS key is used in governance api as well as appBackend - both for tokinization for ddb use
     const kmsKey = new kms.Key(this, "PaginationKMSKey", {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
@@ -332,7 +323,9 @@ export class CommonFateStackProd extends cdk.Stack {
       WebhookLogGroupName: appBackend.getWebhookLogGroupName(),
       IDPSyncLogGroupName: appBackend.getIdpSync().getLogGroupName(),
       EventBusLogGroupName: events.getLogGroupName(),
-      EventsHandlerLogGroupName: appBackend.getEventHandler().getLogGroupName(),
+      EventsHandlerLogGroupName: appBackend
+        .getEventHandler()
+        .getConcurrentLogGroupName(),
       SlackNotifierLogGroupName: appBackend
         .getNotifiers()
         .getSlackLogGroupName(),

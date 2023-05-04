@@ -6,7 +6,7 @@ import { PolicyStatement } from "aws-cdk-lib/aws-iam";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
 import * as path from "path";
-import { AccessHandler } from "./access-handler";
+
 import { grantAssumeHandlerRole } from "../helpers/permissions";
 
 interface Props {
