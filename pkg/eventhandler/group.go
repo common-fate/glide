@@ -6,7 +6,9 @@ import (
 	"time"
 
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/common-fate/apikit/logger"
+	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/types"
 	"go.uber.org/zap"
@@ -49,7 +51,21 @@ func (n *EventHandler) handleReviewEvent(ctx context.Context, detail json.RawMes
 	group.Group.Status = types.RequestAccessGroupStatusAPPROVED
 	if groupEvent.Review.Decision == types.ReviewDecisionDECLINED {
 		group.Group.Status = types.RequestAccessGroupStatusDECLINED
+		reqEvent := access.NewGroupStatusChangeEvent(group.Group.RequestID, group.Group.CreatedAt, aws.String(""), types.RequestAccessGroupStatusPENDINGAPPROVAL, types.RequestAccessGroupStatusDECLINED)
+
+		err := n.DB.Put(ctx, &reqEvent)
+		if err != nil {
+			return err
+		}
+	} else {
+		reqEvent := access.NewGroupStatusChangeEvent(group.Group.RequestID, group.Group.CreatedAt, aws.String(""), types.RequestAccessGroupStatusPENDINGAPPROVAL, types.RequestAccessGroupStatusAPPROVED)
+
+		err := n.DB.Put(ctx, &reqEvent)
+		if err != nil {
+			return err
+		}
 	}
+
 	err = n.DB.Put(ctx, &group.Group)
 	if err != nil {
 		return err
@@ -64,10 +80,14 @@ func (n *EventHandler) handleReviewEvent(ctx context.Context, detail json.RawMes
 			AccessGroup: *group,
 		})
 	}
+
+	return nil
+
 }
 
 // the group will already be marked as approved here
 func (n *EventHandler) handleAccessGroupApprovedEvent(ctx context.Context, detail json.RawMessage) error {
+
 	log := logger.Get(ctx).With("eventType", gevent.AccessGroupApprovedType)
 
 	//if approved start the granting flow
@@ -80,6 +100,7 @@ func (n *EventHandler) handleAccessGroupApprovedEvent(ctx context.Context, detai
 	if err != nil {
 		return err
 	}
+
 	allGroupsReviewed := request.AllGroupsReviewed()
 	log.Infow("fetched request from database", "request", request, "allGroupsReviewed", allGroupsReviewed)
 

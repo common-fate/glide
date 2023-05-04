@@ -284,7 +284,7 @@ const Home = () => {
               </>
             </GridItem>
             <GridItem>
-              <AuditLog />
+              <AuditLog request={request.data} />
             </GridItem>
           </Grid>
         </Container>
@@ -717,7 +717,6 @@ export const ApproveRejectDuration = ({
             </PopoverContent>
           </Portal>
         </Popover>
-        {/* {durationString(durationSeconds)} */}
       </Flex>
       <ButtonGroup ml="auto" variant="brandSecondary" spacing={2}>
         <Button

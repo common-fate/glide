@@ -1064,6 +1064,28 @@ paths:
         name: requestId
         in: path
         required: true
+  "/api/v1/requests/{requestId}/events":
+    parameters:
+      - schema:
+          type: string
+        name: requestId
+        in: path
+        required: true
+    get:
+      summary: List request events
+      responses:
+        "200":
+          $ref: "#/components/responses/ListRequestEventsResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      operationId: user-list-request-events
+      description: |
+        Returns a HTTP401 response if the user is not the requestor or a reviewer.
+      tags:
+        - End User
+      parameters: []
   "/api/v1/targets/{targetId}/access-instructions":
     parameters:
       - schema:
