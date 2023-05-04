@@ -147,7 +147,6 @@ const StaticProviderSelect = (props: Props) => {
             >
               <ProviderIcon mr={1} shortType={shortType} />
               {shortType}
-              {/* <Text>{shortType}</Text> */}
               <IconButton
                 variant="ghost"
                 size="xs"
@@ -223,7 +222,6 @@ const StaticProviderSelect = (props: Props) => {
                 minH="48px"
                 className="group"
                 role="group"
-                value={shortType}
                 align="center"
                 bg="white"
                 checked={true}
