@@ -68,6 +68,8 @@ func (n *EventHandler) handleReviewEvent(ctx context.Context, detail json.RawMes
 
 // the group will already be marked as approved here
 func (n *EventHandler) handleAccessGroupApprovedEvent(ctx context.Context, detail json.RawMessage) error {
+	log := logger.Get(ctx).With("eventType", gevent.AccessGroupApprovedType)
+
 	//if approved start the granting flow
 	var groupEvent gevent.AccessGroupApproved
 	err := json.Unmarshal(detail, &groupEvent)
@@ -78,10 +80,12 @@ func (n *EventHandler) handleAccessGroupApprovedEvent(ctx context.Context, detai
 	if err != nil {
 		return err
 	}
+	allGroupsReviewed := request.AllGroupsReviewed()
+	log.Infow("fetched request from database", "request", request, "allGroupsReviewed", allGroupsReviewed)
 
 	// 	if all groups are reviewed update request status to active, save to ddb
 	// Then start the grant workflows
-	if request.AllGroupsReviewed() {
+	if allGroupsReviewed {
 		request.UpdateStatus(types.ACTIVE)
 		err = n.DB.PutBatch(ctx, request.DBItems()...)
 		if err != nil {

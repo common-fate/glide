@@ -6,6 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/eventbridge"
 	"github.com/aws/aws-sdk-go-v2/service/eventbridge/types"
+	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/common-fate/pkg/cfaws"
 )
 
@@ -56,5 +57,7 @@ func (s *Sender) Put(ctx context.Context, e EventTyper) error {
 	if res.FailedEntryCount != 0 {
 		return fmt.Errorf("failed to send error with code: %s, error: %s", *res.Entries[0].ErrorCode, *res.Entries[0].ErrorMessage)
 	}
+	log := logger.Get(ctx)
+	log.Infow("event putter put event to event bus", "entry", entry)
 	return nil
 }

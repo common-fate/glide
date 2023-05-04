@@ -117,12 +117,12 @@ export class EventHandler extends Construct {
         },
       },
       targets: [
-        new LambdaFunction(this._sequentialLambda, {
+        new LambdaFunction(this._concurrentLambda, {
           retryAttempts: 2,
         }),
       ],
     });
-    props.dynamoTable.grantReadWriteData(this._sequentialLambda);
+    props.dynamoTable.grantReadWriteData(this._concurrentLambda);
   }
   getConcurrentLogGroupName(): string {
     return this._concurrentLambda.logGroup.logGroupName;
