@@ -19,23 +19,27 @@ import {
   shortTypeValues,
 } from "./icons/providerIcon";
 
-type Props = {
-  selectedProviders: ShortTypes[];
-  setSelectedProviders: React.Dispatch<React.SetStateAction<ShortTypes[]>>;
-  boxProps?: BoxProps;
+type Props<T, K extends keyof T> = {
+  /** The key from `inputArray` item used in lookup */
+  keyUsedForFilter: K;
+  inputArray: T[];
+  filteredInputArray: T[];
+  setFilteredInputArray: React.Dispatch<React.SetStateAction<T[]>>;
+  boxProps: BoxProps;
+  /** renderFn takes T and passes it to the react child */
+  renderFnTag: (item: T) => React.ReactNode | React.ReactNode[];
+  renderFnMenuSelect: (item: T) => React.ReactNode | React.ReactNode[];
 };
 
-/**
- * This is just a static version,
- * In the future we will want to use a version that
- * dyanmicallly fetches the users available providers i.e.
- * `useGetProviders()`
- */
-const StaticProviderSelect = ({
-  selectedProviders,
-  setSelectedProviders,
+const SelectMultiGeneric = <T, K extends keyof T>({
+  inputArray,
+  keyUsedForFilter,
+  filteredInputArray,
+  setFilteredInputArray,
   boxProps,
-}: Props) => {
+  renderFnMenuSelect,
+  renderFnTag,
+}: Props<T, K>) => {
   //   input state
   const [input, setInput] = useState("");
 
@@ -46,10 +50,10 @@ const StaticProviderSelect = ({
   // useMemo filtered entries using Object.entries
   const filteredEntries = React.useMemo(() => {
     return (
-      Object.entries(shortTypeValues)
+      inputArray
         // filter out the selected providers
-        .filter(([shortType, value]) => {
-          return !selectedProviders.includes(shortType as ShortTypes);
+        .filter((item) => {
+          return;
         })
         // dont filter if input is empty; filter input otherwise
         .filter(([shortType, value]) =>
@@ -58,7 +62,7 @@ const StaticProviderSelect = ({
             : value.toLowerCase().includes(input.toLowerCase())
         )
     );
-  }, [input, selectedProviders]);
+  }, [input, inputArray]);
 
   // menuRef for outside click
   const menuRef = React.useRef<HTMLDivElement>(null);
@@ -91,7 +95,7 @@ const StaticProviderSelect = ({
     if (e.key === "Enter") {
       // if enter key, add selected index to selected providers
       if (filteredEntries.length === 0) return;
-      setSelectedProviders((prev) => [
+      setFilteredInputArray((prev) => [
         ...prev,
         filteredEntries[selectedIndex][0] as ShortTypes,
       ]);
@@ -118,7 +122,7 @@ const StaticProviderSelect = ({
     // backspace remove last item in list
     if (e.key === "Backspace") {
       if (input === "") {
-        setSelectedProviders((prev) => prev.slice(0, prev.length - 1));
+        setFilteredInputArray((prev) => prev.slice(0, prev.length - 1));
       }
     }
   };
@@ -145,7 +149,7 @@ const StaticProviderSelect = ({
       >
         {/* result preview box */}
         <Wrap px={2}>
-          {selectedProviders.map((shortType) => (
+          {inputArray.map((shortType) => (
             <Flex
               rounded="full"
               textStyle="Body/Small"
@@ -154,8 +158,7 @@ const StaticProviderSelect = ({
               px={2}
               align="center"
             >
-              <ProviderIcon mr={1} shortType={shortType} />
-              {shortType}
+              {renderFnTag(shortType)}
               <IconButton
                 variant="ghost"
                 size="xs"
@@ -166,9 +169,9 @@ const StaticProviderSelect = ({
                 isRound
                 onClick={() => {
                   // if selected, remove
-                  if (selectedProviders.includes(shortType as ShortTypes)) {
-                    setSelectedProviders(
-                      selectedProviders.filter((s) => s !== shortType)
+                  if (inputArray.includes(shortType as ShortTypes)) {
+                    setFilteredInputArray(
+                      inputArray.filter((s) => s !== shortType)
                     );
                     return;
                   }
@@ -244,30 +247,25 @@ const StaticProviderSelect = ({
                 }}
                 onClick={() => {
                   // if selected, remove
-                  if (selectedProviders.includes(shortType as ShortTypes)) {
-                    setSelectedProviders(
-                      selectedProviders.filter((s) => s !== shortType)
+                  if (inputArray.includes(shortType as ShortTypes)) {
+                    setFilteredInputArray(
+                      inputArray.filter((s) => s !== shortType)
                     );
                     return;
                   }
-                  setSelectedProviders([
-                    ...selectedProviders,
+                  setFilteredInputArray([
+                    ...inputArray,
                     shortType as ShortTypes,
                   ]);
                 }}
               >
+                {renderFnMenuSelect(shortType)}
                 <ProviderIcon
                   shortType={shortType as ShortTypes}
                   key={shortType}
                   mr={2}
                 />
                 <span>{value}</span>
-                <CheckIcon
-                  display="none"
-                  _groupChecked={{
-                    display: "block",
-                  }}
-                />
               </Flex>
             ))}
           </Box>
@@ -277,4 +275,4 @@ const StaticProviderSelect = ({
   );
 };
 
-export default StaticProviderSelect;
+export default SelectMultiGeneric;

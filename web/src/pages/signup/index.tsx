@@ -22,6 +22,12 @@ import { BlurShapesBox } from "../../components/icons/BlurShapes";
 import { useForm } from "react-hook-form";
 import { Helmet } from "react-helmet";
 import StaticProviderSelect from "../../components/StaticProviderSelect";
+import {
+  ProviderIcon,
+  ShortTypes,
+  shortTypeValues,
+} from "../../components/icons/providerIcon";
+import SelectMultiGeneric from "../../components/SelectMultiGeneric";
 
 const Index = () => {
   const [loading, setLoading] = useBoolean(false);
@@ -55,7 +61,23 @@ const Index = () => {
   const isFirstPage = tabIndex === 0;
   const isLastPage = tabIndex === NO_OF_QS;
 
-  // hotkey listen for CMD + ENTER to submit
+  // TODO: hotkey listen for CMD + ENTER to submit
+
+  const [selectedProviders, setSelectedProviders] = useState<ShortTypes[]>([]);
+
+  type MockProvider = {
+    name: string;
+    shortType: ShortTypes;
+  };
+
+  const [filteredInput, setFilteredInput] = useState<MockProvider[]>();
+
+  const [selectedProviders2, setSelectedProviders2] = useState<MockProvider[]>(
+    Object.entries(shortTypeValues).map(([shortType, name]) => ({
+      name: name,
+      shortType: shortType as ShortTypes,
+    }))
+  );
 
   return (
     <Box bg="neutrals.700" h="100vh" w="100vw">
@@ -88,7 +110,17 @@ const Index = () => {
             zIndex={1}
           >
             <CommonFateLogo h="24px" width="auto" mr="auto" />
-            <Tabs index={tabIndex}>
+            <Tabs
+              index={tabIndex}
+              sx={{
+                "input[type=text]": {
+                  bg: "white",
+                },
+                "textarea": {
+                  bg: "white",
+                },
+              }}
+            >
               <TabPanels>
                 <TabPanel px={0}>
                   <Stack spacing={4}>
@@ -152,7 +184,25 @@ const Index = () => {
                       </Text>
                     </Box>
                     {/* add in provider select here */}
-                    <StaticProviderSelect />
+                    <StaticProviderSelect
+                      selectedProviders={selectedProviders}
+                      setSelectedProviders={setSelectedProviders}
+                    />
+                    <SelectMultiGeneric
+                      keyUsedForFilter="name"
+                      inputArray={selectedProviders2}
+                      filteredInputArray={filteredInput}
+                      setFilteredInputArray={setFilteredInput}
+                      boxProps={{ mt: 4 }}
+                      renderFnTag={(item) => [
+                        item.name,
+                        <ProviderIcon shortType={item.shortType} />,
+                      ]}
+                      renderFnMenuSelect={(item) => [
+                        <ProviderIcon shortType={item.shortType} mr={2} />,
+                        item.name,
+                      ]}
+                    />
                     {/* field with textarea */}
                     <FormControl>
                       <FormLabel>Other</FormLabel>
