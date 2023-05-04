@@ -156,23 +156,25 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (GrantState,
 		Grant: grant,
 	}
 
-	// Should be fine, it there is potential that
-	items = append(items, &grant)
-
 	if grantResponse != nil {
 		out.State = grantResponse.State
 		instructions := access.Instructions{
 			Instructions:  grantResponse.AccessInstructions,
-			GroupTargetID: grant.TargetGroupID,
+			GroupTargetID: grant.ID,
+			RequestedBy:   grant.RequestedBy.ID,
 		}
+		grant.Grant.Instructions = &grantResponse.AccessInstructions
 		items = append(items, &instructions)
 		//Save the new grant status and the instructions
-		err = g.DB.PutBatch(ctx, items...)
-		// If there is an error writing instructions, don't return the error.
-		// instead just continue so that the grant can be revoked
-		if err != nil {
-			log.Errorw("failed to write access instructions to DynamoDB", "error", err)
-		}
+
+	}
+	// Should be fine, it there is potential that
+	items = append(items, &grant)
+	err = g.DB.PutBatch(ctx, items...)
+	// If there is an error writing instructions, don't return the error.
+	// instead just continue so that the grant can be revoked
+	if err != nil {
+		log.Errorw("failed to write access instructions to DynamoDB", "error", err)
 	}
 	return out, nil
 }

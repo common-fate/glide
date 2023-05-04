@@ -35,12 +35,13 @@ import {
   Skeleton,
   SkeletonCircle,
   SkeletonText,
-  Spinner,
+  ModalProps,
   Stack,
   Text,
   useBoolean,
   useDisclosure,
   useToast,
+  HStack,
 } from "@chakra-ui/react";
 import { intervalToDuration, format } from "date-fns";
 import { useState } from "react";
@@ -60,6 +61,7 @@ import { ProviderIcon, ShortTypes } from "../../components/icons/providerIcon";
 import { UserLayout } from "../../components/Layout";
 import { GrantStatusCell, StatusCell } from "../../components/StatusCell";
 import {
+  useGetGroupTargetInstructions,
   useUserGetRequest,
   useUserListRequests,
 } from "../../utils/backend-client/default/default";
@@ -84,6 +86,7 @@ import {
 import { request } from "http";
 import FieldsCodeBlock from "../../components/FieldsCodeBlock";
 import { TargetDetail } from "../../components/Target";
+import { useUser } from "../../utils/context/userContext";
 
 type MyLocationGenerics = MakeGenerics<{
   Search: {
@@ -424,8 +427,7 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
     grantModalState.onClose();
   };
 
-  const isReviewer = true;
-
+  const user = useUser();
   return (
     <Box bg="neutrals.100" borderColor="neutrals.300" rounded="lg">
       <Accordion
@@ -449,7 +451,9 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
           >
             <AccordionIcon boxSize="6" mr={2} />
             <HeaderStatusCell group={group} />
-            <ApproveRejectDuration group={group} />
+            {group.requestReviewers?.includes(
+              user.user?.id ? user.user?.id : ""
+            ) && <ApproveRejectDuration group={group} />}
           </AccordionButton>
 
           <AccordionPanel
@@ -472,6 +476,7 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
                   pos="relative"
                 >
                   <TargetDetail
+                    showIcon
                     target={{
                       fields: target.fields,
                       id: target.id,
@@ -501,28 +506,73 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
           </AccordionPanel>
         </AccordionItem>
       </Accordion>
-      <Modal isOpen={grantModalState.isOpen} onClose={handleClose}>
+      <TargetGrantInstructionsModal
+        groupTarget={selectedGrant}
+        isOpen={grantModalState.isOpen}
+        onClose={handleClose}
+      />
+    </Box>
+  );
+};
+
+type Props = {
+  groupTarget: RequestAccessGroupTarget | undefined;
+} & Omit<ModalProps, "children">;
+
+export const TargetGrantInstructionsModal = (props: Props) => {
+  if (props.groupTarget) {
+    const data = useGetGroupTargetInstructions(props.groupTarget?.id);
+
+    return (
+      <Modal {...props} isCentered motionPreset="slideInBottom" size="xl">
         <ModalOverlay />
         <ModalContent>
           <ModalHeader></ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <Box>
-              <ProviderIcon
-                shortType={selectedGrant?.targetKind.icon as ShortTypes}
-              />
-              {/* <FieldsCodeBlock fields={selectedGrant?.fields || []} /> */}
-            </Box>
-            <Text textStyle="Body/Small">Access Instructions</Text>
+            <Flex direction="column" my="30px" mx="10px">
+              <HStack spacing="80%">
+                <ProviderIcon
+                  shortType={props.groupTarget?.targetKind.icon as ShortTypes}
+                />
+                <GrantStatusCell
+                  alignSelf="flex-end"
+                  targetStatus={props.groupTarget.status}
+                />
+              </HStack>
 
-            <Code bg="white" whiteSpace="pre-wrap">
-              {JSON.stringify(selectedGrant, null, 2)}
-            </Code>
-            <Text></Text>
+              <TargetDetail
+                target={{
+                  fields: props.groupTarget.fields,
+                  id: props.groupTarget.id,
+                  kind: props.groupTarget.targetKind,
+                }}
+                py="20px"
+              />
+
+              <Flex direction="column" py="20px">
+                <Text textStyle="Body/Small">Access Instructions</Text>
+                <Code>{data.data}</Code>
+              </Flex>
+            </Flex>
           </ModalBody>
         </ModalContent>
       </Modal>
-    </Box>
+    );
+  }
+  return (
+    <Modal {...props}>
+      <ModalOverlay />
+      <ModalContent>
+        <ModalHeader></ModalHeader>
+        <ModalCloseButton />
+        <ModalBody>
+          <Box></Box>
+
+          <Text></Text>
+        </ModalBody>
+      </ModalContent>
+    </Modal>
   );
 };
 
@@ -534,13 +584,12 @@ type ApproveRejectDurationProps = {
 export const ApproveRejectDuration = ({
   group,
 }: ApproveRejectDurationProps) => {
-  const isReviewer = false;
+  const user = useUser();
+  console.log(user);
 
   const handleClickMax = () => {
     setDurationSeconds(group.accessRule.timeConstraints.maxDurationSeconds);
   };
-
-  // console.log({ group });
 
   // durationSeconds state
   const [durationSeconds, setDurationSeconds] = useState<number>(
@@ -671,70 +720,69 @@ export const ApproveRejectDuration = ({
         </Popover>
         {/* {durationString(durationSeconds)} */}
       </Flex>
-      {isReviewer && (
-        <ButtonGroup ml="auto" variant="brandSecondary" spacing={2}>
-          <Button
-            size="sm"
-            onClick={() => {
-              console.log("approve");
-              // @TODO: add in admin approval API methods
-              userReviewRequest(group.requestId, group.id, {
-                decision: "APPROVED",
-              })
-                .then((e) => {
-                  toast({
-                    title: "Revoke Initiated",
-                    status: "success",
-                    variant: "subtle",
-                    duration: 2200,
-                    isClosable: true,
-                  });
-                })
-                .catch((e) => {
-                  toast({
-                    title: "Error Revoking",
-                    status: "error",
-                    variant: "subtle",
-                    duration: 2200,
-                    isClosable: true,
-                  });
+      <ButtonGroup ml="auto" variant="brandSecondary" spacing={2}>
+        <Button
+          size="sm"
+          onClick={() => {
+            console.log("approve");
+            // @TODO: add in admin approval API methods
+            userReviewRequest(group.requestId, group.id, {
+              decision: "APPROVED",
+            })
+              .then((e) => {
+                toast({
+                  title: "Revoke Initiated",
+                  status: "success",
+                  variant: "subtle",
+                  duration: 2200,
+                  isClosable: true,
                 });
-            }}
-          >
-            Approve
-          </Button>
-          <Button
-            size="sm"
-            onClick={() => {
-              console.log("reject");
-              // @TODO: add in admin approval API methods
-              userReviewRequest(group.requestId, group.id, {
-                decision: "DECLINED",
               })
-                .then((e) => {
-                  toast({
-                    title: "Revoke Initiated",
-                    status: "success",
-                    variant: "subtle",
-                    duration: 2200,
-                    isClosable: true,
-                  });
-                })
-                .catch((e) => {
-                  toast({
-                    title: "Error Revoking",
-                    status: "error",
-                    variant: "subtle",
-                    duration: 2200,
-                    isClosable: true,
-                  });
+              .catch((e) => {
+                toast({
+                  title: "Error Revoking",
+                  status: "error",
+                  variant: "subtle",
+                  duration: 2200,
+                  isClosable: true,
                 });
-            }}
-          >
-            Reject
-          </Button>
-        </ButtonGroup>
-      )}
+              });
+          }}
+        >
+          Approve
+        </Button>
+        <Button
+          size="sm"
+          onClick={() => {
+            console.log("reject");
+            // @TODO: add in admin approval API methods
+            userReviewRequest(group.requestId, group.id, {
+              decision: "DECLINED",
+            })
+              .then((e) => {
+                toast({
+                  title: "Revoke Initiated",
+                  status: "success",
+                  variant: "subtle",
+                  duration: 2200,
+                  isClosable: true,
+                });
+              })
+              .catch((e) => {
+                toast({
+                  title: "Error Revoking",
+                  status: "error",
+                  variant: "subtle",
+                  duration: 2200,
+                  isClosable: true,
+                });
+              });
+          }}
+        >
+          Reject
+        </Button>
+      </ButtonGroup>
+      )
     </Flex>
   );
 };

@@ -26,4 +26,6 @@ export interface RequestAccessGroup {
   approvalMethod?: RequestAccessGroupApprovalMethod;
   accessRule: RequestAccessGroupAccessRule;
   requestStatus: RequestStatus;
+  requestReviewers?: string[];
+  groupReviewers?: string[];
 }

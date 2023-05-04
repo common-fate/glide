@@ -230,6 +230,7 @@ const Search: React.FC<SearchProps> = ({ targets, entitlements }) => {
               const target = onDisplay[index];
               return (
                 <TargetDetail
+                  showIcon
                   key={target.id}
                   as={CommandNew.Item}
                   h={TARGET_HEIGHT}

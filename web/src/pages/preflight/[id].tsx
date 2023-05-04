@@ -145,7 +145,10 @@ const Home = () => {
                                         flexDir="row"
                                         background="white"
                                       >
-                                        <TargetDetail target={target} />
+                                        <TargetDetail
+                                          showIcon
+                                          target={target}
+                                        />
                                       </Flex>
                                     );
                                   })}
