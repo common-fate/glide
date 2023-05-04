@@ -347,7 +347,6 @@ func Dotenv() error {
 	myEnv["COMMONFATE_FRONTEND_URL"] = "http://localhost:3000"
 	myEnv["COMMONFATE_ACCESS_HANDLER_RUNTIME"] = "lambda"
 	myEnv["COMMONFATE_PAGINATION_KMS_KEY_ARN"] = o.PaginationKMSKeyARN
-	myEnv["COMMONFATE_ACCESS_HANDLER_EXECUTION_ROLE_ARN"] = o.AccessHandlerExecutionRoleARN
 	myEnv["COMMONFATE_ACCESS_REMOTE_CONFIG_URL"] = cfg.Deployment.Parameters.ExperimentalRemoteConfigURL
 	myEnv["COMMONFATE_REMOTE_CONFIG_HEADERS"] = cfg.Deployment.Parameters.ExperimentalRemoteConfigHeaders
 	myEnv["COMMONFATE_IDENTITY_GROUP_FILTER"] = cfg.Deployment.Parameters.IdentityGroupFilter

@@ -17,7 +17,6 @@ var Command = cli.Command{
 var ServiceLogGroupNameMap = map[string]string{
 	"api":            "APILogGroupName",
 	"idp-sync":       "IDPSyncLogGroupName",
-	"accesshandler":  "AccessHandlerLogGroupName",
 	"events":         "EventBusLogGroupName",
 	"event-handler":  "EventsHandlerLogGroupName",
 	"granter":        "GranterLogGroupName",

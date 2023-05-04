@@ -79,6 +79,7 @@ export class AppBackend extends Construct {
       code: lambda.Code.fromAsset(
         path.join(__dirname, "..", "..", "..", "..", "bin", "webhook.zip")
       ),
+      memorySize: 1024,
       timeout: Duration.seconds(20),
       runtime: lambda.Runtime.GO_1_X,
       handler: "webhook",

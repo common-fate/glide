@@ -33,6 +33,7 @@ export class CacheSync extends Construct {
       },
       runtime: lambda.Runtime.GO_1_X,
       handler: "cache-sync",
+      memorySize: 2048,
     });
 
     props.dynamoTable.grantReadWriteData(this._lambda);
