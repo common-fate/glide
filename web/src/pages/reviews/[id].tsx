@@ -330,6 +330,7 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
                   {/* <FieldsCodeBlock fields={target.fields} /> */}
 
                   <TargetDetail
+                    showIcon
                     target={{
                       fields: target.fields,
                       id: target.id,
@@ -390,8 +391,6 @@ export const ApproveRejectDuration = ({
   const handleClickMax = () => {
     setDurationSeconds(group.accessRule.timeConstraints.maxDurationSeconds);
   };
-
-  // console.log({ group });
 
   // durationSeconds state
   const [durationSeconds, setDurationSeconds] = useState<number>(

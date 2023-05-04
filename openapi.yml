@@ -1064,6 +1064,28 @@ paths:
         name: requestId
         in: path
         required: true
+  "/api/v1/targets/{targetId}/access-instructions":
+    parameters:
+      - schema:
+          type: string
+        name: targetId
+        in: path
+        required: true
+    get:
+      summary: Your GET endpoint
+      tags: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RequestAccessGroupTargetAccessInstructions"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      operationId: get-group-target-instructions
 components:
   schemas:
     User:
@@ -1777,6 +1799,14 @@ components:
           $ref: "#/components/schemas/RequestAccessGroupAccessRule"
         requestStatus:
           $ref: "#/components/schemas/RequestStatus"
+        requestReviewers:
+          type: array
+          items:
+            type: string
+        groupReviewers:
+          type: array
+          items:
+            type: string
       required:
         - id
         - requestId

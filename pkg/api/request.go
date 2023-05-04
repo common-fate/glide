@@ -314,3 +314,20 @@ func (a *API) UserListReviews(w http.ResponseWriter, r *http.Request, params typ
 
 	apio.JSON(ctx, w, res, http.StatusOK)
 }
+
+func (a *API) GetGroupTargetInstructions(w http.ResponseWriter, r *http.Request, targetId string) {
+	ctx := r.Context()
+	user := auth.UserFromContext(ctx)
+	q := storage.GetGroupTargetGrantInstructions{
+		TargetID: targetId,
+		UserId:   user.ID,
+	}
+
+	_, err := a.DB.Query(ctx, &q)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+
+	apio.JSON(ctx, w, q.Result.Instructions, http.StatusOK)
+}
