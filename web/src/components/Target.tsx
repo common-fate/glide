@@ -31,28 +31,26 @@ export const TargetDetail: React.FC<TargetDetailProps> = ({
 }) => {
   return (
     <Flex
-      w="100%"
       alignContent="flex-start"
+      position="relative"
       p={2}
       rounded="md"
-      id="targetParent"
       {...rest}
     >
+      <CheckCircleIcon
+        visibility={isChecked ? "visible" : "hidden"}
+        position="absolute"
+        top={2}
+        right={2}
+        boxSize={"12px"}
+        color={"brandBlue.300"}
+      />
       {showIcon && (
         <Tooltip
           label={`${target.kind.publisher}/${target.kind.name}/${target.kind.kind}`}
           placement="right"
         >
-          <Flex p={6} position="relative">
-            <CheckCircleIcon
-              visibility={isChecked ? "visible" : "hidden"}
-              position="absolute"
-              top={0}
-              left={0}
-              boxSize={"12px"}
-              color={"brandBlue.300"}
-            />
-
+          <Flex p={2} position="relative">
             <ProviderIcon
               boxSize={"24px"}
               shortType={target.kind.icon as ShortTypes}
@@ -65,7 +63,7 @@ export const TargetDetail: React.FC<TargetDetailProps> = ({
           <Flex alignItems="center" w="100%">
             <Divider
               orientation="vertical"
-              borderColor={"black"}
+              borderColor={"neutrals.300"}
               h="80%"
               hidden={i === 0}
               mx="20px"

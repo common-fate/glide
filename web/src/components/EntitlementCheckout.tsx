@@ -35,7 +35,7 @@ const IS_MAC = /(Mac|iPhone|iPod|iPad)/i.test(
   navigator.userAgent || navigator.platform || "unknown"
 );
 const SELECTED_KEY = "__selected_key__";
-const TARGET_HEIGHT = 100;
+const TARGET_HEIGHT = 64;
 const TARGETS = 5;
 const ACTION_KEY_DEFAULT = ["Ctrl", "Control"];
 const ACTION_KEY_APPLE = ["⌘", "Command"];
