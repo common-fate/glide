@@ -1343,6 +1343,8 @@ components:
           type: string
         fieldFilterExpessions:
           type: object
+          additionalProperties:
+            $ref: "#/components/schemas/ResourceFilter"
       required:
         - targetGroupId
         - fieldFilterExpessions
@@ -1357,6 +1359,8 @@ components:
           $ref: "#/components/schemas/TargetGroup"
         fieldFilterExpessions:
           type: object
+          additionalProperties:
+            $ref: "#/components/schemas/ResourceFilter"
       required:
         - targetGroup
         - fieldFilterExpessions
