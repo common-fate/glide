@@ -221,7 +221,7 @@ const Search: React.FC<SearchProps> = () => {
         </StyledCommandList>
         <Flex w="100%" mt={4}>
           <Button
-            disabled={checked.size == 0}
+            isDisabled={checked.size == 0 || submitLoading || targetsValidating}
             ml="auto"
             onClick={handleSubmit}
             isLoading={submitLoading || targetsValidating}
