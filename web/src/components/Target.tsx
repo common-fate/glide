@@ -26,22 +26,27 @@ export const TargetDetail: React.FC<TargetDetailProps> = ({
   ...rest
 }) => {
   return (
-    <Flex alignContent="flex-start" p={2} rounded="md" {...rest}>
+    <Flex
+      alignContent="flex-start"
+      position="relative"
+      p={2}
+      rounded="md"
+      {...rest}
+    >
+      <CheckCircleIcon
+        visibility={isChecked ? "visible" : "hidden"}
+        position="absolute"
+        top={2}
+        right={2}
+        boxSize={"12px"}
+        color={"brandBlue.300"}
+      />
       {showIcon && (
         <Tooltip
           label={`${target.kind.publisher}/${target.kind.name}/${target.kind.kind}`}
           placement="right"
         >
-          <Flex p={6} position="relative">
-            <CheckCircleIcon
-              visibility={isChecked ? "visible" : "hidden"}
-              position="absolute"
-              top={0}
-              left={0}
-              boxSize={"12px"}
-              color={"brandBlue.300"}
-            />
-
+          <Flex p={2} position="relative">
             <ProviderIcon
               boxSize={"24px"}
               shortType={target.kind.icon as ShortTypes}
@@ -54,7 +59,7 @@ export const TargetDetail: React.FC<TargetDetailProps> = ({
           <React.Fragment key={target.id + field.id}>
             <Divider
               orientation="vertical"
-              borderColor={"black"}
+              borderColor={"neutrals.300"}
               h="80%"
               hidden={i === 0}
             />
@@ -81,11 +86,11 @@ export const TargetDetail: React.FC<TargetDetailProps> = ({
               }
               placement="top"
             >
-              <Stack>
+              <Stack h="100%" spacing={0} justify="start" align="start">
                 <Text textStyle={"Body/SmallBold"} noOfLines={1}>
                   {field.fieldTitle}
                 </Text>
-                <Text textStyle={"Body/Small"} noOfLines={1}>
+                <Text fontFamily="mono" textStyle={"Body/Small"} noOfLines={1}>
                   {field.valueLabel}
                 </Text>
               </Stack>
