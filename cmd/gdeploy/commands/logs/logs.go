@@ -17,9 +17,8 @@ var Command = cli.Command{
 var ServiceLogGroupNameMap = map[string]string{
 	"api":               "APILogGroupName",
 	"idp-sync":          "IDPSyncLogGroupName",
-	"events-concurrent": "EventBusConcurrentLogGroupName",
-	"events-sequential": "EventBusSequentialLogGroupName",
-	"event-handler":     "EventsHandlerLogGroupName",
+	"events-concurrent": "EventsHandlerConcurrentLogGroupName",
+	"events-sequential": "EventsHandlerSequentialLogGroupName",
 	"slack-notifier":    "SlackNotifierLogGroupName",
 	"webhook":           "WebhookLogGroupName",
 	"cache-sync":        "CacheSyncLogGroupName",
@@ -31,8 +30,8 @@ var ServiceLogGroupNameMap = map[string]string{
 var ServiceNames = []string{
 	"api",
 	"idp-sync",
-	"events",
-	"event-handler",
+	"events-concurrent",
+	"events-sequential",
 	"granter",
 	"slack-notifier",
 	"webhook",
