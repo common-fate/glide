@@ -1064,6 +1064,46 @@ paths:
         name: requestId
         in: path
         required: true
+  "/api/v1/requests/{requestId}/events":
+    parameters:
+      - schema:
+          type: string
+        name: requestId
+        in: path
+        required: true
+    get:
+      summary: List request events
+      responses:
+        "200":
+          $ref: "#/components/responses/ListRequestEventsResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      operationId: user-list-request-events
+      description: |
+        Returns a HTTP401 response if the user is not the requestor or a reviewer.
+      tags:
+        - End User
+      parameters: []
+  "/api/v1/targets/{targetId}/access-instructions":
+    parameters:
+      - schema:
+          type: string
+        name: targetId
+        in: path
+        required: true
+    get:
+      summary: Your GET endpoint
+      tags: []
+      responses:
+        "200":
+          $ref: "#/components/responses/AccessInstructionsResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      operationId: get-group-target-instructions
 components:
   schemas:
     User:
@@ -1777,6 +1817,16 @@ components:
           $ref: "#/components/schemas/RequestAccessGroupAccessRule"
         requestStatus:
           $ref: "#/components/schemas/RequestStatus"
+        requestReviewers:
+          type: array
+          items:
+            type: string
+        groupReviewers:
+          type: array
+          items:
+            type: string
+        finalTiming:
+          $ref: "#/components/schemas/RequestAccessGroupFinalTiming"
       required:
         - id
         - requestId
@@ -1833,6 +1883,26 @@ components:
           format: time
       required:
         - durationSeconds
+    RequestAccessGroupFinalTiming:
+      title: RequestAccessGroupFinalTiming
+      type: object
+      x-stoplight:
+        id: 80b306d6a3bb7
+      description: "The final timing made for the grant, denormalised onto hte group "
+      properties:
+        startTime:
+          type: string
+          description: iso8601 timestamp in UTC timezone
+          x-go-type: time.Time
+          format: time
+        endTime:
+          type: string
+          description: iso8601 timestamp in UTC timezone
+          x-go-type: time.Time
+          format: time
+      required:
+        - startTime
+        - endTime
     RequestAccessGroupTarget:
       description: A temporary assignment of a user to a principal.
       type: object
@@ -2386,6 +2456,17 @@ components:
                         valueDescription: The Amazon Resource Name (ARN) of the role to assume in the SSO instance
                         value: "arn:aws:iam::123456789012:role/MyRole"
                 next: string
+    AccessInstructionsResponse:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              instructions:
+                $ref: "#/components/schemas/RequestAccessGroupTargetAccessInstructions"
+            required:
+              - instructions
   examples: {}
   securitySchemes: {}
   requestBodies:

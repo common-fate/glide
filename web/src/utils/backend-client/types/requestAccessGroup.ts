@@ -12,6 +12,7 @@ import type { RequestAccessGroupTarget } from './requestAccessGroupTarget';
 import type { RequestAccessGroupApprovalMethod } from './requestAccessGroupApprovalMethod';
 import type { RequestAccessGroupAccessRule } from './requestAccessGroupAccessRule';
 import type { RequestStatus } from './requestStatus';
+import type { RequestAccessGroupFinalTiming } from './requestAccessGroupFinalTiming';
 
 export interface RequestAccessGroup {
   id: string;
@@ -26,4 +27,7 @@ export interface RequestAccessGroup {
   approvalMethod?: RequestAccessGroupApprovalMethod;
   accessRule: RequestAccessGroupAccessRule;
   requestStatus: RequestStatus;
+  requestReviewers?: string[];
+  groupReviewers?: string[];
+  finalTiming?: RequestAccessGroupFinalTiming;
 }

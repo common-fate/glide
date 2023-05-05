@@ -22,7 +22,8 @@ import type {
   UserListReviewsParams,
   UserListRequestsParams,
   Request,
-  CreateAccessRequestRequestBody
+  CreateAccessRequestRequestBody,
+  AccessInstructionsResponseResponse
 } from '.././types'
 import { customInstance } from '../../custom-instance'
 import type { ErrorType } from '../../custom-instance'
@@ -347,6 +348,44 @@ export const useUserGetRequest = <TError = ErrorType<ErrorResponseResponse>>(
   const isEnabled = swrOptions?.enabled !== false && !!(requestId)
     const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserGetRequestKey(requestId) : null);
   const swrFn = () => userGetRequest(requestId, requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+/**
+ * @summary Your GET endpoint
+ */
+export const getGroupTargetInstructions = (
+    targetId: string,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<AccessInstructionsResponseResponse>(
+      {url: `/api/v1/targets/${targetId}/access-instructions`, method: 'get'
+    },
+      options);
+    }
+  
+
+export const getGetGroupTargetInstructionsKey = (targetId: string,) => [`/api/v1/targets/${targetId}/access-instructions`];
+
+    
+export type GetGroupTargetInstructionsQueryResult = NonNullable<Awaited<ReturnType<typeof getGroupTargetInstructions>>>
+export type GetGroupTargetInstructionsQueryError = ErrorType<ErrorResponseResponse>
+
+export const useGetGroupTargetInstructions = <TError = ErrorType<ErrorResponseResponse>>(
+ targetId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getGroupTargetInstructions>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && !!(targetId)
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetGroupTargetInstructionsKey(targetId) : null);
+  const swrFn = () => getGroupTargetInstructions(targetId, requestOptions);
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 

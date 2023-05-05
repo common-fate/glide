@@ -36,7 +36,7 @@ var SyncCommand = cli.Command{
 			return err
 		}
 
-		if o.IdpSyncFunctionName == "" {
+		if o.IDPSyncFunctionName == "" {
 			return clierr.New("The sync function name is not yet available. You may need to update your deployment to use this feature.")
 		}
 		si := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
@@ -46,7 +46,7 @@ var SyncCommand = cli.Command{
 
 		lambdaClient := lambda.NewFromConfig(cfg)
 		res, err := lambdaClient.Invoke(ctx, &lambda.InvokeInput{
-			FunctionName:   &o.IdpSyncFunctionName,
+			FunctionName:   &o.IDPSyncFunctionName,
 			InvocationType: types.InvocationTypeRequestResponse,
 			Payload:        []byte("{}"),
 		})

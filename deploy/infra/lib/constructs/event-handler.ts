@@ -56,30 +56,43 @@ export class EventHandler extends Construct {
       reservedConcurrentExecutions: 1,
     });
 
-    this._concurrentLambda.addToRolePolicy(
-      new PolicyStatement({
-        actions: [
-          "states:StopExecution",
-          "states:StartExecution",
-          "states:DescribeExecution",
-          "states:GetExecutionHistory",
-        ],
-        resources: [props.targetGroupGranter.getStateMachineARN()],
-      })
-    );
+    props.targetGroupGranter
+      .getStateMachine()
+      .grantStartExecution(this._concurrentLambda);
+
+    props.targetGroupGranter
+      .getStateMachine()
+      .grantRead(this._concurrentLambda);
+
+    props.targetGroupGranter
+      .getStateMachine()
+      .grantExecution(
+        this._concurrentLambda,
+        "states:StopExecution",
+        "states:StartExecution",
+        "states:DescribeExecution",
+        "states:GetExecutionHistory"
+      );
 
     props.eventBus.grantPutEventsTo(this._concurrentLambda);
-    this._sequentialLambda.addToRolePolicy(
-      new PolicyStatement({
-        actions: [
-          "states:StopExecution",
-          "states:StartExecution",
-          "states:DescribeExecution",
-          "states:GetExecutionHistory",
-        ],
-        resources: [props.targetGroupGranter.getStateMachineARN()],
-      })
-    );
+
+    props.targetGroupGranter
+      .getStateMachine()
+      .grantStartExecution(this._sequentialLambda);
+
+    props.targetGroupGranter
+      .getStateMachine()
+      .grantRead(this._sequentialLambda);
+
+    props.targetGroupGranter
+      .getStateMachine()
+      .grantExecution(
+        this._sequentialLambda,
+        "states:StopExecution",
+        "states:StartExecution",
+        "states:DescribeExecution",
+        "states:GetExecutionHistory"
+      );
 
     props.eventBus.grantPutEventsTo(this._sequentialLambda);
     new Rule(this, "SequentialEventBusRule", {
@@ -117,12 +130,12 @@ export class EventHandler extends Construct {
         },
       },
       targets: [
-        new LambdaFunction(this._sequentialLambda, {
+        new LambdaFunction(this._concurrentLambda, {
           retryAttempts: 2,
         }),
       ],
     });
-    props.dynamoTable.grantReadWriteData(this._sequentialLambda);
+    props.dynamoTable.grantReadWriteData(this._concurrentLambda);
   }
   getConcurrentLogGroupName(): string {
     return this._concurrentLambda.logGroup.logGroupName;
