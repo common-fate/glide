@@ -1,8 +1,11 @@
 import { CheckCircleIcon } from "@chakra-ui/icons";
 import {
+  Box,
   Divider,
   Flex,
   FlexProps,
+  Grid,
+  GridItem,
   HStack,
   Stack,
   Text,
@@ -12,6 +15,7 @@ import React from "react";
 // @ts-ignore
 import { ProviderIcon, ShortTypes } from "../components/icons/providerIcon";
 import { Target } from "../utils/backend-client/types";
+import { F } from "dist/assets/Layout-e4945437";
 
 interface TargetDetailProps extends FlexProps {
   target: Target;
@@ -26,7 +30,14 @@ export const TargetDetail: React.FC<TargetDetailProps> = ({
   ...rest
 }) => {
   return (
-    <Flex alignContent="flex-start" p={2} rounded="md" {...rest}>
+    <Flex
+      w="100%"
+      alignContent="flex-start"
+      p={2}
+      rounded="md"
+      id="targetParent"
+      {...rest}
+    >
       {showIcon && (
         <Tooltip
           label={`${target.kind.publisher}/${target.kind.name}/${target.kind.kind}`}
@@ -49,50 +60,51 @@ export const TargetDetail: React.FC<TargetDetailProps> = ({
           </Flex>
         </Tooltip>
       )}
-      <HStack>
+      <Grid autoColumns="minmax(0, 1fr)" gridAutoFlow="column">
         {target.fields.map((field, i) => (
-          <React.Fragment key={target.id + field.id}>
+          <Flex alignItems="center" w="100%">
             <Divider
               orientation="vertical"
               borderColor={"black"}
               h="80%"
               hidden={i === 0}
+              mx="20px"
             />
+            <GridItem alignItems="center">
+              {/* <React.Fragment key={target.id + field.id}> */}
 
-            <Tooltip
-              label={
-                <Stack>
-                  <Text color="white" textStyle={"Body/Small"}>
-                    {field.fieldTitle}
-                  </Text>
-                  <Text color="white" textStyle={"Body/Small"}>
-                    {field.fieldDescription}
-                  </Text>
-                  <Text color="white" textStyle={"Body/Small"}>
-                    {field.valueLabel}
-                  </Text>
-                  <Text color="white" textStyle={"Body/Small"}>
-                    {field.value}
-                  </Text>
-                  <Text color="white" textStyle={"Body/Small"}>
-                    {field.valueDescription}
-                  </Text>
+              <Tooltip
+                label={
+                  <Stack>
+                    <Text color="white" textStyle={"Body/Small"}>
+                      {field.fieldTitle}
+                    </Text>
+                    <Text color="white" textStyle={"Body/Small"}>
+                      {field.fieldDescription}
+                    </Text>
+                    <Text color="white" textStyle={"Body/Small"}>
+                      {field.valueLabel}
+                    </Text>
+                    <Text color="white" textStyle={"Body/Small"}>
+                      {field.value}
+                    </Text>
+                    <Text color="white" textStyle={"Body/Small"}>
+                      {field.valueDescription}
+                    </Text>
+                  </Stack>
+                }
+                placement="top"
+              >
+                <Stack wrap="wrap">
+                  <Text textStyle={"Body/SmallBold"}>{field.fieldTitle}</Text>
+                  <Text textStyle={"Body/Small"}>{field.valueLabel}</Text>
                 </Stack>
-              }
-              placement="top"
-            >
-              <Stack>
-                <Text textStyle={"Body/SmallBold"} noOfLines={1}>
-                  {field.fieldTitle}
-                </Text>
-                <Text textStyle={"Body/Small"} noOfLines={1}>
-                  {field.valueLabel}
-                </Text>
-              </Stack>
-            </Tooltip>
-          </React.Fragment>
+              </Tooltip>
+              {/* </React.Fragment> */}
+            </GridItem>
+          </Flex>
         ))}
-      </HStack>
+      </Grid>
     </Flex>
   );
 };

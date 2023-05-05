@@ -473,6 +473,8 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
                   bg="white"
                   p={2}
                   pos="relative"
+                  justifyContent="flex-end"
+                  h="120px"
                 >
                   <TargetDetail
                     showIcon
@@ -483,14 +485,8 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
                     }}
                   />
 
-                  <Stack justifyContent="center">
-                    <Flex
-                      onClick={(e) => {
-                        e.stopPropagation();
-                      }}
-                    >
-                      <GrantStatusCell targetStatus={target.status} />
-                    </Flex>
+                  <Stack justifyContent="space-between">
+                    <GrantStatusCell targetStatus={target.status} />
                     <Button
                       variant="brandSecondary"
                       size="xs"
