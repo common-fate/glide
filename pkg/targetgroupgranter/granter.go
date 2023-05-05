@@ -139,10 +139,10 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (GrantState,
 	var evt gevent.EventTyper
 	switch in.Action {
 	case ACTIVATE:
-		grant.Grant.Status = types.RequestAccessGroupTargetStatusACTIVE
+		// grant.Grant.Status = types.RequestAccessGroupTargetStatusACTIVE
 		evt = &gevent.GrantActivated{Grant: grant}
 	case DEACTIVATE:
-		grant.Grant.Status = types.RequestAccessGroupTargetStatusEXPIRED
+		// grant.Grant.Status = types.RequestAccessGroupTargetStatusEXPIRED
 		evt = &gevent.GrantExpired{Grant: grant}
 
 	}

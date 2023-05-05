@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/storage"
@@ -47,9 +48,13 @@ func (n *EventHandler) handleRequestCreated(ctx context.Context, detail json.Raw
 			if err != nil {
 				return err
 			}
-			err = n.Eventbus.Put(ctx, gevent.AccessGroupApproved{
-				AccessGroup:    group,
-				ApprovalMethod: types.AUTOMATIC,
+			err = n.Eventbus.Put(ctx, gevent.AccessGroupReviewed{
+
+				AccessGroup: group,
+				Review: types.ReviewRequest{
+					Decision: types.ReviewDecisionAPPROVED,
+					Comment:  aws.String("Automatic Approval"),
+				},
 			})
 			if err != nil {
 				return err

@@ -1,7 +1,6 @@
 package access
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/common-fate/common-fate/pkg/storage/keys"
@@ -16,12 +15,15 @@ type RequestEvent struct {
 	CreatedAt time.Time `json:"createdAt" dynamodbav:"createdAt"`
 	// Actor is the ID of the user who has made the request or nil if it was automated
 	Actor              *string                               `json:"actor,omitempty" dynamodbav:"actor,omitempty"`
-	FromStatus         *string                               `json:"fromStatus,omitempty" dynamodbav:"fromStatus,omitempty"`
-	ToStatus           *string                               `json:"toStatus,omitempty" dynamodbav:"toStatus,omitempty"`
+	FromStatus         *types.RequestStatus                  `json:"fromStatus,omitempty" dynamodbav:"fromStatus,omitempty"`
+	ToStatus           *types.RequestStatus                  `json:"toStatus,omitempty" dynamodbav:"toStatus,omitempty"`
 	FromTiming         *Timing                               `json:"fromTiming,omitempty" dynamodbav:"fromTiming,omitempty"`
 	ToTiming           *Timing                               `json:"toTiming,omitempty" dynamodbav:"toTiming,omitempty"`
+	FromGroupStatus    *types.RequestAccessGroupStatus       `json:"fromGroupStatus,omitempty" dynamodbav:"fromGroupStatus,omitempty"`
+	ToGroupStatus      *types.RequestAccessGroupStatus       `json:"toGroupStatus,omitempty" dynamodbav:"toGroupStatus,omitempty"`
 	FromGrantStatus    *types.RequestAccessGroupTargetStatus `json:"fromGrantStatus,omitempty" dynamodbav:"fromGrantStatus,omitempty"`
 	ToGrantStatus      *types.RequestAccessGroupTargetStatus `json:"toGrantStatus,omitempty" dynamodbav:"toGrantStatus,omitempty"`
+	GroupTarget        *GroupTarget                          `json:"groupTarget,omitempty" dynamodbav:"groupTarget,omitempty"`
 	GrantCreated       *bool                                 `json:"grantCreated,omitempty" dynamodbav:"grantCreated,omitempty"`
 	GrantFailureReason *string                               `json:"grantFailureReason,omitempty" dynamodbav:"grantFailureReason,omitempty"`
 	RequestCreated     *bool                                 `json:"requestCreated,omitempty" dynamodbav:"requestCreated,omitempty"`
@@ -47,15 +49,18 @@ func NewGrantCreatedEvent(requestID string, createdAt time.Time) RequestEvent {
 }
 
 func NewRequestStatusChangeEvent(requestID string, createdAt time.Time, actor *string, from, to types.RequestStatus) RequestEvent {
-	fromVal := fmt.Sprintf("%s", from)
-	toVal := fmt.Sprintf("%s", to)
-	return RequestEvent{ID: types.NewHistoryID(), CreatedAt: createdAt, Actor: actor, RequestID: requestID, FromStatus: &fromVal, ToStatus: &toVal}
+
+	return RequestEvent{ID: types.NewHistoryID(), CreatedAt: createdAt, Actor: actor, RequestID: requestID, FromStatus: &from, ToStatus: &to}
 }
 
 func NewGroupStatusChangeEvent(requestID string, createdAt time.Time, actor *string, from, to types.RequestAccessGroupStatus) RequestEvent {
-	fromVal := fmt.Sprintf("%s", from)
-	toVal := fmt.Sprintf("%s", to)
-	return RequestEvent{ID: types.NewHistoryID(), CreatedAt: createdAt, Actor: actor, RequestID: requestID, FromStatus: &fromVal, ToStatus: &toVal}
+
+	return RequestEvent{ID: types.NewHistoryID(), CreatedAt: createdAt, Actor: actor, RequestID: requestID, FromGroupStatus: &from, ToGroupStatus: &to}
+}
+
+func NewTargetStatusChangeEvent(requestID string, createdAt time.Time, actor *string, from, to types.RequestAccessGroupTargetStatus, target GroupTarget) RequestEvent {
+
+	return RequestEvent{ID: types.NewHistoryID(), CreatedAt: createdAt, Actor: actor, RequestID: requestID, FromGrantStatus: &from, ToGrantStatus: &to, GroupTarget: &target}
 }
 
 func NewTimingChangeEvent(requestID string, createdAt time.Time, actor *string, from, to Timing) RequestEvent {
@@ -77,7 +82,8 @@ func (r *RequestEvent) ToAPI() types.RequestEvent {
 		ft := r.FromTiming.ToAPI()
 		fromTiming = &ft
 	}
-	return types.RequestEvent{
+
+	out := types.RequestEvent{
 		Id:                 r.ID,
 		RequestId:          r.RequestID,
 		CreatedAt:          r.CreatedAt,
@@ -92,7 +98,16 @@ func (r *RequestEvent) ToAPI() types.RequestEvent {
 		RequestCreated:     r.RequestCreated,
 		GrantFailureReason: r.GrantFailureReason,
 		RecordedEvent:      r.RecordedEvent,
+		FromGroupStatus:    r.FromGroupStatus,
+		ToGroupStatus:      r.ToGroupStatus,
 	}
+	if r.GroupTarget != nil {
+		t := r.GroupTarget.ToAPI()
+		out.Target = &t
+
+	}
+	return out
+
 }
 
 func (r *RequestEvent) DDBKeys() (ddb.Keys, error) {

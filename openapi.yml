@@ -1779,6 +1779,12 @@ components:
           type: object
           x-go-type: "map[string]string"
           description: An event which was recorded relating to the grant.
+        target:
+          $ref: "#/components/schemas/RequestAccessGroupTarget"
+        fromGroupStatus:
+          $ref: "#/components/schemas/RequestAccessGroupStatus"
+        toGroupStatus:
+          $ref: "#/components/schemas/RequestAccessGroupStatus"
       required:
         - id
         - requestId
