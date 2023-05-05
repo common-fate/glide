@@ -1,30 +1,23 @@
-import { CheckIcon, ChevronDownIcon, CloseIcon } from "@chakra-ui/icons";
+import { CloseIcon } from "@chakra-ui/icons";
 import {
-  Button,
-  useBoolean,
-  Input,
   Box,
-  Stack,
-  Flex,
-  Text,
-  IconButton,
-  Wrap,
-  useOutsideClick,
   BoxProps,
+  Flex,
+  IconButton,
+  Input,
+  Wrap,
+  useBoolean,
+  useOutsideClick,
 } from "@chakra-ui/react";
 import React, { useState } from "react";
-import {
-  ProviderIcon,
-  ShortTypes,
-  shortTypeValues,
-} from "./icons/providerIcon";
+import { ShortTypes } from "./icons/providerIcon";
 
 type Props<T, K extends keyof T> = {
   /** The key from `inputArray` item used in lookup */
   keyUsedForFilter: K;
   inputArray: T[];
-  filteredInputArray: T[];
-  setFilteredInputArray: React.Dispatch<React.SetStateAction<T[]>>;
+  selectedItems: T[];
+  setSelectedItems: React.Dispatch<React.SetStateAction<T[]>>;
   boxProps: BoxProps;
   /** renderFn takes T and passes it to the react child */
   renderFnTag: (item: T) => React.ReactNode | React.ReactNode[];
@@ -34,13 +27,12 @@ type Props<T, K extends keyof T> = {
 const SelectMultiGeneric = <T, K extends keyof T>({
   inputArray,
   keyUsedForFilter,
-  filteredInputArray,
-  setFilteredInputArray,
+  selectedItems,
+  setSelectedItems,
   boxProps,
   renderFnMenuSelect,
   renderFnTag,
 }: Props<T, K>) => {
-  //   input state
   const [input, setInput] = useState("");
 
   const [open, setOpen] = useBoolean(false);
@@ -48,21 +40,29 @@ const SelectMultiGeneric = <T, K extends keyof T>({
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   // useMemo filtered entries using Object.entries
-  const filteredEntries = React.useMemo(() => {
+  const filteredEntriesForMenu = React.useMemo(() => {
     return (
       inputArray
-        // filter out the selected providers
+        // filter out the selected providers based on key match
         .filter((item) => {
-          return;
+          return (
+            selectedItems.findIndex(
+              (s) => s[keyUsedForFilter] === item[keyUsedForFilter]
+            ) === -1
+          );
+          //   return !selectedItems.includes(item);
         })
         // dont filter if input is empty; filter input otherwise
-        .filter(([shortType, value]) =>
+        .filter((item) =>
           input === ""
             ? true
-            : value.toLowerCase().includes(input.toLowerCase())
+            : item[keyUsedForFilter]
+                .toString()
+                .toLowerCase()
+                .includes(input.toLowerCase())
         )
     );
-  }, [input, inputArray]);
+  }, [input, inputArray, keyUsedForFilter, selectedItems]);
 
   // menuRef for outside click
   const menuRef = React.useRef<HTMLDivElement>(null);
@@ -82,7 +82,7 @@ const SelectMultiGeneric = <T, K extends keyof T>({
   // escape key press will close the menu
   const handleSearchInputKeyDown = (e: React.KeyboardEvent) => {
     // if there are results and input and the modal isnt open, open it
-    if (filteredEntries.length > 0 && input !== "" && !open) {
+    if (filteredEntriesForMenu.length > 0 && input !== "" && !open) {
       setOpen.on();
       return;
     }
@@ -94,11 +94,10 @@ const SelectMultiGeneric = <T, K extends keyof T>({
     }
     if (e.key === "Enter") {
       // if enter key, add selected index to selected providers
-      if (filteredEntries.length === 0) return;
-      setFilteredInputArray((prev) => [
-        ...prev,
-        filteredEntries[selectedIndex][0] as ShortTypes,
-      ]);
+      if (filteredEntriesForMenu.length === 0) return;
+      setSelectedItems((prev) =>
+        prev.concat(filteredEntriesForMenu[selectedIndex])
+      );
       // clear input
       setInput("");
       return;
@@ -106,7 +105,7 @@ const SelectMultiGeneric = <T, K extends keyof T>({
     // if up key, move selected index up
     if (e.key === "ArrowUp") {
       setSelectedIndex((prev) => {
-        if (prev === 0) return filteredEntries.length - 1;
+        if (prev === 0) return filteredEntriesForMenu.length - 1;
         return prev - 1;
       });
       return;
@@ -114,7 +113,7 @@ const SelectMultiGeneric = <T, K extends keyof T>({
     // if down key, move selected index down
     if (e.key === "ArrowDown") {
       setSelectedIndex((prev) => {
-        if (prev === filteredEntries.length - 1) return 0;
+        if (prev === filteredEntriesForMenu.length - 1) return 0;
         return prev + 1;
       });
       return;
@@ -122,7 +121,7 @@ const SelectMultiGeneric = <T, K extends keyof T>({
     // backspace remove last item in list
     if (e.key === "Backspace") {
       if (input === "") {
-        setFilteredInputArray((prev) => prev.slice(0, prev.length - 1));
+        setSelectedItems((prev) => prev.slice(0, prev.length - 1));
       }
     }
   };
@@ -149,7 +148,7 @@ const SelectMultiGeneric = <T, K extends keyof T>({
       >
         {/* result preview box */}
         <Wrap px={2}>
-          {inputArray.map((shortType) => (
+          {selectedItems.map((shortType) => (
             <Flex
               rounded="full"
               textStyle="Body/Small"
@@ -170,9 +169,7 @@ const SelectMultiGeneric = <T, K extends keyof T>({
                 onClick={() => {
                   // if selected, remove
                   if (inputArray.includes(shortType as ShortTypes)) {
-                    setFilteredInputArray(
-                      inputArray.filter((s) => s !== shortType)
-                    );
+                    setSelectedItems(inputArray.filter((s) => s !== shortType));
                     return;
                   }
                 }}
@@ -225,7 +222,7 @@ const SelectMultiGeneric = <T, K extends keyof T>({
           zIndex={2}
         >
           <Box>
-            {filteredEntries.map(([shortType, value]) => (
+            {filteredEntriesForMenu.map((entryItem) => (
               <Flex
                 display="flex"
                 // variant="unstyled"
@@ -246,26 +243,18 @@ const SelectMultiGeneric = <T, K extends keyof T>({
                   bg: "neutrals.100",
                 }}
                 onClick={() => {
-                  // if selected, remove
-                  if (inputArray.includes(shortType as ShortTypes)) {
-                    setFilteredInputArray(
-                      inputArray.filter((s) => s !== shortType)
-                    );
+                  // redundancy check, ensure not already in selected array
+                  if (
+                    selectedItems.find(
+                      (item) =>
+                        entryItem[keyUsedForFilter] === item[keyUsedForFilter]
+                    )
+                  )
                     return;
-                  }
-                  setFilteredInputArray([
-                    ...inputArray,
-                    shortType as ShortTypes,
-                  ]);
+                  setSelectedItems((curr) => [...curr, entryItem]);
                 }}
               >
-                {renderFnMenuSelect(shortType)}
-                <ProviderIcon
-                  shortType={shortType as ShortTypes}
-                  key={shortType}
-                  mr={2}
-                />
-                <span>{value}</span>
+                {renderFnMenuSelect(entryItem)}
               </Flex>
             ))}
           </Box>

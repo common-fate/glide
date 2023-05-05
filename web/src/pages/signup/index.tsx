@@ -70,7 +70,7 @@ const Index = () => {
     shortType: ShortTypes;
   };
 
-  const [filteredInput, setFilteredInput] = useState<MockProvider[]>();
+  const [filteredInput, setFilteredInput] = useState<MockProvider[]>([]);
 
   const [selectedProviders2, setSelectedProviders2] = useState<MockProvider[]>(
     Object.entries(shortTypeValues).map(([shortType, name]) => ({
@@ -191,8 +191,8 @@ const Index = () => {
                     <SelectMultiGeneric
                       keyUsedForFilter="name"
                       inputArray={selectedProviders2}
-                      filteredInputArray={filteredInput}
-                      setFilteredInputArray={setFilteredInput}
+                      selectedItems={filteredInput}
+                      setSelectedItems={setFilteredInput}
                       boxProps={{ mt: 4 }}
                       renderFnTag={(item) => [
                         item.name,
