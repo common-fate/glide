@@ -78,7 +78,7 @@ export class AppBackend extends Construct {
       code: lambda.Code.fromAsset(
         path.join(__dirname, "..", "..", "..", "..", "bin", "webhook.zip")
       ),
-      memorySize: 1024,
+
       timeout: Duration.seconds(20),
       runtime: lambda.Runtime.GO_1_X,
       handler: "webhook",
@@ -137,6 +137,7 @@ export class AppBackend extends Construct {
         CF_ANALYTICS_DEPLOYMENT_STAGE: props.analyticsDeploymentStage,
         COMMONFATE_IDENTITY_GROUP_FILTER: props.identityGroupFilter,
       },
+      memorySize: 1024,
       runtime: lambda.Runtime.GO_1_X,
       handler: "commonfate",
     });
