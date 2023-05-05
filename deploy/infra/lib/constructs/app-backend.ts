@@ -30,7 +30,6 @@ interface Props {
   eventBusSourceName: string;
   eventBus: EventBus;
   adminGroupId: string;
-  providerConfig: string;
   notificationsConfiguration: string;
   identityProviderSyncConfiguration: string;
   deploymentSuffix: string;
@@ -123,7 +122,6 @@ export class AppBackend extends Construct {
         COMMONFATE_IDENTITY_PROVIDER: props.userPool.getIdpType(),
         COMMONFATE_ADMIN_GROUP: props.adminGroupId,
         COMMONFATE_MOCK_ACCESS_HANDLER: "false",
-        COMMONFATE_PROVIDER_CONFIG: props.providerConfig,
         // COMMONFATE_SENTRY_DSN: can be added here
         COMMONFATE_EVENT_BUS_ARN: props.eventBus.eventBusArn,
         COMMONFATE_EVENT_BUS_SOURCE: props.eventBusSourceName,
