@@ -36,40 +36,39 @@ func TestOutputStructMatchesTSType(t *testing.T) {
 		t.Fatal(err)
 	}
 	output := Output{
-		CognitoClientID:               "abcdefg",
-		CloudFrontDomain:              "abcdefg",
-		FrontendDomainOutput:          "abcdefg",
-		CloudFrontDistributionID:      "abcdefg",
-		S3BucketName:                  "abcdefg",
-		UserPoolID:                    "abcdefg",
-		UserPoolDomain:                "abcdefg",
-		APIURL:                        "abcdefg",
-		WebhookURL:                    "abcdefg",
-		WebhookLogGroupName:           "abcdefg",
-		APILogGroupName:               "abcdefg",
-		IDPSyncLogGroupName:           "abcdefg",
-		EventBusLogGroupName:          "abcdefg",
-		EventsHandlerLogGroupName:     "abcdefg",
-		GranterLogGroupName:           "abcdefg",
-		SlackNotifierLogGroupName:     "abcdefg",
-		DynamoDBTable:                 "abcdefg",
-		GranterStateMachineArn:        "abcdefg",
-		EventBusArn:                   "abcdefg",
-		EventBusSource:                "abcdefg",
-		IdpSyncFunctionName:           "abcdefg",
-		SAMLIdentityProviderName:      "abcdefg",
-		Region:                        "abcdefg",
-		PaginationKMSKeyARN:           "abcdefg",
-		AccessHandlerExecutionRoleARN: "abcdefg",
-		CacheSyncLogGroupName:         "abcdefg",
-		RestAPIExecutionRoleARN:       "abcdefg",
-		IDPSyncExecutionRoleARN:       "abcdefg",
-		CacheSyncFunctionName:         "abcdefg",
-		GovernanceURL:                 "abcdefg",
-		CLIAppClientID:                "abcdefg",
-		HealthcheckFunctionName:       "abcdefg",
-		HealthcheckLogGroupName:       "abcdefg",
-		GranterV2StateMachineArn:      "abcdefg",
+		CognitoClientID:                     "abcdefg",
+		CloudFrontDomain:                    "abcdefg",
+		FrontendDomainOutput:                "abcdefg",
+		CloudFrontDistributionID:            "abcdefg",
+		S3BucketName:                        "abcdefg",
+		UserPoolID:                          "abcdefg",
+		UserPoolDomain:                      "abcdefg",
+		APIURL:                              "abcdefg",
+		WebhookURL:                          "abcdefg",
+		WebhookLogGroupName:                 "abcdefg",
+		APILogGroupName:                     "abcdefg",
+		IDPSyncLogGroupName:                 "abcdefg",
+		EventBusLogGroupName:                "abcdefg",
+		EventsHandlerConcurrentLogGroupName: "abcdefg",
+		EventsHandlerSequentialLogGroupName: "abcdefg",
+		GranterLogGroupName:                 "abcdefg",
+		SlackNotifierLogGroupName:           "abcdefg",
+		DynamoDBTable:                       "abcdefg",
+		EventBusArn:                         "abcdefg",
+		EventBusSource:                      "abcdefg",
+		IDPSyncFunctionName:                 "abcdefg",
+		SAMLIdentityProviderName:            "abcdefg",
+		Region:                              "abcdefg",
+		PaginationKMSKeyARN:                 "abcdefg",
+		CacheSyncLogGroupName:               "abcdefg",
+		RestAPIExecutionRoleARN:             "abcdefg",
+		IDPSyncExecutionRoleARN:             "abcdefg",
+		CacheSyncFunctionName:               "abcdefg",
+		GovernanceURL:                       "abcdefg",
+		CLIAppClientID:                      "abcdefg",
+		HealthcheckFunctionName:             "abcdefg",
+		HealthcheckLogGroupName:             "abcdefg",
+		GranterV2StateMachineArn:            "abcdefg",
 	}
 	b, err := json.Marshal(output)
 	if err != nil {
@@ -96,55 +95,20 @@ func TestOutputStructMatchesTSType(t *testing.T) {
 }
 
 func TestOutput_Get(t *testing.T) {
-	type fields struct {
-		CognitoClientID               string
-		CloudFrontDomain              string
-		FrontendDomainOutput          string
-		CloudFrontDistributionID      string
-		S3BucketName                  string
-		UserPoolID                    string
-		UserPoolDomain                string
-		APIURL                        string
-		WebhookURL                    string
-		APILogGroupName               string
-		IDPSyncLogGroupName           string
-		EventBusLogGroupName          string
-		EventsHandlerLogGroupName     string
-		GranterLogGroupName           string
-		SlackNotifierLogGroupName     string
-		DynamoDBTable                 string
-		GranterStateMachineArn        string
-		EventBusArn                   string
-		EventBusSource                string
-		IdpSyncFunctionName           string
-		SAMLIdentityProviderName      string
-		Region                        string
-		PaginationKMSKeyARN           string
-		AccessHandlerExecutionRoleARN string
-		CacheSyncFunctionName         string
-		GovernanceURL                 string
-		CLIAppClientID                string
-		HealthcheckFunctionName       string
-		HealthcheckLogGroupName       string
-		WebhookLogGroupName           string
-		CacheSyncLogGroupName         string
-		RestAPIExecutionRoleARN       string
-		IDPSyncExecutionRoleARN       string
-		GranterV2StateMachineArn      string
-	}
+
 	type args struct {
 		key string
 	}
 	tests := []struct {
 		name    string
-		fields  fields
+		fields  Output
 		args    args
 		want    string
 		wantErr bool
 	}{
 		{
 			name: "ok",
-			fields: fields{
+			fields: Output{
 				CognitoClientID: "test",
 			},
 			args: args{
@@ -163,40 +127,39 @@ func TestOutput_Get(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			o := Output{
-				CognitoClientID:               tt.fields.CognitoClientID,
-				CloudFrontDomain:              tt.fields.CloudFrontDomain,
-				FrontendDomainOutput:          tt.fields.FrontendDomainOutput,
-				CloudFrontDistributionID:      tt.fields.CloudFrontDistributionID,
-				S3BucketName:                  tt.fields.S3BucketName,
-				UserPoolID:                    tt.fields.UserPoolID,
-				UserPoolDomain:                tt.fields.UserPoolDomain,
-				APIURL:                        tt.fields.APIURL,
-				WebhookURL:                    tt.fields.WebhookURL,
-				APILogGroupName:               tt.fields.APILogGroupName,
-				IDPSyncLogGroupName:           tt.fields.IDPSyncLogGroupName,
-				EventBusLogGroupName:          tt.fields.EventBusLogGroupName,
-				EventsHandlerLogGroupName:     tt.fields.EventsHandlerLogGroupName,
-				GranterLogGroupName:           tt.fields.GranterLogGroupName,
-				SlackNotifierLogGroupName:     tt.fields.SlackNotifierLogGroupName,
-				DynamoDBTable:                 tt.fields.DynamoDBTable,
-				GranterStateMachineArn:        tt.fields.GranterStateMachineArn,
-				EventBusArn:                   tt.fields.EventBusArn,
-				EventBusSource:                tt.fields.EventBusSource,
-				IdpSyncFunctionName:           tt.fields.IdpSyncFunctionName,
-				SAMLIdentityProviderName:      tt.fields.SAMLIdentityProviderName,
-				Region:                        tt.fields.Region,
-				PaginationKMSKeyARN:           tt.fields.PaginationKMSKeyARN,
-				AccessHandlerExecutionRoleARN: tt.fields.AccessHandlerExecutionRoleARN,
-				GovernanceURL:                 tt.fields.GovernanceURL,
-				WebhookLogGroupName:           tt.fields.WebhookLogGroupName,
-				CacheSyncLogGroupName:         tt.fields.CacheSyncLogGroupName,
-				RestAPIExecutionRoleARN:       tt.fields.RestAPIExecutionRoleARN,
-				IDPSyncExecutionRoleARN:       tt.fields.IDPSyncExecutionRoleARN,
-				CacheSyncFunctionName:         tt.fields.CacheSyncFunctionName,
-				CLIAppClientID:                tt.fields.CLIAppClientID,
-				HealthcheckFunctionName:       tt.fields.HealthcheckFunctionName,
-				HealthcheckLogGroupName:       tt.fields.HealthcheckLogGroupName,
-				GranterV2StateMachineArn:      tt.fields.GranterV2StateMachineArn,
+				APILogGroupName:                     tt.fields.APILogGroupName,
+				APIURL:                              tt.fields.APIURL,
+				CacheSyncFunctionName:               tt.fields.CacheSyncFunctionName,
+				CacheSyncLogGroupName:               tt.fields.CacheSyncLogGroupName,
+				CLIAppClientID:                      tt.fields.CLIAppClientID,
+				CloudFrontDistributionID:            tt.fields.CloudFrontDistributionID,
+				CloudFrontDomain:                    tt.fields.CloudFrontDomain,
+				CognitoClientID:                     tt.fields.CognitoClientID,
+				DynamoDBTable:                       tt.fields.DynamoDBTable,
+				EventBusArn:                         tt.fields.EventBusArn,
+				EventBusLogGroupName:                tt.fields.EventBusLogGroupName,
+				EventBusSource:                      tt.fields.EventBusSource,
+				EventsHandlerConcurrentLogGroupName: tt.fields.EventsHandlerConcurrentLogGroupName,
+				EventsHandlerSequentialLogGroupName: tt.fields.EventsHandlerSequentialLogGroupName,
+				FrontendDomainOutput:                tt.fields.FrontendDomainOutput,
+				GovernanceURL:                       tt.fields.GovernanceURL,
+				GranterV2StateMachineArn:            tt.fields.GranterV2StateMachineArn,
+				GranterLogGroupName:                 tt.fields.GranterLogGroupName,
+				HealthcheckFunctionName:             tt.fields.HealthcheckFunctionName,
+				HealthcheckLogGroupName:             tt.fields.HealthcheckLogGroupName,
+				IDPSyncExecutionRoleARN:             tt.fields.IDPSyncExecutionRoleARN,
+				IDPSyncFunctionName:                 tt.fields.IDPSyncFunctionName,
+				IDPSyncLogGroupName:                 tt.fields.IDPSyncLogGroupName,
+				PaginationKMSKeyARN:                 tt.fields.PaginationKMSKeyARN,
+				Region:                              tt.fields.Region,
+				RestAPIExecutionRoleARN:             tt.fields.RestAPIExecutionRoleARN,
+				S3BucketName:                        tt.fields.S3BucketName,
+				SAMLIdentityProviderName:            tt.fields.SAMLIdentityProviderName,
+				SlackNotifierLogGroupName:           tt.fields.SlackNotifierLogGroupName,
+				UserPoolDomain:                      tt.fields.UserPoolDomain,
+				UserPoolID:                          tt.fields.UserPoolID,
+				WebhookLogGroupName:                 tt.fields.WebhookLogGroupName,
+				WebhookURL:                          tt.fields.WebhookURL,
 			}
 			got, err := o.Get(tt.args.key)
 			if (err != nil) != tt.wantErr {

@@ -16,7 +16,6 @@ const idpType = app.node.tryGetContext("idpType");
 const samlMetadataUrl = app.node.tryGetContext("samlMetadataUrl");
 const samlMetadata = app.node.tryGetContext("samlMetadata");
 const adminGroupId = app.node.tryGetContext("adminGroupId");
-const providerConfig = app.node.tryGetContext("providerConfiguration");
 const identityConfig = app.node.tryGetContext("identityConfiguration");
 const notificationsConfiguration = app.node.tryGetContext(
   "notificationsConfiguration"
@@ -82,7 +81,6 @@ if (stackTarget === "dev") {
   new CommonFateStackDev(app, "GrantedDev", {
     cognitoDomainPrefix,
     stage,
-    providerConfig: providerConfig || "{}",
     // We have inadvertently propagated this "common-fate-" through our dev tooling, so if we want to change this then it needs to be changed everywhere
     stackName: "common-fate-" + stage,
     idpType: idpType || IdentityProviderRegistry.Cognito,

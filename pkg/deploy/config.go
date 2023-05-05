@@ -20,7 +20,6 @@ import (
 	"github.com/common-fate/common-fate/pkg/gconfig"
 	"github.com/fatih/color"
 	"github.com/pkg/errors"
-	"github.com/segmentio/ksuid"
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v3"
 )
@@ -81,61 +80,6 @@ type Deployment struct {
 	Tags       map[string]string `yaml:"tags,omitempty"`
 }
 
-type ProviderMap map[string]Provider
-
-// Adds the Provider if it does not exist
-func (f *ProviderMap) Add(id string, p Provider) error {
-	// check if this is a nil map and initialise first if so
-	// This is a trick to check the underlying maps from the alias' value
-	if map[string]Provider(*f) == nil {
-		*f = make(map[string]Provider)
-	}
-	if _, ok := (*f)[id]; ok {
-		return fmt.Errorf("provider %s already exists in the config", id)
-	}
-	(*f)[id] = p
-	return nil
-}
-
-// Update the Provider if it exist
-func (f *ProviderMap) Update(id string, p Provider) error {
-	if _, ok := (*f)[id]; !ok {
-		return fmt.Errorf("provider %s not found in config", id)
-	}
-
-	(*f)[id] = p
-	return nil
-}
-
-// GetIDForNewProvider returns an ID for a provider based on the following rules:
-//
-// 1. If the provider isn't used in the config, the default ID is returned (e.g. `aws-sso`).
-// 2. If the provider exists in the config, a numbered suffix is added to the default ID
-// (e.g. `aws-sso-2`). The numbers start at 2 and increment until an available ID is found.
-func (p ProviderMap) GetIDForNewProvider(defaultID string) string {
-	if _, ok := p[defaultID]; !ok {
-		// the default ID isn't used, so we can use that as our ID.
-		return defaultID
-	}
-
-	i := 2
-	for {
-		id := fmt.Sprintf("%s-%d", defaultID, i)
-
-		if _, ok := p[id]; !ok {
-			// the default ID isn't used, so we can use that as our ID.
-			return id
-		}
-
-		i++
-	}
-}
-
-type Provider struct {
-	Uses string            `yaml:"uses" json:"uses"`
-	With map[string]string `yaml:"with" json:"with"`
-}
-
 type Notifications struct {
 	Slack                 map[string]string `yaml:"slack,omitempty" json:"slack,omitempty"`
 	SlackIncomingWebhooks FeatureMap        `yaml:"slackIncomingWebhooks,omitempty" json:"slackIncomingWebhooks,omitempty"`
@@ -177,7 +121,6 @@ type Parameters struct {
 	APIGatewayWAFACLARN             string         `yaml:"APIGatewayWAFACLARN,omitempty"`
 	ExperimentalRemoteConfigURL     string         `yaml:"ExperimentalRemoteConfigURL,omitempty"`
 	ExperimentalRemoteConfigHeaders string         `yaml:"ExperimentalRemoteConfigHeaders,omitempty"`
-	ProviderConfiguration           ProviderMap    `yaml:"ProviderConfiguration,omitempty"`
 	IdentityConfiguration           FeatureMap     `yaml:"IdentityConfiguration,omitempty"`
 	NotificationsConfiguration      *Notifications `yaml:"NotificationsConfiguration,omitempty"`
 	AnalyticsDisabled               string         `yaml:"AnalyticsDisabled,omitempty"`
@@ -227,25 +170,6 @@ func UnmarshalNotifications(data string) (*Notifications, error) {
 		return nil, err
 	}
 	return &i, nil
-}
-
-// UnmarshalProviderMap parses the JSON configuration data and returns
-// an initialised struct. If `data` is an empty string an empty
-// IdentityConfig{} object is returned.
-func UnmarshalProviderMap(data string) (ProviderMap, error) {
-	if data == "" {
-		return make(ProviderMap), nil
-	}
-	// first remove any double backslashes which may have been added while loading from or to environment
-	// the process of loading escaped strings into the environment can sometimes add double escapes which cannot be parsed correctly
-	// unless removed
-	data = strings.ReplaceAll(string(data), "\\", "")
-	var i ProviderMap
-	err := json.Unmarshal([]byte(data), &i)
-	if err != nil {
-		return make(ProviderMap), err
-	}
-	return i, nil
 }
 
 // RunConfigTest runs ConfigTest() if it is implemented on the interface
@@ -391,17 +315,7 @@ func (c *Config) CfnParams() ([]types.Parameter, error) {
 			ParameterValue: &p.DeploymentSuffix,
 		})
 	}
-	if c.Deployment.Parameters.ProviderConfiguration != nil {
-		config, err := json.Marshal(c.Deployment.Parameters.ProviderConfiguration)
-		if err != nil {
-			return nil, err
-		}
-		configStr := string(config)
-		res = append(res, types.Parameter{
-			ParameterKey:   aws.String("ProviderConfiguration"),
-			ParameterValue: &configStr,
-		})
-	}
+
 	if c.Deployment.Parameters.NotificationsConfiguration != nil {
 		if c.Deployment.Parameters.NotificationsConfiguration != nil {
 			config, err := json.Marshal(c.Deployment.Parameters.NotificationsConfiguration)
@@ -604,21 +518,6 @@ func NewStagingConfig(ctx context.Context, stage string) *Config {
 
 			Parameters: Parameters{
 				AdministratorGroupID: "granted_administrators",
-				ProviderConfiguration: ProviderMap{
-					"test-vault": {
-						Uses: "commonfate/testvault@v1",
-						With: map[string]string{
-							"apiUrl":   "https://prod.testvault.granted.run",
-							"uniqueId": ksuid.New().String(),
-						},
-					},
-					"testgroups": {
-						Uses: "commonfate/testgroups@v1",
-						With: map[string]string{
-							"groups": "first, second, third, fourth, fifth",
-						},
-					},
-				},
 			},
 		},
 	}

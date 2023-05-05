@@ -4,39 +4,15 @@ import { writeFileSync } from "fs";
 // testOutputs will have a type error when new fields are added to stack outputs
 // a new entry should be added here as this is used in a test to ensure consistency with the corresponding go type
 // in pkg/deploy/output.go
-const testOutputs: StackOutputs = {
-  CognitoClientID: "abcdefg",
-  CloudFrontDomain: "abcdefg",
-  FrontendDomainOutput: "abcdefg",
-  CloudFrontDistributionID: "abcdefg",
-  S3BucketName: "abcdefg",
-  UserPoolID: "abcdefg",
-  UserPoolDomain: "abcdefg",
-  APIURL: "abcdefg",
-  WebhookURL: "abcdefg",
-  GovernanceURL: "abcdefg",
-  APILogGroupName: "abcdefg",
-  WebhookLogGroupName: "abcdefg",
-  IDPSyncLogGroupName: "abcdefg",
-  EventBusLogGroupName: "abcdefg",
-  EventsHandlerLogGroupName: "abcdefg",
-  SlackNotifierLogGroupName: "abcdefg",
-  DynamoDBTable: "abcdefg",
-  EventBusArn: "abcdefg",
-  EventBusSource: "abcdefg",
-  IdpSyncFunctionName: "abcdefg",
-  SAMLIdentityProviderName: "abcdefg",
-  Region: "abcdefg",
-  PaginationKMSKeyARN: "abcdefg",
-  CacheSyncLogGroupName: "abcdefg",
-  RestAPIExecutionRoleARN: "abcdefg",
-  IDPSyncExecutionRoleARN: "abcdefg",
-  CacheSyncFunctionName: "abcdefg",
-  CLIAppClientID: "abcdefg",
-  HealthcheckFunctionName: "abcdefg",
-  HealthcheckLogGroupName: "abcdefg",
-  GranterV2StateMachineArn: "abcdefg",
-};
+function generateDefaultOutputs(outputs: StackOutputs): StackOutputs {
+  const defaultOutputs: StackOutputs = {} as StackOutputs;
 
+  Object.keys(outputs).forEach((key) => {
+    defaultOutputs[key as keyof StackOutputs] = "abcdefg";
+  });
+
+  return defaultOutputs;
+}
+const defaultOutputs = generateDefaultOutputs({} as StackOutputs);
 // Write the json object to ./testOutputs.json so that it can be parsed by a go test in pkg/deploy.output_test.go
-writeFileSync("./testOutputs.json", JSON.stringify(testOutputs));
+writeFileSync("./testOutputs.json", JSON.stringify(defaultOutputs));

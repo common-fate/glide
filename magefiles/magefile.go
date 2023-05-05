@@ -321,14 +321,7 @@ func Dotenv() error {
 		}
 		idConf = string(b)
 	}
-	providerConf := "{}"
-	if cfg.Deployment.Parameters.ProviderConfiguration != nil {
-		b, err := json.Marshal(cfg.Deployment.Parameters.ProviderConfiguration)
-		if err != nil {
-			return err
-		}
-		providerConf = string(b)
-	}
+
 	idpType := identitysync.IDPTypeCognito
 	if cfg.Deployment.Parameters.IdentityProviderType != "" {
 		idpType = cfg.Deployment.Parameters.IdentityProviderType
@@ -340,8 +333,6 @@ func Dotenv() error {
 	myEnv["COMMONFATE_EVENT_BUS_ARN"] = o.EventBusArn
 	myEnv["COMMONFATE_EVENT_BUS_SOURCE"] = o.EventBusSource
 	myEnv["COMMONFATE_IDENTITY_SETTINGS"] = idConf
-	myEnv["COMMONFATE_PROVIDER_CONFIG"] = providerConf
-	myEnv["COMMONFATE_STATE_MACHINE_ARN"] = o.GranterStateMachineArn
 	myEnv["COMMONFATE_IDENTITY_PROVIDER"] = idpType
 	myEnv["COMMONFATE_ADMIN_GROUP"] = cfg.Deployment.Parameters.AdministratorGroupID
 	myEnv["COMMONFATE_FRONTEND_URL"] = "http://localhost:3000"
@@ -430,12 +421,6 @@ func (Deploy) StagingFrontend(env, name string) error {
 	if err != nil {
 		return err
 	}
-
-	vaultID := dep.Deployment.Parameters.ProviderConfiguration["test-vault"].With["uniqueId"]
-
-	echoCmd := fmt.Sprintf("::set-output name=vaultID::%s", vaultID)
-
-	fmt.Printf("%s\n", echoCmd)
 
 	return cdkout.DeployFrontend()
 }

@@ -49,18 +49,3 @@ func (mr *MockDeployConfigReaderMockRecorder) ReadNotifications(arg0 interface{}
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadNotifications", reflect.TypeOf((*MockDeployConfigReader)(nil).ReadNotifications), arg0)
 }
-
-// ReadProviders mocks base method.
-func (m *MockDeployConfigReader) ReadProviders(arg0 context.Context) (deploy.ProviderMap, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ReadProviders", arg0)
-	ret0, _ := ret[0].(deploy.ProviderMap)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ReadProviders indicates an expected call of ReadProviders.
-func (mr *MockDeployConfigReaderMockRecorder) ReadProviders(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadProviders", reflect.TypeOf((*MockDeployConfigReader)(nil).ReadProviders), arg0)
-}

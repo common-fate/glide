@@ -62,9 +62,9 @@ func (r *Runtime) Grant(ctx context.Context, grant access.GroupTarget) error {
 		}
 
 		state, err := r.Granter.HandleRequest(ctx, targetgroupgranter.InputEvent{
-			Action: targetgroupgranter.ACTIVATE,
-			Grant:  grant,
-			State:  map[string]any{},
+			Action:                   targetgroupgranter.ACTIVATE,
+			RequestAccessGroupTarget: grant,
+			State:                    map[string]any{},
 		})
 		if err != nil {
 			log.Errorw("failed to activate grant", "err", err)
@@ -78,9 +78,9 @@ func (r *Runtime) Grant(ctx context.Context, grant access.GroupTarget) error {
 		case <-time.After(time.Until(grant.Grant.End)):
 			// grant ended, deactivate it
 			state, err = r.Granter.HandleRequest(ctx, targetgroupgranter.InputEvent{
-				Action: targetgroupgranter.DEACTIVATE,
-				Grant:  grant,
-				State:  state.State,
+				Action:                   targetgroupgranter.DEACTIVATE,
+				RequestAccessGroupTarget: grant,
+				State:                    state.State,
 			})
 			if err != nil {
 				log.Errorw("failed to deactivate grant", "err", err)
