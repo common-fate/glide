@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/benbjohnson/clock"
+	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/storage"
@@ -32,6 +33,8 @@ type Service struct {
 }
 
 func (s *Service) Grant(ctx context.Context, requestID string, groupID string) ([]access.GroupTarget, error) {
+	log := logger.Get(ctx).With("requestId", requestID, "groupId", groupID)
+	log.Info("beginning grant workflow for group")
 	q := storage.GetRequestGroupWithTargets{
 		RequestID: requestID,
 		GroupID:   groupID,
@@ -43,6 +46,19 @@ func (s *Service) Grant(ctx context.Context, requestID string, groupID string) (
 	group := q.Result
 
 	start, end := group.Group.GetInterval(access.WithNow(s.Clk.Now()))
+
+	//update the group with the start and end time
+
+	group.Group.FinalTiming = &access.FinalTiming{
+		Start: start,
+		End:   end,
+	}
+	err = s.DB.Put(ctx, &group.Group)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Infow("found group and calculated timing", "group", group, "start", start, "end", end)
 	for i, target := range group.Targets {
 		target.Grant = &access.Grant{
 			Subject: group.Group.RequestedBy.Email,

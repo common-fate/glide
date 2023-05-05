@@ -35,7 +35,7 @@ func (r *Runtime) Grant(ctx context.Context, grant access.GroupTarget) error {
 		return err
 	}
 	sfnClient := sfn.NewFromConfig(cfg)
-	in := targetgroupgranter.WorkflowInput{Grant: grant}
+	in := targetgroupgranter.WorkflowInput{RequestAccessGroupTarget: grant}
 
 	inJson, err := json.Marshal(in)
 	if err != nil {
@@ -84,7 +84,7 @@ func (r *Runtime) Revoke(ctx context.Context, grantID string) error {
 		return err
 	}
 	tgq := storage.GetTargetGroup{
-		ID: input.Grant.TargetGroupID,
+		ID: input.RequestAccessGroupTarget.TargetGroupID,
 	}
 
 	_, err = r.DB.Query(ctx, &tgq)
@@ -118,10 +118,10 @@ func (r *Runtime) Revoke(ctx context.Context, grantID string) error {
 
 		//call the provider revoke
 		req := msg.Revoke{
-			Subject: input.Grant.RequestedBy.Email,
+			Subject: input.RequestAccessGroupTarget.RequestedBy.Email,
 			Target: msg.Target{
 				Kind:      routeResult.Route.Kind,
-				Arguments: input.Grant.FieldsToMap(),
+				Arguments: input.RequestAccessGroupTarget.FieldsToMap(),
 			},
 			Request: msg.AccessRequest{
 				ID: grantID,

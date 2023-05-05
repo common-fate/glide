@@ -16,36 +16,39 @@ import { Target } from "../utils/backend-client/types";
 interface TargetDetailProps extends FlexProps {
   target: Target;
   isChecked?: boolean;
+  showIcon?: boolean;
 }
 
 export const TargetDetail: React.FC<TargetDetailProps> = ({
   target,
   isChecked,
+  showIcon,
   ...rest
 }) => {
   return (
     <Flex alignContent="flex-start" p={2} rounded="md" {...rest}>
-      <Tooltip
-        key={target.id}
-        label={`${target.kind.publisher}/${target.kind.name}/${target.kind.kind}`}
-        placement="right"
-      >
-        <Flex p={6} position="relative">
-          <CheckCircleIcon
-            visibility={isChecked ? "visible" : "hidden"}
-            position="absolute"
-            top={0}
-            left={0}
-            boxSize={"12px"}
-            color={"brandBlue.300"}
-          />
-          <ProviderIcon
-            boxSize={"24px"}
-            shortType={target.kind.icon as ShortTypes}
-          />
-        </Flex>
-      </Tooltip>
+      {showIcon && (
+        <Tooltip
+          label={`${target.kind.publisher}/${target.kind.name}/${target.kind.kind}`}
+          placement="right"
+        >
+          <Flex p={6} position="relative">
+            <CheckCircleIcon
+              visibility={isChecked ? "visible" : "hidden"}
+              position="absolute"
+              top={0}
+              left={0}
+              boxSize={"12px"}
+              color={"brandBlue.300"}
+            />
 
+            <ProviderIcon
+              boxSize={"24px"}
+              shortType={target.kind.icon as ShortTypes}
+            />
+          </Flex>
+        </Tooltip>
+      )}
       <HStack>
         {target.fields.map((field, i) => (
           <React.Fragment key={target.id + field.id}>
@@ -57,7 +60,6 @@ export const TargetDetail: React.FC<TargetDetailProps> = ({
             />
 
             <Tooltip
-              key={field.id}
               label={
                 <Stack>
                   <Text color="white" textStyle={"Body/Small"}>

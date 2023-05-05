@@ -88,8 +88,8 @@ func (a *API) UserListEntitlementTargets(w http.ResponseWriter, r *http.Request,
 
 	// Filtering needs to be done in the application layer because of limits with dynamoDB filters
 	// in the end, the same amount of read units will be consumed
-	filter := cache.NewFilterTargetsByGroups(user.Groups)
-	for _, target := range filter.Filter(results).DumpSorted() {
+
+	for _, target := range cache.Filter(results, user.Groups) {
 		res.Targets = append(res.Targets, target.ToAPI())
 	}
 

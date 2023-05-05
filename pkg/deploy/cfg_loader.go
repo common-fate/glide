@@ -10,12 +10,7 @@ import (
 // DeployConfigReader reads configuration about this Common Fate deployment,
 // including provider and notification information.
 type DeployConfigReader interface {
-	ReadProviders(ctx context.Context) (ProviderMap, error)
 	ReadNotifications(ctx context.Context) (*Notifications, error)
-}
-
-type ProviderWriter interface {
-	WriteProviders(ctx context.Context, pm ProviderMap) error
 }
 
 func GetDeploymentConfig() (DeployConfigReader, error) {

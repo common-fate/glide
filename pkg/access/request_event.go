@@ -1,6 +1,7 @@
 package access
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/common-fate/common-fate/pkg/storage/keys"
@@ -15,8 +16,8 @@ type RequestEvent struct {
 	CreatedAt time.Time `json:"createdAt" dynamodbav:"createdAt"`
 	// Actor is the ID of the user who has made the request or nil if it was automated
 	Actor              *string                               `json:"actor,omitempty" dynamodbav:"actor,omitempty"`
-	FromStatus         *types.RequestStatus                  `json:"fromStatus,omitempty" dynamodbav:"fromStatus,omitempty"`
-	ToStatus           *types.RequestStatus                  `json:"toStatus,omitempty" dynamodbav:"toStatus,omitempty"`
+	FromStatus         *string                               `json:"fromStatus,omitempty" dynamodbav:"fromStatus,omitempty"`
+	ToStatus           *string                               `json:"toStatus,omitempty" dynamodbav:"toStatus,omitempty"`
 	FromTiming         *Timing                               `json:"fromTiming,omitempty" dynamodbav:"fromTiming,omitempty"`
 	ToTiming           *Timing                               `json:"toTiming,omitempty" dynamodbav:"toTiming,omitempty"`
 	FromGrantStatus    *types.RequestAccessGroupTargetStatus `json:"fromGrantStatus,omitempty" dynamodbav:"fromGrantStatus,omitempty"`
@@ -45,8 +46,16 @@ func NewGrantCreatedEvent(requestID string, createdAt time.Time) RequestEvent {
 	return RequestEvent{ID: types.NewHistoryID(), CreatedAt: createdAt, RequestID: requestID, GrantCreated: &t}
 }
 
-func NewStatusChangeEvent(requestID string, createdAt time.Time, actor *string, from, to types.RequestStatus) RequestEvent {
-	return RequestEvent{ID: types.NewHistoryID(), CreatedAt: createdAt, Actor: actor, RequestID: requestID, FromStatus: &from, ToStatus: &to}
+func NewRequestStatusChangeEvent(requestID string, createdAt time.Time, actor *string, from, to types.RequestStatus) RequestEvent {
+	fromVal := fmt.Sprintf("%s", from)
+	toVal := fmt.Sprintf("%s", to)
+	return RequestEvent{ID: types.NewHistoryID(), CreatedAt: createdAt, Actor: actor, RequestID: requestID, FromStatus: &fromVal, ToStatus: &toVal}
+}
+
+func NewGroupStatusChangeEvent(requestID string, createdAt time.Time, actor *string, from, to types.RequestAccessGroupStatus) RequestEvent {
+	fromVal := fmt.Sprintf("%s", from)
+	toVal := fmt.Sprintf("%s", to)
+	return RequestEvent{ID: types.NewHistoryID(), CreatedAt: createdAt, Actor: actor, RequestID: requestID, FromStatus: &fromVal, ToStatus: &toVal}
 }
 
 func NewTimingChangeEvent(requestID string, createdAt time.Time, actor *string, from, to Timing) RequestEvent {

@@ -1,7 +1,7 @@
 import * as cdk from "aws-cdk-lib";
 
 import { Construct } from "constructs";
-import { AccessHandler } from "./constructs/access-handler";
+
 import { AppBackend } from "./constructs/app-backend";
 import { AppFrontend } from "./constructs/app-frontend";
 import { WebUserPool } from "./constructs/app-user-pool";
@@ -91,11 +91,6 @@ export class CommonFateStackProd extends cdk.Stack {
       }
     );
 
-    const providerConfig = new CfnParameter(this, "ProviderConfiguration", {
-      type: "String",
-      description: "The Access Provider configuration in JSON format",
-      default: "{}",
-    });
     const notificationsConfiguration = new CfnParameter(
       this,
       "NotificationsConfiguration",
@@ -240,15 +235,6 @@ export class CommonFateStackProd extends cdk.Stack {
       appName,
     });
 
-    const accessHandler = new AccessHandler(this, "AccessHandler", {
-      appName,
-      eventBus: events.getEventBus(),
-      eventBusSourceName: events.getEventBusSourceName(),
-      providerConfig: providerConfig.valueAsString,
-      remoteConfigUrl: remoteConfigUrl.valueAsString,
-      remoteConfigHeaders: remoteConfigHeaders.valueAsString,
-    });
-
     //KMS key is used in governance api as well as appBackend - both for tokinization for ddb use
     const kmsKey = new kms.Key(this, "PaginationKMSKey", {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
@@ -261,7 +247,8 @@ export class CommonFateStackProd extends cdk.Stack {
     const governance = new Governance(this, "Governance", {
       appName,
       kmsKey: kmsKey,
-      providerConfig: providerConfig.valueAsString,
+      // @TODO remove
+      providerConfig: "",
       dynamoTable: db.getTable(),
     });
     const targetGroupGranter = new TargetGroupGranter(
@@ -283,7 +270,6 @@ export class CommonFateStackProd extends cdk.Stack {
       adminGroupId: administratorGroupId.valueAsString,
       identityProviderSyncConfiguration: identityConfig.valueAsString,
       notificationsConfiguration: notificationsConfiguration.valueAsString,
-      providerConfig: providerConfig.valueAsString,
       deploymentSuffix: suffix.valueAsString,
       dynamoTable: db.getTable(),
       remoteConfigUrl: remoteConfigUrl.valueAsString,
@@ -318,40 +304,46 @@ export class CommonFateStackProd extends cdk.Stack {
 
     /* Outputs */
     generateOutputs(this, {
-      CognitoClientID: userPool.getUserPoolClientId(),
-      CloudFrontDomain: appFrontend.getCloudFrontDomain(),
-      FrontendDomainOutput: appFrontend.getDomainName(),
-      CloudFrontDistributionID: appFrontend.getDistributionId(),
-      S3BucketName: appFrontend.getBucketName(),
-      UserPoolID: userPool.getUserPoolId(),
-      UserPoolDomain: userPool.getUserPoolLoginFQDN(),
-      APIURL: appBackend.getRestApiURL(),
-      WebhookURL: appBackend.getWebhookApiURL(),
-      GovernanceURL: governance.getGovernanceApiURL(),
       APILogGroupName: appBackend.getLogGroupName(),
-      WebhookLogGroupName: appBackend.getWebhookLogGroupName(),
-      IDPSyncLogGroupName: appBackend.getIdpSync().getLogGroupName(),
+      APIURL: appBackend.getRestApiURL(),
+      CacheSyncFunctionName: appBackend.getCacheSync().getFunctionName(),
+      CacheSyncLogGroupName: appBackend.getCacheSync().getLogGroupName(),
+      CLIAppClientID: userPool.getCLIAppClient().userPoolClientId,
+      CloudFrontDistributionID: appFrontend.getDistributionId(),
+      CloudFrontDomain: appFrontend.getCloudFrontDomain(),
+      CognitoClientID: userPool.getUserPoolClientId(),
+      DynamoDBTable: appBackend.getDynamoTableName(),
+      EventBusArn: events.getEventBus().eventBusArn,
       EventBusLogGroupName: events.getLogGroupName(),
-      EventsHandlerLogGroupName: appBackend.getEventHandler().getLogGroupName(),
+      EventBusSource: events.getEventBusSourceName(),
+      EventsHandlerConcurrentLogGroupName: appBackend
+        .getEventHandler()
+        .getConcurrentLogGroupName(),
+      EventsHandlerSequentialLogGroupName: appBackend
+        .getEventHandler()
+        .getSequentialLogGroupName(),
+      FrontendDomainOutput: appFrontend.getDomainName(),
+      GovernanceURL: governance.getGovernanceApiURL(),
+      GranterLogGroupName: targetGroupGranter.getLogGroupName(),
+      GranterV2StateMachineArn: targetGroupGranter.getStateMachineARN(),
+      HealthcheckFunctionName: appBackend.getHealthChecker().getFunctionName(),
+      HealthcheckLogGroupName: appBackend.getHealthChecker().getLogGroupName(),
+      IDPSyncExecutionRoleARN: appBackend.getIdpSync().getExecutionRoleArn(),
+      IDPSyncFunctionName: appBackend.getIdpSync().getFunctionName(),
+      IDPSyncLogGroupName: appBackend.getIdpSync().getLogGroupName(),
+      PaginationKMSKeyARN: appBackend.getKmsKeyArn(),
+      Region: this.region,
+      RestAPIExecutionRoleARN: appBackend.getExecutionRoleArn(),
+      S3BucketName: appFrontend.getBucketName(),
+      SAMLIdentityProviderName:
+        userPool.getSamlUserPoolClient()?.getUserPoolName() || "",
       SlackNotifierLogGroupName: appBackend
         .getNotifiers()
         .getSlackLogGroupName(),
-      DynamoDBTable: appBackend.getDynamoTableName(),
-      EventBusArn: events.getEventBus().eventBusArn,
-      EventBusSource: events.getEventBusSourceName(),
-      IdpSyncFunctionName: appBackend.getIdpSync().getFunctionName(),
-      SAMLIdentityProviderName:
-        userPool.getSamlUserPoolClient()?.getUserPoolName() || "",
-      Region: this.region,
-      PaginationKMSKeyARN: appBackend.getKmsKeyArn(),
-      CacheSyncLogGroupName: appBackend.getCacheSync().getLogGroupName(),
-      IDPSyncExecutionRoleARN: appBackend.getIdpSync().getExecutionRoleArn(),
-      RestAPIExecutionRoleARN: appBackend.getExecutionRoleArn(),
-      CacheSyncFunctionName: appBackend.getCacheSync().getFunctionName(),
-      CLIAppClientID: userPool.getCLIAppClient().userPoolClientId,
-      HealthcheckFunctionName: appBackend.getHealthChecker().getFunctionName(),
-      HealthcheckLogGroupName: appBackend.getHealthChecker().getLogGroupName(),
-      GranterV2StateMachineArn: targetGroupGranter.getStateMachineARN(),
+      UserPoolDomain: userPool.getUserPoolLoginFQDN(),
+      UserPoolID: userPool.getUserPoolId(),
+      WebhookLogGroupName: appBackend.getWebhookLogGroupName(),
+      WebhookURL: appBackend.getWebhookApiURL(),
     });
   }
 }

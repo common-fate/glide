@@ -52,6 +52,20 @@ func (mr *MockAccessRuleServiceMockRecorder) CreateAccessRule(arg0, arg1, arg2 i
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAccessRule", reflect.TypeOf((*MockAccessRuleService)(nil).CreateAccessRule), arg0, arg1, arg2)
 }
 
+// DeleteRule mocks base method.
+func (m *MockAccessRuleService) DeleteRule(arg0 context.Context, arg1 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteRule", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteRule indicates an expected call of DeleteRule.
+func (mr *MockAccessRuleServiceMockRecorder) DeleteRule(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRule", reflect.TypeOf((*MockAccessRuleService)(nil).DeleteRule), arg0, arg1)
+}
+
 // UpdateRule mocks base method.
 func (m *MockAccessRuleService) UpdateRule(arg0 context.Context, arg1 *rulesvc.UpdateOpts) (*rule.AccessRule, error) {
 	m.ctrl.T.Helper()

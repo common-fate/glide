@@ -35,12 +35,13 @@ import {
   Skeleton,
   SkeletonCircle,
   SkeletonText,
-  Spinner,
+  ModalProps,
   Stack,
   Text,
   useBoolean,
   useDisclosure,
   useToast,
+  HStack,
 } from "@chakra-ui/react";
 import { intervalToDuration, format } from "date-fns";
 import { useState } from "react";
@@ -54,13 +55,13 @@ import {
   Minutes,
   Weeks,
 } from "../../components/DurationInput";
+import { FixedSizeList as List, ListChildComponentProps } from "react-window";
 
 import { ProviderIcon, ShortTypes } from "../../components/icons/providerIcon";
 import { UserLayout } from "../../components/Layout";
 import { GrantStatusCell, StatusCell } from "../../components/StatusCell";
 import {
-  getGroupTargetStatus,
-  useGetGroupTargetStatus,
+  useGetGroupTargetInstructions,
   useUserGetRequest,
   useUserListRequests,
 } from "../../utils/backend-client/default/default";
@@ -73,7 +74,10 @@ import {
   RequestAccessGroup,
   RequestAccessGroupTarget,
   RequestStatus,
+  Target,
+  TargetField,
 } from "../../utils/backend-client/types";
+
 import {
   durationString,
   durationStringHoursMinutes,
@@ -81,6 +85,8 @@ import {
 } from "../../utils/durationString";
 import { request } from "http";
 import FieldsCodeBlock from "../../components/FieldsCodeBlock";
+import { TargetDetail } from "../../components/Target";
+import { useUser } from "../../utils/context/userContext";
 
 type MyLocationGenerics = MakeGenerics<{
   Search: {
@@ -132,12 +138,14 @@ const Home = () => {
             <GridItem>
               <>
                 <Stack spacing={4}>
-                  <Flex direction="row">
+                  <Flex direction="row" w="100%">
                     {request.data ? (
                       <Flex
                         direction="row"
                         justifyContent="space-between"
                         alignItems="flex-start"
+                        w="100%"
+                        mr="10px"
                       >
                         <Flex>
                           <Avatar
@@ -276,7 +284,7 @@ const Home = () => {
               </>
             </GridItem>
             <GridItem>
-              <AuditLog />
+              <AuditLog request={request.data} />
             </GridItem>
           </Grid>
         </Container>
@@ -333,11 +341,10 @@ export const HeaderStatusCell = ({ group }: AccessGroupProps) => {
                 durationStringHoursMinutes(
                   intervalToDuration({
                     start: new Date(),
-                    end: getEndTimeWithDuration(
-                      group.requestedTiming.startTime
-                        ? group.requestedTiming.startTime
-                        : "",
-                      group.requestedTiming.durationSeconds
+                    end: new Date(
+                      group.finalTiming?.endTime
+                        ? group.finalTiming?.endTime
+                        : ""
                     ),
                   })
                 )
@@ -419,8 +426,7 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
     grantModalState.onClose();
   };
 
-  const isReviewer = true;
-
+  const user = useUser();
   return (
     <Box bg="neutrals.100" borderColor="neutrals.300" rounded="lg">
       <Accordion
@@ -444,7 +450,9 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
           >
             <AccordionIcon boxSize="6" mr={2} />
             <HeaderStatusCell group={group} />
-            <ApproveRejectDuration group={group} />
+            {group.requestReviewers?.includes(
+              user.user?.id ? user.user?.id : ""
+            ) && <ApproveRejectDuration group={group} />}
           </AccordionButton>
 
           <AccordionPanel
@@ -466,20 +474,22 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
                   p={2}
                   pos="relative"
                 >
-                  <ProviderIcon boxSize="24px" shortType="aws-sso" mr={2} />
-                  <FieldsCodeBlock fields={target.fields} flexWrap="wrap" />
+                  <TargetDetail
+                    showIcon
+                    target={{
+                      fields: target.fields,
+                      id: target.id,
+                      kind: target.targetKind,
+                    }}
+                  />
 
-                  <Stack>
+                  <Stack justifyContent="center">
                     <Flex
                       onClick={(e) => {
                         e.stopPropagation();
                       }}
                     >
-                      <GrantStatusCell
-                        requestId={group.requestId}
-                        groupId={group.id}
-                        targetId={target.id}
-                      />
+                      <GrantStatusCell targetStatus={target.status} />
                     </Flex>
                     <Button
                       variant="brandSecondary"
@@ -495,28 +505,73 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
           </AccordionPanel>
         </AccordionItem>
       </Accordion>
-      <Modal isOpen={grantModalState.isOpen} onClose={handleClose}>
+      <TargetGrantInstructionsModal
+        groupTarget={selectedGrant}
+        isOpen={grantModalState.isOpen}
+        onClose={handleClose}
+      />
+    </Box>
+  );
+};
+
+type Props = {
+  groupTarget: RequestAccessGroupTarget | undefined;
+} & Omit<ModalProps, "children">;
+
+export const TargetGrantInstructionsModal = (props: Props) => {
+  if (props.groupTarget) {
+    const data = useGetGroupTargetInstructions(props.groupTarget?.id);
+
+    return (
+      <Modal {...props} isCentered motionPreset="slideInBottom" size="xl">
         <ModalOverlay />
         <ModalContent>
           <ModalHeader></ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <Box>
-              <ProviderIcon
-                shortType={selectedGrant?.targetKind.icon as ShortTypes}
-              />
-              {/* <FieldsCodeBlock fields={selectedGrant?.fields || []} /> */}
-            </Box>
-            <Text textStyle="Body/Small">Access Instructions</Text>
+            <Flex direction="column" my="30px" mx="10px">
+              <HStack spacing="80%">
+                <ProviderIcon
+                  shortType={props.groupTarget?.targetKind.icon as ShortTypes}
+                />
+                <GrantStatusCell
+                  alignSelf="flex-end"
+                  targetStatus={props.groupTarget.status}
+                />
+              </HStack>
 
-            <Code bg="white" whiteSpace="pre-wrap">
-              {JSON.stringify(selectedGrant, null, 2)}
-            </Code>
-            <Text></Text>
+              <TargetDetail
+                target={{
+                  fields: props.groupTarget.fields,
+                  id: props.groupTarget.id,
+                  kind: props.groupTarget.targetKind,
+                }}
+                py="20px"
+              />
+
+              <Flex direction="column" py="20px">
+                <Text textStyle="Body/Small">Access Instructions</Text>
+                <Code>{data.data?.instructions.instructions}</Code>
+              </Flex>
+            </Flex>
           </ModalBody>
         </ModalContent>
       </Modal>
-    </Box>
+    );
+  }
+  return (
+    <Modal {...props}>
+      <ModalOverlay />
+      <ModalContent>
+        <ModalHeader></ModalHeader>
+        <ModalCloseButton />
+        <ModalBody>
+          <Box></Box>
+
+          <Text></Text>
+        </ModalBody>
+      </ModalContent>
+    </Modal>
   );
 };
 
@@ -528,13 +583,12 @@ type ApproveRejectDurationProps = {
 export const ApproveRejectDuration = ({
   group,
 }: ApproveRejectDurationProps) => {
-  const isReviewer = false;
+  const user = useUser();
+  console.log(user);
 
   const handleClickMax = () => {
     setDurationSeconds(group.accessRule.timeConstraints.maxDurationSeconds);
   };
-
-  // console.log({ group });
 
   // durationSeconds state
   const [durationSeconds, setDurationSeconds] = useState<number>(
@@ -542,6 +596,7 @@ export const ApproveRejectDuration = ({
   );
 
   const [isEditing, setIsEditing] = useBoolean();
+  const toast = useToast();
 
   return (
     <Flex
@@ -662,36 +717,70 @@ export const ApproveRejectDuration = ({
             </PopoverContent>
           </Portal>
         </Popover>
-        {/* {durationString(durationSeconds)} */}
       </Flex>
-      {isReviewer && (
-        <ButtonGroup ml="auto" variant="brandSecondary" spacing={2}>
-          <Button
-            size="sm"
-            onClick={() => {
-              console.log("approve");
-              // @TODO: add in admin approval API methods
-              userReviewRequest(group.requestId, group.id, {
-                decision: "APPROVED",
+      <ButtonGroup ml="auto" variant="brandSecondary" spacing={2}>
+        <Button
+          size="sm"
+          onClick={() => {
+            console.log("approve");
+            // @TODO: add in admin approval API methods
+            userReviewRequest(group.requestId, group.id, {
+              decision: "APPROVED",
+            })
+              .then((e) => {
+                toast({
+                  title: "Revoke Initiated",
+                  status: "success",
+                  variant: "subtle",
+                  duration: 2200,
+                  isClosable: true,
+                });
+              })
+              .catch((e) => {
+                toast({
+                  title: "Error Revoking",
+                  status: "error",
+                  variant: "subtle",
+                  duration: 2200,
+                  isClosable: true,
+                });
               });
-            }}
-          >
-            Approve
-          </Button>
-          <Button
-            size="sm"
-            onClick={() => {
-              console.log("reject");
-              // @TODO: add in admin approval API methods
-              userReviewRequest(group.requestId, group.id, {
-                decision: "DECLINED",
+          }}
+        >
+          Approve
+        </Button>
+        <Button
+          size="sm"
+          onClick={() => {
+            console.log("reject");
+            // @TODO: add in admin approval API methods
+            userReviewRequest(group.requestId, group.id, {
+              decision: "DECLINED",
+            })
+              .then((e) => {
+                toast({
+                  title: "Revoke Initiated",
+                  status: "success",
+                  variant: "subtle",
+                  duration: 2200,
+                  isClosable: true,
+                });
+              })
+              .catch((e) => {
+                toast({
+                  title: "Error Revoking",
+                  status: "error",
+                  variant: "subtle",
+                  duration: 2200,
+                  isClosable: true,
+                });
               });
-            }}
-          >
-            Reject
-          </Button>
-        </ButtonGroup>
-      )}
+          }}
+        >
+          Reject
+        </Button>
+      </ButtonGroup>
+      )
     </Flex>
   );
 };

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
@@ -55,6 +56,13 @@ func (n *EventHandler) handleRequestCreated(ctx context.Context, detail json.Raw
 			}
 
 		}
+	}
+
+	reqEvent := access.NewRequestCreatedEvent(requestEvent.Request.Request.ID, requestEvent.Request.Request.CreatedAt, &requestEvent.Request.Request.RequestedBy.ID)
+
+	err = n.DB.Put(ctx, &reqEvent)
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -170,9 +178,18 @@ func (n *EventHandler) handleRequestStatusChange(ctx context.Context, requestId 
 			if err != nil {
 				return err
 			}
+			oldStatus := request.Result.Request.RequestStatus
 			request.Result.Request.RequestStatus = types.REVOKED
+			newStatus := request.Result.Request.RequestStatus
 
 			err = n.DB.Put(ctx, &request.Result.Request)
+			if err != nil {
+				return err
+			}
+
+			reqEvent := access.NewRequestStatusChangeEvent(request.Result.Request.ID, request.Result.Request.CreatedAt, &request.Result.Request.RequestedBy.ID, oldStatus, newStatus)
+
+			err = n.DB.Put(ctx, &reqEvent)
 			if err != nil {
 				return err
 			}
@@ -183,14 +200,12 @@ func (n *EventHandler) handleRequestStatusChange(ctx context.Context, requestId 
 	allExpired := true
 	for _, group := range request.Result.Groups {
 		for _, target := range group.Targets {
-			if target.Grant.Status != types.RequestAccessGroupTargetStatusEXPIRED {
+			if target.Grant.Status != types.RequestAccessGroupTargetStatusEXPIRED &&
+				target.Grant.Status != types.RequestAccessGroupTargetStatusERROR {
 				allExpired = false
 				break
 			}
-			if target.Grant.Status != types.RequestAccessGroupTargetStatusERROR {
-				allExpired = false
-				break
-			}
+
 		}
 	}
 	//if all grants are expired send out a request completed event
@@ -201,12 +216,22 @@ func (n *EventHandler) handleRequestStatusChange(ctx context.Context, requestId 
 		if err != nil {
 			return err
 		}
+		oldStatus := request.Result.Request.RequestStatus
 		request.Result.Request.RequestStatus = types.COMPLETE
 
+		newStatus := request.Result.Request.RequestStatus
 		err = n.DB.Put(ctx, &request.Result.Request)
 		if err != nil {
 			return err
 		}
+
+		reqEvent := access.NewRequestStatusChangeEvent(request.Result.Request.ID, request.Result.Request.CreatedAt, &request.Result.Request.RequestedBy.ID, oldStatus, newStatus)
+
+		err = n.DB.Put(ctx, &reqEvent)
+		if err != nil {
+			return err
+		}
+
 	}
 	return nil
 }

@@ -2,11 +2,9 @@ import * as cdk from "aws-cdk-lib";
 import { Duration } from "aws-cdk-lib";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
-import { PolicyStatement } from "aws-cdk-lib/aws-iam";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
 import * as path from "path";
-import { AccessHandler } from "./access-handler";
 
 interface Props {
   appName: string;

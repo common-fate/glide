@@ -30,7 +30,6 @@ interface Props {
   eventBusSourceName: string;
   eventBus: EventBus;
   adminGroupId: string;
-  providerConfig: string;
   notificationsConfiguration: string;
   identityProviderSyncConfiguration: string;
   deploymentSuffix: string;
@@ -79,6 +78,7 @@ export class AppBackend extends Construct {
       code: lambda.Code.fromAsset(
         path.join(__dirname, "..", "..", "..", "..", "bin", "webhook.zip")
       ),
+
       timeout: Duration.seconds(20),
       runtime: lambda.Runtime.GO_1_X,
       handler: "webhook",
@@ -122,7 +122,6 @@ export class AppBackend extends Construct {
         COMMONFATE_IDENTITY_PROVIDER: props.userPool.getIdpType(),
         COMMONFATE_ADMIN_GROUP: props.adminGroupId,
         COMMONFATE_MOCK_ACCESS_HANDLER: "false",
-        COMMONFATE_PROVIDER_CONFIG: props.providerConfig,
         // COMMONFATE_SENTRY_DSN: can be added here
         COMMONFATE_EVENT_BUS_ARN: props.eventBus.eventBusArn,
         COMMONFATE_EVENT_BUS_SOURCE: props.eventBusSourceName,
@@ -138,6 +137,7 @@ export class AppBackend extends Construct {
         CF_ANALYTICS_DEPLOYMENT_STAGE: props.analyticsDeploymentStage,
         COMMONFATE_IDENTITY_GROUP_FILTER: props.identityGroupFilter,
       },
+      memorySize: 1024,
       runtime: lambda.Runtime.GO_1_X,
       handler: "commonfate",
     });

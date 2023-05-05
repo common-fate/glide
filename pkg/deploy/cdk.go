@@ -24,14 +24,6 @@ func (c Config) CDKContextArgs() []string {
 	args = append(args, "-c", fmt.Sprintf("stage=%s", name))
 	args = append(args, "-c", fmt.Sprintf("cognitoDomainPrefix=cf-granted-%s", name))
 
-	if c.Deployment.Parameters.ProviderConfiguration != nil {
-		cfg, err := json.Marshal(c.Deployment.Parameters.ProviderConfiguration)
-		if err != nil {
-			panic(err)
-		}
-
-		args = append(args, "-c", fmt.Sprintf("providerConfiguration=%s", string(cfg)))
-	}
 	if c.Deployment.Parameters.IdentityConfiguration != nil {
 		cfg, err := json.Marshal(c.Deployment.Parameters.IdentityConfiguration)
 		if err != nil {

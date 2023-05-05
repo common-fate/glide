@@ -101,5 +101,10 @@ func (s *Service) CreateAccessRule(ctx context.Context, userID string, in types.
 		RequiresApproval: rul.Approval.IsRequired(),
 	})
 
+	err = s.Cache.RefreshCachedTargets(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	return &rul, nil
 }

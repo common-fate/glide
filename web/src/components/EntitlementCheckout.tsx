@@ -9,25 +9,27 @@ import {
   Input,
   Stack,
   Text,
+  useBoolean,
   useEventListener,
+  useToast,
 } from "@chakra-ui/react";
 import debounce from "lodash.debounce";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { FixedSizeList as ReactWindowList } from "react-window";
 import {
-  Target,
+  CreatePreflightRequestBody,
   TargetField,
-  TargetKind,
-  UserListEntitlementTargetsParams,
 } from "../utils/backend-client/types";
 import { Command as CommandNew } from "../utils/cmdk";
 import { ProviderIcon, ShortTypes } from "./icons/providerIcon";
 // @ts-ignore
+import axios from "axios";
+import { useNavigate } from "react-location";
 import {
-  userListEntitlementTargets,
+  userRequestPreflight,
   useUserListEntitlements,
-  useUserListEntitlementTargets,
 } from "../utils/backend-client/default/default";
+import { useTargets } from "../utils/context/targetsContext";
 import { TargetDetail } from "./Target";
 const IS_MAC = /(Mac|iPhone|iPod|iPad)/i.test(
   navigator.userAgent || navigator.platform || "unknown"
@@ -40,49 +42,56 @@ const ACTION_KEY_APPLE = ["⌘", "Command"];
 const StyledCommandList = chakra(CommandNew.List);
 
 export const EntitlementCheckout: React.FC = () => {
-  const { data: entitlementsData } = useUserListEntitlements();
-
-  const [targets, setTargets] = useState<Target[]>([]);
-  const [entitlements, setEntitlements] = useState<TargetKind[]>([]);
-
-  useEffect(() => {
-    const t: Target[] = [];
-    const fetchData = async (nextToken: string | undefined) => {
-      const result = await userListEntitlementTargets({ nextToken });
-      t.push(...result.targets);
-      if (result.next) {
-        await fetchData(result.next);
-      }
-    };
-    fetchData(undefined);
-    setTargets(t);
-  }, []);
-
-  useEffect(() => {
-    if (entitlementsData?.entitlements) {
-      setEntitlements(entitlementsData.entitlements);
-    }
-  }, [entitlementsData]);
-  return <Search targets={targets} entitlements={entitlements} />;
+  return <Search />;
 };
 
-interface SearchProps {
-  targets: Target[];
-  entitlements: TargetKind[];
-}
-const Search: React.FC<SearchProps> = ({ targets, entitlements }) => {
+interface SearchProps {}
+const Search: React.FC<SearchProps> = () => {
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [searchValue, setSearchValue] = useState<string>("");
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [actionKey] = useState<string[]>(
     IS_MAC ? ACTION_KEY_APPLE : ACTION_KEY_DEFAULT
   );
+  const [submitLoading, submitLoadingToggle] = useBoolean();
+
+  const { targets, validating: targetsValidating } = useTargets();
+  const navigate = useNavigate();
+  const toast = useToast();
+  const handleSubmit = async () => {
+    try {
+      const preflightRequest: CreatePreflightRequestBody = {
+        targets: targets
+          .filter((t) => checked.has(t.id.toLowerCase()))
+          .map((t) => t.id),
+      };
+      submitLoadingToggle.on();
+      const preflightResponse = await userRequestPreflight(preflightRequest);
+      navigate({ to: `/preflight/${preflightResponse.id}` });
+    } catch (err) {
+      let description: string | undefined;
+      if (axios.isAxiosError(err)) {
+        // @ts-ignore
+        description = err?.response?.data.error;
+      }
+      toast({
+        title: "Error submitting request",
+        description,
+        status: "error",
+        variant: "subtle",
+        duration: 2200,
+        isClosable: true,
+      });
+    } finally {
+      submitLoadingToggle.off();
+    }
+  };
   // Watch keys for cmd Enter submit
   useEventListener("keydown", (event) => {
     const hotkey = IS_MAC ? "metaKey" : "ctrlKey";
     if (event?.key?.toLowerCase() === "enter" && event[hotkey]) {
       event.preventDefault();
-      // checked.size > 0 && handleSubmit();
+      checked.size > 0 && handleSubmit();
     }
   });
 
@@ -168,8 +177,6 @@ const Search: React.FC<SearchProps> = ({ targets, entitlements }) => {
           as={CommandNew.Input}
         />
         <Entitlements
-          targets={targets}
-          entitlements={entitlements}
           checked={checked}
           onSetSearch={onSetSearch}
           onShowSelected={onShowSelected}
@@ -193,6 +200,7 @@ const Search: React.FC<SearchProps> = ({ targets, entitlements }) => {
               const target = onDisplay[index];
               return (
                 <TargetDetail
+                  showIcon
                   key={target.id}
                   as={CommandNew.Item}
                   h={TARGET_HEIGHT}
@@ -213,11 +221,13 @@ const Search: React.FC<SearchProps> = ({ targets, entitlements }) => {
         </StyledCommandList>
         <Flex w="100%" mt={4}>
           <Button
-            disabled={checked.size == 0}
+            isDisabled={checked.size == 0 || submitLoading || targetsValidating}
             ml="auto"
-            // onClick={handleSubmit}
-            // isLoading={submitLoading}
-            loadingText="Processing request..."
+            onClick={handleSubmit}
+            isLoading={submitLoading || targetsValidating}
+            loadingText={
+              targetsValidating ? "Refreshing targets" : "Processing request..."
+            }
           >
             Next ({actionKey[0]}+Enter)
           </Button>
@@ -227,19 +237,17 @@ const Search: React.FC<SearchProps> = ({ targets, entitlements }) => {
   );
 };
 interface EntitlementsProps {
-  targets: Target[];
-  entitlements: TargetKind[];
   checked: Set<string>;
   onShowSelected: () => void;
   onSetSearch: (value: string) => void;
 }
 const Entitlements: React.FC<EntitlementsProps> = ({
-  targets,
-  entitlements,
   checked,
   onSetSearch,
   onShowSelected,
 }) => {
+  const { data: entitlements } = useUserListEntitlements();
+  const { targets } = useTargets();
   return (
     <HStack mt={2} overflowX="auto">
       <FilterBlock
@@ -254,7 +262,7 @@ const Entitlements: React.FC<EntitlementsProps> = ({
         selected={checked.size}
         onClick={onShowSelected}
       />
-      {entitlements.map((kind) => {
+      {entitlements?.entitlements.map((kind) => {
         const key = (
           kind.publisher +
           "#" +
