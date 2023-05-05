@@ -224,59 +224,79 @@ const RequestCard: React.FC<
                     borderWidth={1}
                     borderColor="neutrals.300"
                     rounded="lg"
-                    minH="64px"
+                    // minH="64px"
                     w="100%"
                     background="white"
                     p={3}
                     position="relative"
                     flexDir="column"
+                    pos="relative"
                   >
-                    <Flex align="center">
-                      <ProviderIcon
-                        h="24px"
-                        w="24px"
-                        shortType={
-                          group.targets[0]?.targetKind.name as ShortTypes
-                        }
-                        mr={2}
-                      />
-                      {/* ABS. POSITIONED STATUS TOP RIGHT */}
-                      <StatusCell
-                        sx={{
-                          span: {
-                            textStyle: "Body/Medium",
-                          },
-                        }}
-                        top={2}
-                        right={1}
-                        minW="8px"
-                        position="absolute"
-                        value={group.status}
-                        replaceValue=" " // this makes the status cell not render the value
-                        success={["APPROVED"]}
-                        warning={["PENDING_APPROVAL"]}
-                        danger="DECLINED"
-                      />
-                      <Text textStyle="Body/Medium">{`${
+                    {/* ABS. POSITIONED REQ STATUS TOP RIGHT */}
+                    <StatusCell
+                      sx={{
+                        span: {
+                          textStyle: "Body/Medium",
+                        },
+                      }}
+                      top={2}
+                      right={1}
+                      minW="8px"
+                      position="absolute"
+                      value={group.status}
+                      replaceValue=" " // this makes the status cell not render the value
+                      success={["APPROVED"]}
+                      warning={["PENDING_APPROVAL"]}
+                      danger="DECLINED"
+                    />
+                    {group.targets.slice(0, 6).map((target) => (
+                      <Flex align="center">
+                        <ProviderIcon
+                          h="18px"
+                          w="18px"
+                          shortType={target.targetKind.name as ShortTypes}
+                          mr={2}
+                        />
+                        {/* <Text textStyle="Body/Medium">{`${
                         group.targets.length
-                      } Target${group.targets.length > 1 ? "s" : ""}`}</Text>
-                    </Flex>
-                    <Flex>
-                      {group.targets[0]?.fields.map((field) => {
-                        return (
-                          <chakra.span
-                            textStyle="Body/ExtraSmall"
-                            fontFamily="mono"
-                            maxW="24ch"
-                            noOfLines={1}
-                            textOverflow="ellipsis"
-                            wordBreak="break-all"
-                          >
-                            {field.valueLabel}
-                          </chakra.span>
-                        );
-                      })}
-                    </Flex>
+                      } Target${group.targets.length > 1 ? "s" : ""}`}</Text> */}
+
+                        {target.fields.map((field) => {
+                          return (
+                            <chakra.span
+                              textStyle="Body/Small"
+                              fontFamily="mono"
+                              maxW="24ch"
+                              noOfLines={1}
+                              textOverflow="ellipsis"
+                              wordBreak="break-all"
+                            >
+                              {field.valueLabel}
+                            </chakra.span>
+                          );
+                        })}
+                      </Flex>
+                    ))}
+                    {group.targets.length > 4 && [
+                      <Box
+                        position="absolute"
+                        bottom={0}
+                        left={0}
+                        right={0}
+                        h="100%"
+                        bg="linear-gradient(-15deg, rgba(255,255,255,1) 15%, rgba(255,255,255,0) 100%)"
+                        rounded="md"
+                      />,
+                      <Text
+                        textStyle="Body/Small"
+                        color="neutrals.500"
+                        position="absolute"
+                        bottom={2}
+                        right={2}
+                      >
+                        +{group.targets.length - 4} more
+                      </Text>,
+                    ]}
                   </Flex>
                 );
               })}
