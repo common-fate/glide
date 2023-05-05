@@ -104,8 +104,6 @@ export const TargetGroupRadioSelector: React.FC<UseRadioGroupProps> = (
     return <Spinner />;
   }
 
-  console.log("the data is", data);
-
   return (
     <Wrap {...group}>
       {data?.targetGroups.map((p) => {

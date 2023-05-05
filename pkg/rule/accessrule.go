@@ -97,9 +97,13 @@ func (a AccessRule) ToAPI() types.AccessRule {
 
 // converts to basic api type
 func (t Target) ToAPI() types.AccessRuleTarget {
+	filters := make(map[string]types.ResourceFilter, 0)
+
 	return types.AccessRuleTarget{
-		FieldFilterExpessions: map[string]interface{}{},
-		TargetGroup:           t.TargetGroup.ToAPI(),
+		FieldFilterExpessions: types.AccessRuleTarget_FieldFilterExpessions{
+			AdditionalProperties: filters,
+		},
+		TargetGroup: t.TargetGroup.ToAPI(),
 	}
 }
 

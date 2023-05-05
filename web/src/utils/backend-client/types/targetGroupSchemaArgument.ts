@@ -15,4 +15,5 @@ export interface TargetGroupSchemaArgument {
   title: string;
   description?: string;
   resourceSchema?: TargetGroupSchemaArgumentResourceSchema;
+  resource?: string;
 }

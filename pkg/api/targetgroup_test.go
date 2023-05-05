@@ -17,7 +17,6 @@ import (
 
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/ddb/ddbmock"
-	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
@@ -42,7 +41,7 @@ func TestCreateTargetGroup(t *testing.T) {
 				From: target.From{
 					Name: "test",
 				},
-				Schema: providerregistrysdk.Target{},
+				Schema: target.GroupSchema{},
 			},
 			wantCode: http.StatusCreated,
 

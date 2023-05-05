@@ -154,11 +154,11 @@ export const userCancelRequest = (
  */
 export const userListRequestEvents = (
     requestId: string,
- options?: SecondParameter<typeof customInstance>) => {
+ ) => {
       return customInstance<ListRequestEventsResponseResponse>(
       {url: `/api/v1/requests/${requestId}/events`, method: 'get'
     },
-      options);
+      );
     }
   
 
@@ -169,15 +169,15 @@ export type UserListRequestEventsQueryResult = NonNullable<Awaited<ReturnType<ty
 export type UserListRequestEventsQueryError = ErrorType<ErrorResponseResponse>
 
 export const useUserListRequestEvents = <TError = ErrorType<ErrorResponseResponse>>(
- requestId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userListRequestEvents>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+ requestId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userListRequestEvents>>, TError> & { swrKey?: Key, enabled?: boolean },  }
 
   ) => {
 
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
+  const {swr: swrOptions} = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false && !!(requestId)
     const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserListRequestEventsKey(requestId) : null);
-  const swrFn = () => userListRequestEvents(requestId, requestOptions);
+  const swrFn = () => userListRequestEvents(requestId, );
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
