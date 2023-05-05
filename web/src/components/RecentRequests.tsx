@@ -9,6 +9,7 @@ import {
   LinkOverlay,
   SimpleGrid,
   Skeleton,
+  chakra,
   SkeletonCircle,
   SkeletonText,
   Spacer,
@@ -27,6 +28,9 @@ import { Link } from "react-location";
 import { useUserListRequests } from "../utils/backend-client/default/default";
 import { useInfiniteScrollApi } from "../utils/useInfiniteScrollApi";
 import { Request } from "../utils/backend-client/types";
+
+import { StatusCell } from "./StatusCell";
+import { ProviderIcon, ShortTypes } from "./icons/providerIcon";
 
 export const RecentRequests: React.FC = () => {
   const {
@@ -189,39 +193,95 @@ const RequestCard: React.FC<
     <LinkBox {...rest}>
       <Link to={"/requests/" + request.id}>
         <LinkOverlay>
-          <SimpleGrid
+          <Box
             p={1}
             rounded="lg"
             bg="neutrals.100"
-            columns={2}
+            // columns={2}
             borderWidth={1}
             borderColor="neutrals.300"
           >
-            <VStack spacing={2}>
+            <Flex px={1} align="center">
+              <StatusCell
+                sx={{
+                  span: {
+                    textStyle: "Body/Small",
+                  },
+                }}
+                value={request.status}
+                replaceValue={request.status.toLowerCase()}
+                success={["COMPLETE", "ACTIVE"]}
+                warning={["PENDING", "REVOKING"]}
+                danger={["REVOKED", "CANCELLED"]}
+              />
+              <Text textStyle="Body/ExtraSmall">{request.purpose.reason}</Text>
+            </Flex>
+            <VStack spacing={1}>
               {request.accessGroups.map((group) => {
                 return (
-                  <VStack
+                  <Flex
                     key={group.id}
                     borderWidth={1}
                     borderColor="neutrals.300"
                     rounded="lg"
-                    h="80px"
+                    minH="64px"
                     w="100%"
                     background="white"
+                    p={3}
+                    position="relative"
+                    flexDir="column"
                   >
-                    <Text>{group.status}</Text>
-                    <Text>{`${group.targets.length} target${
-                      group.targets.length > 1 ? "s" : ""
-                    }`}</Text>
-                  </VStack>
+                    <Flex align="center">
+                      <ProviderIcon
+                        h="24px"
+                        w="24px"
+                        shortType={
+                          group.targets[0]?.targetKind.name as ShortTypes
+                        }
+                        mr={2}
+                      />
+                      {/* ABS. POSITIONED STATUS TOP RIGHT */}
+                      <StatusCell
+                        sx={{
+                          span: {
+                            textStyle: "Body/Medium",
+                          },
+                        }}
+                        top={2}
+                        right={1}
+                        minW="8px"
+                        position="absolute"
+                        value={group.status}
+                        replaceValue=" " // this makes the status cell not render the value
+                        success={["APPROVED"]}
+                        warning={["PENDING_APPROVAL"]}
+                        danger="DECLINED"
+                      />
+                      <Text textStyle="Body/Medium">{`${
+                        group.targets.length
+                      } Target${group.targets.length > 1 ? "s" : ""}`}</Text>
+                    </Flex>
+                    <Flex>
+                      {group.targets[0]?.fields.map((field) => {
+                        return (
+                          <chakra.span
+                            textStyle="Body/ExtraSmall"
+                            fontFamily="mono"
+                            maxW="24ch"
+                            noOfLines={1}
+                            textOverflow="ellipsis"
+                            wordBreak="break-all"
+                          >
+                            {field.valueLabel}
+                          </chakra.span>
+                        );
+                      })}
+                    </Flex>
+                  </Flex>
                 );
               })}
             </VStack>
-            <Flex direction={"column"}>
-              <Spacer />
-              <Text textAlign={"right"}>{request.purpose.reason}</Text>
-            </Flex>
-          </SimpleGrid>
+          </Box>
         </LinkOverlay>
       </Link>
     </LinkBox>
