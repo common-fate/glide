@@ -15,7 +15,6 @@ import React from "react";
 // @ts-ignore
 import { ProviderIcon, ShortTypes } from "../components/icons/providerIcon";
 import { Target } from "../utils/backend-client/types";
-// import { F } from "dist/assets/Layout-e4945437";
 
 interface TargetDetailProps extends FlexProps {
   target: Target;
