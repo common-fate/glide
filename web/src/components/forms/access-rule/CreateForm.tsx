@@ -13,8 +13,22 @@ import { TimeStep } from "./steps/Time";
 import { StepsProvider } from "./StepsContext";
 import { FieldStep } from "./steps/Field";
 
+interface TargetGroupFilterOperation {
+  attribute: string;
+  values: string[];
+  value: string;
+  operationType: string;
+}
+
+type TargetGroups = {
+  [key: string]: {
+    [key: string]: TargetGroupFilterOperation;
+  };
+};
+
 export interface AccessRuleFormData extends CreateAccessRuleRequestBody {
   approval: { required: boolean; users: string[]; groups: string[] };
+  targetgroups: TargetGroups;
 }
 
 export const accessRuleFormDataToApi = (
@@ -26,6 +40,20 @@ export const accessRuleFormDataToApi = (
     approval: { users: [], groups: [] },
     ...d,
   };
+
+  // TODO:
+  // for (const target of d.targets) {
+  //   const targetgroupFields = formData.targetgroups[target.targetGroupId];
+
+  //   Object.keys(targetgroupFields).map((field) => {
+  //     const resourceFilter = createResourceFilter(targetgroupFields[field]);
+
+  //     if (resourceFilter) {
+  //       target.fieldFilterExpessions[field] = resourceFilter;
+  //     }
+  //   });
+  // }
+
   // only apply these fields if approval is enabled
   if (approval.required) {
     ruleData["approval"].users = approval.users;
@@ -33,6 +61,7 @@ export const accessRuleFormDataToApi = (
   } else {
     ruleData["approval"].users = [];
   }
+
   return ruleData;
 };
 

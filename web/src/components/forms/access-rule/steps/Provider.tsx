@@ -19,14 +19,13 @@ import { FormStep } from "./FormStep";
 export const TargetStep: React.FC = () => {
   const methods = useFormContext<AccessRuleFormData>();
   const targets = methods.watch("targets");
-  const isFieldLoading = false; //(!provider && ivp) || (!providerArgs && ivpa);
   return (
     <FormStep
       heading="Target"
       subHeading="The permissions that the rule gives access to"
       fields={["targets", "target.providerId"]}
       // preview={<Preview target={target} provider={provider} />}
-      isFieldLoading={isFieldLoading}
+      isFieldLoading={false}
     >
       <>
         <FormControl isInvalid={false}>

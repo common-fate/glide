@@ -36,10 +36,16 @@ interface TargetGroupFieldProps {
   fieldSchema: TargetGroupSchemaArgument;
 }
 
-interface SchemaProperty {
+interface ResourceSchemaProperty {
   title: string;
   type: string;
-  description: string;
+}
+
+interface TargetGroupFilterOperation {
+  attribute: string;
+  values: string[];
+  value: string;
+  operationType: string;
 }
 
 export const TargetGroupField: React.FC<TargetGroupFieldProps> = (props) => {
@@ -47,16 +53,18 @@ export const TargetGroupField: React.FC<TargetGroupFieldProps> = (props) => {
   const [resources, setResources] = useState<TargetGroupResource[]>([]);
   const { isOpen, onToggle } = useDisclosure();
   const [isLoading, setIsLoading] = useState<Boolean>(false);
-  const [filteredResources, setFilteredResources] = useState<
-    TargetGroupResource[]
-  >([]);
 
   const { watch, register, control, setValue } = useFormContext<any>();
-  const [targetGroupFilterOpts] = watch(["targetgroup"]);
+  const [targetGroupFilterOpts] = watch(["targetgroups"]);
+
   const [operationType, setOperationType] =
     useState<ResourceFilterOperationTypeEnum>(
       ResourceFilterOperationTypeEnum.IN
     );
+
+  const [filteredResources, setFilterResources] = useState<
+    TargetGroupResource[]
+  >([]);
 
   useEffect(() => {
     if (fieldSchema?.resource) {
@@ -67,9 +75,9 @@ export const TargetGroupField: React.FC<TargetGroupFieldProps> = (props) => {
   }, []);
 
   const fetchFilterResources = async () => {
-    const resourceFilter = createResourceFilter();
-
-    console.log("the resrouceFiler is", resourceFilter);
+    const resourceFilter = createResourceFilter(
+      targetGroupFilterOpts[targetGroup.id][fieldSchema.id]
+    );
 
     if (!resourceFilter) {
       return;
@@ -80,46 +88,37 @@ export const TargetGroupField: React.FC<TargetGroupFieldProps> = (props) => {
     }
 
     setIsLoading(true);
-    const resp = await adminFilterTargetGroupResources(
+    adminFilterTargetGroupResources(
       targetGroup.id,
       fieldSchema.resource,
       resourceFilter
-    );
-
-    setIsLoading(false);
-    setFilteredResources(resp);
+    )
+      .then((data) => {
+        setFilterResources(data);
+        setIsLoading(false);
+      })
+      .catch(() => setIsLoading(false));
   };
 
-  const createResourceFilter = (): ResourceFilter | void => {
-    return [
-      {
-        operationType: operationType,
-        attribute:
-          targetGroupFilterOpts[targetGroup.id][fieldSchema.id].attribute,
-        ...(operationType === ResourceFilterOperationTypeEnum.IN
-          ? {
-              values:
-                targetGroupFilterOpts[targetGroup.id][fieldSchema.id]
-                  .withSelectable || [],
-            }
-          : {
-              value:
-                targetGroupFilterOpts[targetGroup.id][fieldSchema.id].withValue,
-            }),
-      },
-    ];
-  };
-
-  // if (!resources) {
-  //   return <Spinner />;
-  // }
-
-  // TODO: Need to instead use the values returned by TargetField Schema.
   const createOptions = () => {
-    const defaultOptions = [
-      { value: "id", label: "id" },
-      { value: "name", label: "name" },
+    let defaultOptions = [
+      { value: "id", label: "Id" },
+      { value: "name", label: "Name" },
     ];
+
+    if (fieldSchema.resourceSchema) {
+      const properties = fieldSchema.resourceSchema.properties;
+
+      if (properties?.data) {
+        let out = Object.entries(
+          properties.data as Map<string, ResourceSchemaProperty>
+        )
+          .filter(([k, v]) => v.type === "string")
+          .map(([k, v]) => ({ value: k, label: v.title }));
+
+        defaultOptions.push(...out);
+      }
+    }
 
     return defaultOptions;
   };
@@ -180,7 +179,7 @@ export const TargetGroupField: React.FC<TargetGroupFieldProps> = (props) => {
             <HStack>
               <Text color={"black"}> Where</Text>
               <Controller
-                name={`targetgroup.${targetGroup.id}.${fieldSchema.id}.attribute`}
+                name={`targetgroups.${targetGroup.id}.${fieldSchema.id}.attribute`}
                 control={control}
                 defaultValue={"id"}
                 render={({ field: { value, ref, name, onChange } }) => (
@@ -193,36 +192,52 @@ export const TargetGroupField: React.FC<TargetGroupFieldProps> = (props) => {
                       }),
                     }}
                     options={createOptions()}
-                    onChange={(val: any) => onChange(val?.value)}
+                    onChange={(val: any) => {
+                      onChange(val?.value);
+                    }}
                     value={createOptions().find((c) => c.value === value)}
                   />
                 )}
               />
-              <ReactSelect
-                styles={{
-                  control: (provided, state) => ({
-                    ...provided,
-                    width: 120,
-                  }),
-                }}
-                options={createFilterOperationOptions()}
-                onChange={(e) =>
-                  setOperationType(e?.value as ResourceFilterOperationTypeEnum)
-                }
+              <Controller
+                name={`targetgroups.${targetGroup.id}.${fieldSchema.id}.operationType`}
+                control={control}
+                defaultValue={"IN"}
+                render={({ field: { value, ref, name, onChange } }) => (
+                  <ReactSelect
+                    ref={ref}
+                    styles={{
+                      control: (provided, state) => ({
+                        ...provided,
+                        width: 120,
+                      }),
+                    }}
+                    value={createFilterOperationOptions().find((c) => {
+                      return c.value === value;
+                    })}
+                    options={createFilterOperationOptions()}
+                    onChange={(val) => {
+                      onChange(val?.value);
+                      setOperationType(
+                        val?.value as ResourceFilterOperationTypeEnum
+                      );
+                    }}
+                  />
+                )}
               />
               {operationType === ResourceFilterOperationTypeEnum.IN ? (
                 <MultiSelect
                   options={resources.map((r) => {
                     return { label: r.resource.name, value: r.resource.id };
                   })}
-                  fieldName={`targetgroup.${targetGroup.id}.${fieldSchema.id}.withSelectable`}
+                  fieldName={`targetgroups.${targetGroup.id}.${fieldSchema.id}.values`}
                   onBlurSecondaryAction={() => fetchFilterResources()}
                 />
               ) : (
                 <FormControl>
                   <Input
                     {...register(
-                      `targetgroup.${targetGroup.id}.${fieldSchema.id}.withValue`
+                      `targetgroups.${targetGroup.id}.${fieldSchema.id}.value`
                     )}
                     onBlur={() => fetchFilterResources()}
                   />
@@ -272,12 +287,28 @@ export const TargetGroupField: React.FC<TargetGroupFieldProps> = (props) => {
                 variant="ghost"
                 onClick={() => {
                   onToggle();
-                  setValue("operationType", ResourceFilterOperationTypeEnum.IN);
-                  setValue("withSelectable", []);
-                  setValue("withValue", "");
-                  setValue("attribute", "id");
 
-                  setFilteredResources([]);
+                  setValue(
+                    `targetgroups.${targetGroup.id}.${fieldSchema.id}.attribute`,
+                    "id"
+                  );
+
+                  setValue(
+                    `targetgroups.${targetGroup.id}.${fieldSchema.id}.values`,
+                    []
+                  );
+
+                  setValue(
+                    `targetgroups.${targetGroup.id}.${fieldSchema.id}.operationType`,
+                    ResourceFilterOperationTypeEnum.IN
+                  );
+
+                  setValue(
+                    `targetgroups.${targetGroup.id}.${fieldSchema.id}.value`,
+                    ""
+                  );
+
+                  setFilterResources([]);
                 }}
                 ml="60%"
               >
@@ -289,4 +320,26 @@ export const TargetGroupField: React.FC<TargetGroupFieldProps> = (props) => {
       </VStack>
     </Box>
   );
+};
+
+export const createResourceFilter = (
+  operation: TargetGroupFilterOperation
+): ResourceFilter => {
+  if (!operation.values.length && operation.value == "") {
+    return [];
+  }
+
+  return [
+    {
+      operationType: operation.operationType as ResourceFilterOperationTypeEnum,
+      attribute: operation.attribute,
+      ...(operation.operationType === ResourceFilterOperationTypeEnum.IN
+        ? {
+            values: operation.values || [],
+          }
+        : {
+            value: operation.value,
+          }),
+    },
+  ];
 };
