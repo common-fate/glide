@@ -1,25 +1,5 @@
 package slacknotifier
 
-// import (
-// 	"context"
-// 	"encoding/json"
-// 	"fmt"
-// 	"sync"
-
-// 	"github.com/aws/aws-lambda-go/events"
-
-// 	"github.com/common-fate/common-fate/pkg/access"
-// 	"github.com/common-fate/common-fate/pkg/gevent"
-// 	"github.com/common-fate/common-fate/pkg/identity"
-// 	"github.com/common-fate/common-fate/pkg/notifiers"
-// 	"github.com/common-fate/common-fate/pkg/requests"
-// 	"github.com/common-fate/common-fate/pkg/rule"
-// 	"github.com/common-fate/common-fate/pkg/storage"
-// 	"github.com/common-fate/ddb"
-// 	"github.com/pkg/errors"
-// 	"go.uber.org/zap"
-// )
-
 // func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.SugaredLogger, event events.CloudWatchEvent) error {
 // 	var requestEvent gevent.RequestEventPayload
 // 	err := json.Unmarshal(event.Detail, &requestEvent)
@@ -306,67 +286,67 @@ package slacknotifier
 // 	}
 // }
 
-// // // This method maps request arguments in a deprecated way.
-// // // it should be replaced eventually with a cache lookup for the options available for the access rule
-// // func (n *SlackNotifier) RenderRequestArguments(ctx context.Context, log *zap.SugaredLogger, request requests.Requestv2, rule rule.AccessRule) ([]types.With, error) {
-// // 	// Consider adding a fallback if the cache lookup fails
+// This method maps request arguments in a deprecated way.
+// it should be replaced eventually with a cache lookup for the options available for the access rule
+// func (n *SlackNotifier) RenderRequestArguments(ctx context.Context, log *zap.SugaredLogger, request requests.Requestv2, rule rule.AccessRule) ([]types.With, error) {
+// 	// Consider adding a fallback if the cache lookup fails
 
-// // 	// var labelArr []types.With
-// // 	// Lookup the provider, ignore errors
-// // 	// if provider is not found, fallback to using the argument key as the title
-// // 	//TODO: FIX THIS FOR TARGET GROUP PROVIDERS
-// // 	// _, provider, _ := providerregistry.Registry().GetLatestByShortType(rule.Target.BuiltInProviderType)
-// // 	// for k, v := range request.SelectedWith {
-// // 	// 	with := types.With{
-// // 	// 		Label: v.Label,
-// // 	// 		Value: v.Value,
-// // 	// 		Title: k,
-// // 	// 	}
-// // 	// 	// attempt to get the title for the argument from the provider arg schema
-// // 	// 	if provider != nil {
-// // 	// 		if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
-// // 	// 			t, ok := s.ArgSchema()[k]
-// // 	// 			if ok {
-// // 	// 				with.Title = t.Title
-// // 	// 			}
-// // 	// 		}
-// // 	// 	}
-// // 	// 	labelArr = append(labelArr, with)
-// // 	// }
+// 	var labelArr []types.With
+// 	Lookup the provider, ignore errors
+// 	if provider is not found, fallback to using the argument key as the title
+// 	TODO: FIX THIS FOR TARGET GROUP PROVIDERS
+// 	_, provider, _ := providerregistry.Registry().GetLatestByShortType(rule.Target.BuiltInProviderType)
+// 	for k, v := range request.SelectedWith {
+// 		with := types.With{
+// 			Label: v.Label,
+// 			Value: v.Value,
+// 			Title: k,
+// 		}
+// 		// attempt to get the title for the argument from the provider arg schema
+// 		if provider != nil {
+// 			if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
+// 				t, ok := s.ArgSchema()[k]
+// 				if ok {
+// 					with.Title = t.Title
+// 				}
+// 			}
+// 		}
+// 		labelArr = append(labelArr, with)
+// 	}
 
-// // 	// for k, v := range rule.Target.With {
-// // 	// 	// only include the with values if it does not have any groups selected,
-// // 	// 	// if it does have groups selected, it means that it was a selectable field
-// // 	// 	// so this check avoids duplicate/inaccurate values in the slack message
-// // 	// 	if _, ok := rule.Target.WithArgumentGroupOptions[k]; !ok {
-// // 	// 		with := types.With{
-// // 	// 			Value: v,
-// // 	// 			Title: k,
-// // 	// 			Label: v,
-// // 	// 		}
-// // 	// 		// attempt to get the title for the argument from the provider arg schema
-// // 	// 		if provider != nil {
-// // 	// 			if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
-// // 	// 				t, ok := s.ArgSchema()[k]
-// // 	// 				if ok {
-// // 	// 					with.Title = t.Title
-// // 	// 				}
-// // 	// 			}
-// // 	// 		}
-// // 	// 		for _, ao := range pq.Result {
-// // 	// 			// if a value is found, set it to true with a label
-// // 	// 			if ao.Arg == k && ao.Value == v {
-// // 	// 				with.Label = ao.Label
-// // 	// 				break
-// // 	// 			}
-// // 	// 		}
-// // 	// 		labelArr = append(labelArr, with)
-// // 	// 	}
-// // 	// }
+// 	for k, v := range rule.Target.With {
+// 		// only include the with values if it does not have any groups selected,
+// 		// if it does have groups selected, it means that it was a selectable field
+// 		// so this check avoids duplicate/inaccurate values in the slack message
+// 		if _, ok := rule.Target.WithArgumentGroupOptions[k]; !ok {
+// 			with := types.With{
+// 				Value: v,
+// 				Title: k,
+// 				Label: v,
+// 			}
+// 			// attempt to get the title for the argument from the provider arg schema
+// 			if provider != nil {
+// 				if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
+// 					t, ok := s.ArgSchema()[k]
+// 					if ok {
+// 						with.Title = t.Title
+// 					}
+// 				}
+// 			}
+// 			for _, ao := range pq.Result {
+// 				// if a value is found, set it to true with a label
+// 				if ao.Arg == k && ao.Value == v {
+// 					with.Label = ao.Label
+// 					break
+// 				}
+// 			}
+// 			labelArr = append(labelArr, with)
+// 		}
+// 	}
 
-// // 	// // now sort labelArr by Title
-// // 	// sort.Slice(labelArr, func(i, j int) bool {
-// // 	// 	return labelArr[i].Title < labelArr[j].Title
-// // 	// })
-// // 	return labelArr, nil
-// // }
+// 	// now sort labelArr by Title
+// 	sort.Slice(labelArr, func(i, j int) bool {
+// 		return labelArr[i].Title < labelArr[j].Title
+// 	})
+// 	return labelArr, nil
+// }
