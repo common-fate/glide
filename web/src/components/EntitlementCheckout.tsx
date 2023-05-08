@@ -58,6 +58,7 @@ const Search: React.FC<SearchProps> = () => {
   const { targets, validating: targetsValidating } = useTargets();
   const navigate = useNavigate();
   const toast = useToast();
+
   const handleSubmit = async () => {
     try {
       const preflightRequest: CreatePreflightRequestBody = {
