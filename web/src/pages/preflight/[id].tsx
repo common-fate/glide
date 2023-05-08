@@ -5,6 +5,7 @@ import {
   BreadcrumbItem,
   BreadcrumbLink,
   Button,
+  ButtonGroup,
   Center,
   Container,
   Flex,
@@ -13,10 +14,20 @@ import {
   FormLabel,
   IconButton,
   Input,
+  Popover,
+  PopoverArrow,
+  PopoverBody,
+  PopoverCloseButton,
+  PopoverContent,
+  PopoverHeader,
+  PopoverTrigger,
+  Portal,
   Spacer,
   Stack,
   Text,
   Textarea,
+  chakra,
+  useBoolean,
   useToast,
 } from "@chakra-ui/react";
 import axios from "axios";
@@ -31,7 +42,25 @@ import {
   useUserGetPreflight,
   userPostRequests,
 } from "../../utils/backend-client/default/default";
-import { CreateAccessRequestRequestBody } from "../../utils/backend-client/types";
+import {
+  CreateAccessRequestGroupOptions,
+  CreateAccessRequestRequestBody,
+  PreflightAccessGroup,
+  RequestAccessGroup,
+} from "../../utils/backend-client/types";
+import { useState } from "react";
+import {
+  DurationInput,
+  Weeks,
+  Days,
+  Hours,
+  Minutes,
+} from "../../components/DurationInput";
+import {
+  userReviewRequest,
+  userRevokeRequest,
+} from "../../utils/backend-client/end-user/end-user";
+import { durationString } from "../../utils/durationString";
 
 const Home = () => {
   const {
@@ -118,22 +147,41 @@ const Home = () => {
                             field: { onChange, ref, value, onBlur },
                           }) => {
                             return (
-                              <Box
+                              <Flex
                                 p={2}
                                 w="100%"
                                 borderColor="neutrals.300"
                                 borderWidth="1px"
                                 rounded="lg"
+                                dir="row"
                               >
                                 {/* <HeaderStatusCell group={group} /> */}
-                                <Stack spacing={2}>
-                                  <Flex>
+                                <Stack spacing={2} w="100%">
+                                  <Flex
+                                    justify="space-between"
+                                    direction="row"
+                                    w="100%"
+                                  >
                                     <Text>
                                       {group.requiresApproval
                                         ? "Requires Approval"
                                         : "No Approval Required"}
                                     </Text>
-                                    <Spacer />
+
+                                    <EditDuration
+                                      group={group}
+                                      durationSeconds={
+                                        value?.timing?.durationSeconds
+                                      }
+                                      setDurationSeconds={(val) => {
+                                        onChange({
+                                          id: group.id,
+                                          timing: {
+                                            durationSeconds: val,
+                                          },
+                                        });
+                                      }}
+                                    />
                                   </Flex>
                                   {group.targets.map((target) => {
                                     return (
@@ -158,7 +206,7 @@ const Home = () => {
                                     {methods.formState.errors.reason?.message?.toString()}
                                   </FormErrorMessage>
                                 )}
-                              </Box>
+                              </Flex>
                             );
                           }}
                         />
@@ -216,6 +264,141 @@ const Home = () => {
         </FormProvider>
       </UserLayout>
     </div>
+  );
+};
+
+// @TODO: sort out state for props.........
+type EditDurationProps = {
+  group: PreflightAccessGroup;
+  durationSeconds: number;
+  setDurationSeconds: React.Dispatch<React.SetStateAction<number>>;
+};
+
+export const EditDuration = ({
+  group,
+  durationSeconds,
+  setDurationSeconds,
+}: EditDurationProps) => {
+  const handleClickMax = () => {
+    console.log("setting max state", durationSeconds);
+    setDurationSeconds(group.timeConstraints.maxDurationSeconds);
+    console.log("setting max state", durationSeconds);
+  };
+
+  // durationSeconds state
+
+  const [isEditing, setIsEditing] = useBoolean();
+
+  return (
+    <Flex
+      align="flex-end"
+      justify="flex-end"
+      onClick={(e) => {
+        e.stopPropagation();
+      }}
+    >
+      <Flex h="32px" flexDir="column" mr={4}>
+        <Text textStyle="Body/ExtraSmall" color="neutrals.800">
+          {isEditing
+            ? "Custom Duration"
+            : durationSeconds
+            ? durationString(durationSeconds)
+            : "No Duration Set"}
+        </Text>
+        <Popover
+          placement="bottom-start"
+          isOpen={isEditing}
+          onOpen={setIsEditing.on}
+          onClose={setIsEditing.off}
+        >
+          <PopoverTrigger>
+            <Button
+              pt="4px"
+              size="sm"
+              textStyle="Body/ExtraSmall"
+              fontSize="12px"
+              lineHeight="8px"
+              color="neutrals.500"
+              variant="link"
+            >
+              Edit Duration
+            </Button>
+          </PopoverTrigger>
+          <Portal>
+            <PopoverContent
+              minW="256px"
+              w="min-content"
+              borderColor="neutrals.300"
+            >
+              <PopoverHeader fontWeight="normal" borderColor="neutrals.300">
+                Edit Duration
+              </PopoverHeader>
+              <PopoverArrow
+                sx={{
+                  "--popper-arrow-shadow-color": "#E5E5E5",
+                }}
+              />
+              <PopoverCloseButton />
+              <PopoverBody py={4}>
+                <Box>
+                  <Box mt={1}>
+                    <DurationInput
+                      // {...rest}
+                      onChange={setDurationSeconds}
+                      value={durationSeconds}
+                      hideUnusedElements={true}
+                      max={group.timeConstraints.maxDurationSeconds}
+                      min={60}
+                      defaultValue={durationSeconds}
+                    >
+                      <Weeks />
+                      <Days />
+                      <Hours />
+                      <Minutes />
+                      <Button
+                        variant="brandSecondary"
+                        flexDir="column"
+                        fontSize="12px"
+                        lineHeight="12px"
+                        mr={2}
+                        isActive={
+                          durationSeconds ==
+                          group.timeConstraints.maxDurationSeconds
+                        }
+                        onClick={handleClickMax}
+                        sx={{
+                          w: "50%",
+                          rounded: "md",
+                          borderColor: "neutrals.300",
+                          color: "neutrals.800",
+                          p: 2,
+                          _active: {
+                            borderColor: "brandBlue.100",
+                            color: "brandBlue.300",
+                            bg: "white",
+                          },
+                        }}
+                      >
+                        <chakra.span
+                          display="block"
+                          w="100%"
+                          letterSpacing="1.1px"
+                        >
+                          MAX
+                        </chakra.span>
+                        {durationString(
+                          group.timeConstraints.maxDurationSeconds
+                        )}
+                      </Button>
+                    </DurationInput>
+                  </Box>
+                </Box>
+              </PopoverBody>
+            </PopoverContent>
+          </Portal>
+        </Popover>
+      </Flex>
+    </Flex>
   );
 };
 
