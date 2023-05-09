@@ -8,7 +8,9 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/benbjohnson/clock"
 	"github.com/common-fate/common-fate/pkg/access"
+	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/common-fate/common-fate/pkg/gevent"
+	slacknotifier "github.com/common-fate/common-fate/pkg/notifiers/slack"
 	"github.com/common-fate/common-fate/pkg/service/requestroutersvc"
 	"github.com/common-fate/common-fate/pkg/service/workflowsvc"
 	"github.com/common-fate/common-fate/pkg/service/workflowsvc/runtimes/local"
@@ -31,16 +33,43 @@ type Workflow interface {
 
 // EventHandler provides handler methods for reacting to async actions during the granting process
 type EventHandler struct {
-	DB         ddb.Storage
-	Workflow   Workflow
-	Eventbus   EventPutter
-	eventQueue chan gevent.EventTyper
+	DB            ddb.Storage
+	Workflow      Workflow
+	Eventbus      EventPutter
+	eventQueue    chan gevent.EventTyper
+	SlackNotifier slacknotifier.SlackNotifier
 }
 
 func NewLocalDevEventHandler(ctx context.Context, db ddb.Storage, clk clock.Clock) *EventHandler {
+
+	notifier := &slacknotifier.SlackNotifier{
+		DB:          db,
+		FrontendURL: "http://localhost:3000",
+	}
+
+	dc, err := deploy.GetDeploymentConfig()
+	if err != nil {
+		panic(err)
+	}
+
+	// don't cache notification config - re-read it every time the Lambda executes.
+	// This avoids us using stale config if we're reading config from a remote API,
+	// rather than from env vars. This adds latency but this is an async operation
+	// anyway so it doesn't really matter.
+	notificationsConfig, err := dc.ReadNotifications(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	err = notifier.Init(ctx, notificationsConfig)
+	if err != nil {
+		panic(err)
+	}
+
 	eh := &EventHandler{
-		DB:         db,
-		eventQueue: make(chan gevent.EventTyper, 100),
+		DB:            db,
+		eventQueue:    make(chan gevent.EventTyper, 100),
+		SlackNotifier: *notifier,
 	}
 	wf := &workflowsvc.Service{
 		Runtime: local.NewRuntime(db, &targetgroupgranter.Granter{
@@ -73,7 +102,18 @@ func (n *EventHandler) startProcessing(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
+
+		//handle event for event handler
 		err = n.HandleEvent(ctx, events.CloudWatchEvent{
+			DetailType: event.EventType(),
+			Detail:     d,
+		})
+		if err != nil {
+			return err
+		}
+
+		//handle event for slack notifier
+		err = n.SlackNotifier.HandleEvent(ctx, events.CloudWatchEvent{
 			DetailType: event.EventType(),
 			Detail:     d,
 		})
@@ -88,6 +128,7 @@ func (n *EventHandler) Put(ctx context.Context, detail gevent.EventTyper) error 
 	n.eventQueue <- detail
 	return nil
 }
+
 func (n *EventHandler) HandleEvent(ctx context.Context, event events.CloudWatchEvent) (err error) {
 	log := zap.S().With("event", event)
 	log.Info("received event from eventbridge")
