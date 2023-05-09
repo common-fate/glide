@@ -62,11 +62,13 @@ func NewLocalDevEventHandler(ctx context.Context, db ddb.Storage, clk clock.Cloc
 		FrontendURL: "http://localhost:3000",
 	}
 
-	err = notifier.Init(ctx, dc.Deployment.Parameters.NotificationsConfiguration)
-	if err != nil {
-		panic(err)
+	if dc.Deployment.Parameters.NotificationsConfiguration != nil {
+		err = notifier.Init(ctx, dc.Deployment.Parameters.NotificationsConfiguration)
+		if err != nil {
+			panic(err)
+		}
+		eh.SlackNotifier = *notifier
 	}
-	eh.SlackNotifier = *notifier
 
 	wf := &workflowsvc.Service{
 		Runtime: local.NewRuntime(db, &targetgroupgranter.Granter{
