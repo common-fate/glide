@@ -471,9 +471,9 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
                   rounded="md"
                   borderWidth="1px"
                   bg="white"
-                  p={2}
                   pos="relative"
                   justifyContent="flex-end"
+                  align="flex-start"
                   h="120px"
                 >
                   <TargetDetail
@@ -485,16 +485,28 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
                     }}
                   />
 
-                  <Stack justifyContent="space-between">
-                    <GrantStatusCell targetStatus={target.status} />
+                  <Flex
+                    p={2}
+                    h="100%"
+                    flexDir="column"
+                    justifyContent="space-between"
+                  >
+                    <GrantStatusCell
+                      minW="120px"
+                      justifyContent="end"
+                      position="absolute"
+                      right={3}
+                      targetStatus={target.status}
+                    />
                     <Button
+                      mt="auto"
                       variant="brandSecondary"
                       size="xs"
                       onClick={() => handleGrantClick(target)}
                     >
                       View
                     </Button>
-                  </Stack>
+                  </Flex>
                 </Flex>
               ))}
             </Stack>

@@ -31,6 +31,7 @@ export const TargetDetail: React.FC<TargetDetailProps> = ({
   return (
     <Flex
       alignContent="flex-start"
+      alignItems="start"
       position="relative"
       p={2}
       rounded="md"
@@ -49,7 +50,7 @@ export const TargetDetail: React.FC<TargetDetailProps> = ({
           label={`${target.kind.publisher}/${target.kind.name}/${target.kind.kind}`}
           placement="right"
         >
-          <Flex p={2} position="relative">
+          <Flex pr={2} position="relative">
             <ProviderIcon
               boxSize={"24px"}
               shortType={target.kind.icon as ShortTypes}
@@ -92,9 +93,11 @@ export const TargetDetail: React.FC<TargetDetailProps> = ({
                 }
                 placement="top"
               >
-                <Stack wrap="wrap">
+                <Stack wrap="wrap" spacing={0}>
                   <Text textStyle={"Body/SmallBold"}>{field.fieldTitle}</Text>
-                  <Text textStyle={"Body/Small"}>{field.valueLabel}</Text>
+                  <Text fontFamily="mono" textStyle={"Body/Small"}>
+                    {field.valueLabel}
+                  </Text>
                 </Stack>
               </Tooltip>
               {/* </React.Fragment> */}
