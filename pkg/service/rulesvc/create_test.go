@@ -7,6 +7,7 @@ import (
 
 	"github.com/benbjohnson/clock"
 	"github.com/common-fate/common-fate/pkg/rule"
+	"github.com/common-fate/common-fate/pkg/service/rulesvc/mocks"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/target"
 	"github.com/common-fate/common-fate/pkg/types"
@@ -150,9 +151,16 @@ func TestCreateAccessRule(t *testing.T) {
 
 			dbc.MockQueryWithErr(&storage.GetTargetGroup{Result: &tc.wantTargetGroup}, tc.wantTargetGroupErr)
 
+			mockCache := mocks.NewMockCacheService(ctrl)
+			if tc.wantTargetGroupErr == nil && tc.wantErr == nil {
+				mockCache.EXPECT().RefreshCachedTargets(gomock.Any()).Return(nil)
+
+			}
+
 			s := Service{
 				Clock: clk,
 				DB:    dbc,
+				Cache: mockCache,
 			}
 
 			got, err := s.CreateAccessRule(context.Background(), tc.givenUserID, tc.give)
@@ -177,229 +185,97 @@ func TestCreateAccessRule(t *testing.T) {
 
 }
 
-// func TestProcessTarget(t *testing.T) {
-// 	type testcase struct {
-// 		name                     string
-// 		give                     types.CreateAccessRuleTarget
-// 		wantErr                  error
-// 		withProviderResponse     types.GetProviderResponse
-// 		withProviderArgsResponse types.GetProviderArgsResponse
-// 		dontExpectCacheCall      bool
-// 		want                     rule.Target
-// 	}
+func TestProcessTarget(t *testing.T) {
+	type testcase struct {
+		name                     string
+		give                     []types.CreateAccessRuleTarget
+		wantErr                  error
+		want                     []rule.Target
+		wantTargetGroupLookup    *target.Group
+		wantTargetGroupLookupErr error
+	}
 
-// 	cacheArgOptionsResponse := []cache.ProviderOption{{Provider: "abcd", Arg: "accountId", Label: "", Value: "account1"}, {Provider: "abcd", Arg: "accountId", Label: "", Value: "account2"}, {Provider: "abcd", Arg: "permissionSetArn", Label: "", Value: "abcdefg"}}
-// 	cacheArgGroupOptionsResponse := []cache.ProviderArgGroupOption{{Provider: "abcd", Arg: "accountId", Group: "organizationalUnit", Label: "", Value: "orgunit1"}, {Provider: "abcd", Arg: "accountId", Group: "organizationalUnit", Label: "", Value: "orgunit2"}}
-// 	ssov2Schema := (&ssov2.Provider{}).ArgSchema().ToAPI()
-// 	testVaultSchema := (&testvault.Provider{}).ArgSchema().ToAPI()
+	tg1 := target.Group{
+		ID: "123",
+		From: target.From{
+			Publisher: "test",
+			Name:      "test",
+			Version:   "test",
+			Kind:      "test",
+		},
+		Schema: providerregistrysdk.Target{},
+	}
 
-// 	testcases := []testcase{
-// 		{
-// 			name: "ok testvault with input element",
-// 			give: types.CreateAccessRuleTarget{
-// 				ProviderId: "abcd",
-// 				With: types.CreateAccessRuleTarget_With{
-// 					AdditionalProperties: map[string]types.CreateAccessRuleTargetDetailArguments{
-// 						"vault": {
-// 							Groupings: types.CreateAccessRuleTargetDetailArguments_Groupings{
-// 								AdditionalProperties: map[string][]string{},
-// 							},
-// 							Values: []string{"example-vault"},
-// 						},
-// 					},
-// 				},
-// 			},
-// 			want: rule.Target{
-// 				ProviderID:               "abcd",
-// 				BuiltInProviderType:      "testvault",
-// 				With:                     map[string]string{"vault": "example-vault"},
-// 				WithSelectable:           map[string][]string{},
-// 				WithArgumentGroupOptions: map[string]map[string][]string{},
-// 			},
-// 			withProviderResponse: types.GetProviderResponse{
-// 				HTTPResponse: &http.Response{
-// 					StatusCode: http.StatusOK,
-// 				},
-// 				JSON200: &types.Provider{
-// 					Id:   "abcd",
-// 					Type: "testvault",
-// 				},
-// 			},
-// 			withProviderArgsResponse: types.GetProviderArgsResponse{
-// 				HTTPResponse: &http.Response{
-// 					StatusCode: http.StatusOK,
-// 				},
-// 				JSON200: &testVaultSchema,
-// 			},
-// 			dontExpectCacheCall: true,
-// 		},
-// 		{
-// 			name: "ok single value for field is stored in target.With, all other fields on target are empty",
-// 			give: types.CreateAccessRuleTarget{
-// 				ProviderId: "abcd",
-// 				With: types.CreateAccessRuleTarget_With{
-// 					AdditionalProperties: map[string]types.CreateAccessRuleTargetDetailArguments{
-// 						"accountId": {
-// 							Groupings: types.CreateAccessRuleTargetDetailArguments_Groupings{
-// 								AdditionalProperties: map[string][]string{},
-// 							},
-// 							Values: []string{"account1"},
-// 						},
-// 						"permissionSetArn": {
-// 							Groupings: types.CreateAccessRuleTargetDetailArguments_Groupings{
-// 								AdditionalProperties: map[string][]string{},
-// 							},
-// 							Values: []string{"abcdefg"},
-// 						},
-// 					},
-// 				},
-// 			},
-// 			want: rule.Target{
-// 				ProviderID:               "abcd",
-// 				BuiltInProviderType:      "awssso",
-// 				With:                     map[string]string{"accountId": "account1", "permissionSetArn": "abcdefg"},
-// 				WithSelectable:           map[string][]string{},
-// 				WithArgumentGroupOptions: map[string]map[string][]string{},
-// 			},
-// 			withProviderResponse: types.GetProviderResponse{
-// 				HTTPResponse: &http.Response{
-// 					StatusCode: http.StatusOK,
-// 				},
-// 				JSON200: &types.Provider{
-// 					Id:   "abcd",
-// 					Type: "awssso",
-// 				},
-// 			},
-// 			withProviderArgsResponse: types.GetProviderArgsResponse{
-// 				HTTPResponse: &http.Response{
-// 					StatusCode: http.StatusOK,
-// 				},
-// 				JSON200: &ssov2Schema,
-// 			},
-// 		},
-// 		{
-// 			name: "ok single value for field is stored in target.WithSelectable, all other fields on target are empty",
-// 			give: types.CreateAccessRuleTarget{
-// 				ProviderId: "abcd",
-// 				With: types.CreateAccessRuleTarget_With{
-// 					AdditionalProperties: map[string]types.CreateAccessRuleTargetDetailArguments{
-// 						"accountId": {
-// 							Groupings: types.CreateAccessRuleTargetDetailArguments_Groupings{
-// 								AdditionalProperties: map[string][]string{},
-// 							},
-// 							Values: []string{"account1", "account2"},
-// 						},
-// 						"permissionSetArn": {
-// 							Groupings: types.CreateAccessRuleTargetDetailArguments_Groupings{
-// 								AdditionalProperties: map[string][]string{},
-// 							},
-// 							Values: []string{"abcdefg"},
-// 						},
-// 					},
-// 				},
-// 			},
-// 			want: rule.Target{
-// 				ProviderID:               "abcd",
-// 				BuiltInProviderType:      "awssso",
-// 				With:                     map[string]string{"permissionSetArn": "abcdefg"},
-// 				WithSelectable:           map[string][]string{"accountId": {"account1", "account2"}},
-// 				WithArgumentGroupOptions: map[string]map[string][]string{},
-// 			},
-// 			withProviderResponse: types.GetProviderResponse{
-// 				HTTPResponse: &http.Response{
-// 					StatusCode: http.StatusOK,
-// 				},
-// 				JSON200: &types.Provider{
-// 					Id:   "abcd",
-// 					Type: "awssso",
-// 				},
-// 			},
-// 			withProviderArgsResponse: types.GetProviderArgsResponse{
-// 				HTTPResponse: &http.Response{
-// 					StatusCode: http.StatusOK,
-// 				},
-// 				JSON200: &ssov2Schema,
-// 			},
-// 		},
-// 		{
-// 			name: "ok group is provided for one of teh arguments",
-// 			give: types.CreateAccessRuleTarget{
-// 				ProviderId: "abcd",
-// 				With: types.CreateAccessRuleTarget_With{
-// 					AdditionalProperties: map[string]types.CreateAccessRuleTargetDetailArguments{
-// 						"accountId": {
-// 							Groupings: types.CreateAccessRuleTargetDetailArguments_Groupings{
-// 								AdditionalProperties: map[string][]string{"organizationalUnit": {"orgunit1", "orgunit2"}},
-// 							},
-// 							Values: []string{"account1", "account2"},
-// 						},
-// 						"permissionSetArn": {
-// 							Groupings: types.CreateAccessRuleTargetDetailArguments_Groupings{
-// 								AdditionalProperties: map[string][]string{},
-// 							},
-// 							Values: []string{"abcdefg"},
-// 						},
-// 					},
-// 				},
-// 			},
-// 			want: rule.Target{
-// 				ProviderID:               "abcd",
-// 				BuiltInProviderType:      "awssso",
-// 				With:                     map[string]string{"permissionSetArn": "abcdefg"},
-// 				WithSelectable:           map[string][]string{"accountId": {"account1", "account2"}},
-// 				WithArgumentGroupOptions: map[string]map[string][]string{"accountId": {"organizationalUnit": {"orgunit1", "orgunit2"}}},
-// 			},
-// 			withProviderResponse: types.GetProviderResponse{
-// 				HTTPResponse: &http.Response{
-// 					StatusCode: http.StatusOK,
-// 				},
-// 				JSON200: &types.Provider{
-// 					Id:   "abcd",
-// 					Type: "awssso",
-// 				},
-// 			},
-// 			withProviderArgsResponse: types.GetProviderArgsResponse{
-// 				HTTPResponse: &http.Response{
-// 					StatusCode: http.StatusOK,
-// 				},
-// 				JSON200: &ssov2Schema,
-// 			},
-// 		},
-// 	}
+	testcases := []testcase{
+		{
+			name: "ok ",
+			give: []types.CreateAccessRuleTarget{
+				{
+					TargetGroupId:         "123",
+					FieldFilterExpessions: make(map[string]interface{}),
+				},
+			},
+			wantTargetGroupLookup: &tg1,
+			want: []rule.Target{
+				{
+					TargetGroup:           tg1,
+					FieldFilterExpessions: map[string]rule.FieldFilterExpessions{},
+				},
+			},
+		},
+		{
+			name: "duplicate target group fails ",
+			give: []types.CreateAccessRuleTarget{
+				{
+					TargetGroupId:         "123",
+					FieldFilterExpessions: make(map[string]interface{}),
+				},
+				{
+					TargetGroupId:         "123",
+					FieldFilterExpessions: make(map[string]interface{}),
+				},
+			},
+			wantTargetGroupLookup: &tg1,
+			want:                  nil,
+			wantErr:               errors.New("duplicate target in access rule"),
+		},
+		{
+			name: "target group not found",
+			give: []types.CreateAccessRuleTarget{
+				{
+					TargetGroupId:         "123",
+					FieldFilterExpessions: make(map[string]interface{}),
+				},
+			},
+			wantTargetGroupLookup:    nil,
+			want:                     nil,
+			wantTargetGroupLookupErr: ddb.ErrNoItems,
+			wantErr:                  ddb.ErrNoItems,
+		},
+	}
 
-// 	for _, tc := range testcases {
-// 		t.Run(tc.name, func(t *testing.T) {
-// 			dbc := ddbmock.Client{
-// 				PutErr: tc.wantErr,
-// 			}
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			dbc := ddbmock.New(t)
 
-// 			clk := clock.NewMock()
-// 			ctrl := gomock.NewController(t)
+			dbc.MockQueryWithErr(&storage.GetTargetGroup{Result: tc.wantTargetGroupLookup}, tc.wantTargetGroupLookupErr)
 
-// 			defer ctrl.Finish()
+			clk := clock.NewMock()
+			ctrl := gomock.NewController(t)
 
-// 			m := ahmocks.NewMockClientWithResponsesInterface(ctrl)
+			defer ctrl.Finish()
 
-// 			m.EXPECT().GetProviderWithResponse(gomock.Any(), gomock.Eq(tc.give.ProviderId)).Return(&tc.withProviderResponse, nil)
-// 			m.EXPECT().GetProviderArgsWithResponse(gomock.Any(), gomock.Eq(tc.give.ProviderId)).Return(&tc.withProviderArgsResponse, nil)
-
-// 			cm := mocks.NewMockCacheService(ctrl)
-// 			if !tc.dontExpectCacheCall {
-// 				cm.EXPECT().RefreshCachedProviderArgOptions(gomock.Any(), gomock.Eq(tc.give.ProviderId), gomock.Any()).AnyTimes().Return(false, cacheArgOptionsResponse, cacheArgGroupOptionsResponse, nil)
-// 			}
-// 			s := Service{
-// 				Clock:    clk,
-// 				DB:       &dbc,
-// 				AHClient: m,
-// 				Cache:    cm,
-// 			}
-// 			got, err := s.ProcessTarget(context.Background(), tc.give, false)
-// 			if tc.wantErr == nil {
-// 				assert.NoError(t, err)
-// 			} else {
-// 				assert.EqualError(t, err, tc.wantErr.Error())
-// 			}
-// 			assert.Equal(t, tc.want, got)
-// 		})
-// 	}
-// }
+			s := Service{
+				Clock: clk,
+				DB:    dbc,
+			}
+			got, err := s.ProcessTargets(context.Background(), tc.give)
+			if tc.wantErr == nil {
+				assert.NoError(t, err)
+			} else {
+				assert.EqualError(t, err, tc.wantErr.Error())
+			}
+			assert.Equal(t, tc.want, got)
+		})
+	}
+}
