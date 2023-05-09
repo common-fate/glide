@@ -42,9 +42,9 @@ type EventHandler struct {
 
 func NewLocalDevEventHandler(ctx context.Context, db ddb.Storage, clk clock.Clock) *EventHandler {
 
-	notifier := &slacknotifier.SlackNotifier{
-		DB:          db,
-		FrontendURL: "http://localhost:3000",
+	eh := &EventHandler{
+		DB:         db,
+		eventQueue: make(chan gevent.EventTyper, 100),
 	}
 
 	dc, err := deploy.GetDeploymentConfig()
@@ -61,16 +61,17 @@ func NewLocalDevEventHandler(ctx context.Context, db ddb.Storage, clk clock.Cloc
 		panic(err)
 	}
 
+	notifier := &slacknotifier.SlackNotifier{
+		DB:          db,
+		FrontendURL: "http://localhost:3000",
+	}
+
 	err = notifier.Init(ctx, notificationsConfig)
 	if err != nil {
 		panic(err)
 	}
+	eh.SlackNotifier = *notifier
 
-	eh := &EventHandler{
-		DB:            db,
-		eventQueue:    make(chan gevent.EventTyper, 100),
-		SlackNotifier: *notifier,
-	}
 	wf := &workflowsvc.Service{
 		Runtime: local.NewRuntime(db, &targetgroupgranter.Granter{
 			DB:          db,
