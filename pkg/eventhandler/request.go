@@ -184,10 +184,11 @@ func (n *EventHandler) handleRequestStatusChange(ctx context.Context, requestId 
 				return err
 			}
 			oldStatus := request.Result.Request.RequestStatus
-			request.Result.Request.RequestStatus = types.REVOKED
+			request.Result.UpdateStatus(types.REVOKED)
 			newStatus := request.Result.Request.RequestStatus
 
-			err = n.DB.Put(ctx, &request.Result.Request)
+			items := request.Result.DBItems()
+			err = n.DB.PutBatch(ctx, items...)
 			if err != nil {
 				return err
 			}
@@ -222,10 +223,12 @@ func (n *EventHandler) handleRequestStatusChange(ctx context.Context, requestId 
 			return err
 		}
 		oldStatus := request.Result.Request.RequestStatus
-		request.Result.Request.RequestStatus = types.COMPLETE
+		request.Result.UpdateStatus(types.COMPLETE)
 
 		newStatus := request.Result.Request.RequestStatus
-		err = n.DB.Put(ctx, &request.Result.Request)
+
+		items := request.Result.DBItems()
+		err = n.DB.PutBatch(ctx, items...)
 		if err != nil {
 			return err
 		}
