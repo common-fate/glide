@@ -47,7 +47,7 @@ func NewLocalDevEventHandler(ctx context.Context, db ddb.Storage, clk clock.Cloc
 		eventQueue: make(chan gevent.EventTyper, 100),
 	}
 
-	dc, err := deploy.GetDeploymentConfig()
+	dc, err := deploy.LoadConfig(deploy.DefaultFilename)
 	if err != nil {
 		panic(err)
 	}
@@ -56,17 +56,13 @@ func NewLocalDevEventHandler(ctx context.Context, db ddb.Storage, clk clock.Cloc
 	// This avoids us using stale config if we're reading config from a remote API,
 	// rather than from env vars. This adds latency but this is an async operation
 	// anyway so it doesn't really matter.
-	notificationsConfig, err := dc.ReadNotifications(ctx)
-	if err != nil {
-		panic(err)
-	}
 
 	notifier := &slacknotifier.SlackNotifier{
 		DB:          db,
 		FrontendURL: "http://localhost:3000",
 	}
 
-	err = notifier.Init(ctx, notificationsConfig)
+	err = notifier.Init(ctx, dc.Deployment.Parameters.NotificationsConfiguration)
 	if err != nil {
 		panic(err)
 	}
