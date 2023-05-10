@@ -350,7 +350,11 @@ export const AuditLog: React.FC<{ request?: Request }> = ({ request }) => {
             arrLength={l}
             header={
               <Text>
-                {`Grant ${e.target?.fields[0].valueLabel?.toLowerCase()} status changed from ${e.fromGrantStatus?.toLowerCase()} to
+                {`Grant ${
+                  e.target?.fields[0]?.valueLabel
+                    ? e.target?.fields[0]?.valueLabel.toLowerCase()
+                    : ""
+                } status changed from ${e.fromGrantStatus?.toLowerCase()} to
               ${e.toGrantStatus?.toLowerCase()}`}
               </Text>
             }
