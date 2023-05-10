@@ -8,6 +8,7 @@ import (
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/handler"
+	"github.com/common-fate/common-fate/pkg/service/requestroutersvc"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/targetgroupgranter"
 	"github.com/common-fate/ddb"
@@ -19,18 +20,25 @@ type grantWorkflow struct {
 	revoke chan struct{}
 	state  chan targetgroupgranter.GrantState
 }
+
+type GrantHandler interface {
+	HandleRequest(ctx context.Context, in targetgroupgranter.InputEvent) (targetgroupgranter.GrantState, error)
+}
+
 type Runtime struct {
 	DB                 ddb.Storage
-	Granter            *targetgroupgranter.Granter
+	Granter            GrantHandler
+	RequestRouter      *requestroutersvc.Service
 	grantsRevokeChans  map[string]grantWorkflow
 	grantsRevokeChansM sync.Mutex
 }
 
-func NewRuntime(db ddb.Storage, granter *targetgroupgranter.Granter) *Runtime {
+func NewRuntime(db ddb.Storage, granter GrantHandler, router *requestroutersvc.Service) *Runtime {
 	return &Runtime{
 		DB:                db,
 		Granter:           granter,
 		grantsRevokeChans: make(map[string]grantWorkflow),
+		RequestRouter:     router,
 	}
 }
 
@@ -128,7 +136,7 @@ func (r *Runtime) Revoke(ctx context.Context, grantID string) error {
 		return err
 	}
 
-	routeResult, err := r.Granter.RequestRouter.Route(ctx, *tgq.Result)
+	routeResult, err := r.RequestRouter.Route(ctx, *tgq.Result)
 	if err != nil {
 		return err
 	}

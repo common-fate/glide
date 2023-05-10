@@ -7,6 +7,7 @@ import (
 
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/ddb"
+	"github.com/common-fate/provider-registry-sdk-go/pkg/handlerclient"
 	"github.com/common-fate/provider-registry-sdk-go/pkg/msg"
 	"github.com/pkg/errors"
 
@@ -22,10 +23,14 @@ import (
 type EventPutter interface {
 	Put(ctx context.Context, detail gevent.EventTyper) error
 }
+type RuntimeGetter interface {
+	GetRuntime(ctx context.Context, handler handler.Handler) (*handlerclient.Client, error)
+}
 type Granter struct {
 	DB            ddb.Storage
 	RequestRouter *requestroutersvc.Service
 	EventPutter   EventPutter
+	RuntimeGetter RuntimeGetter
 }
 type WorkflowInput struct {
 	RequestAccessGroupTarget access.GroupTarget `json:"requestAccessGroupTarget"`
@@ -72,7 +77,7 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (GrantState,
 	if err != nil {
 		return GrantState{}, errWithFileMeta(err)
 	}
-	runtime, err := handler.GetRuntime(ctx, routeResult.Handler)
+	runtime, err := g.RuntimeGetter.GetRuntime(ctx, routeResult.Handler)
 	if err != nil {
 		return GrantState{}, errWithFileMeta(err)
 	}
