@@ -3,57 +3,62 @@ package gevent
 import "github.com/common-fate/common-fate/pkg/access"
 
 const (
-	RequestCreatedType   = "request.created"
-	RequestApprovedType  = "request.approved"
-	RequestCancelledType = "request.cancelled"
-	RequestDeclinedType  = "request.declined"
+	RequestCreatedType         = "request.created"
+	RequestCompleteType        = "request.completed"
+	RequestRevokeInitiatedType = "request.revoke.initiated"
+	RequestRevokeCompletedType = "request.revoke.completed"
+	RequestCancelInitiatedType = "request.cancel.initiated"
+	RequestCancelCompletedType = "request.cancel.completed"
 )
 
-// RequestCreated is emitted when a user requests access
+// RequestCreated is when the user requests access
 // to something in the Common Fate service.
 type RequestCreated struct {
-	Request        access.Request `json:"request"`
-	RequestorEmail string         `json:"requestorEmail"`
+	Request access.RequestWithGroupsWithTargets `json:"request"`
 }
 
 func (RequestCreated) EventType() string {
 	return RequestCreatedType
 }
 
-// RequestApproved is emitted when a
-// user's request is approved.
-type RequestApproved struct {
-	Request       access.Request `json:"request"`
-	ReviewerID    string         `json:"reviewerId"`
-	ReviewerEmail string         `json:"reviewerEmail"`
+type RequestComplete struct {
+	Request access.RequestWithGroupsWithTargets `json:"request"`
 }
 
-func (RequestApproved) EventType() string {
-	return RequestApprovedType
+func (RequestComplete) EventType() string {
+	return RequestCompleteType
+}
+
+// Request Revoke is omitted when a user revokes a request
+type RequestRevokeInitiated struct {
+	Request access.RequestWithGroupsWithTargets `json:"request"`
+	Revoker User                                `json:"revoker"`
+}
+
+func (RequestRevokeInitiated) EventType() string {
+	return RequestRevokeInitiatedType
+}
+
+type RequestCancelledInitiated struct {
+	Request access.RequestWithGroupsWithTargets `json:"request"`
+}
+
+func (RequestCancelledInitiated) EventType() string {
+	return RequestCancelInitiatedType
+}
+
+type RequestRevoked struct {
+	Request access.RequestWithGroupsWithTargets `json:"request"`
+}
+
+func (RequestRevoked) EventType() string {
+	return RequestRevokeCompletedType
 }
 
 type RequestCancelled struct {
-	Request access.Request `json:"request"`
+	Request access.RequestWithGroupsWithTargets `json:"request"`
 }
 
 func (RequestCancelled) EventType() string {
-	return RequestCancelledType
-}
-
-type RequestDeclined struct {
-	Request       access.Request `json:"request"`
-	ReviewerID    string         `json:"reviewerId"`
-	ReviewerEmail string         `json:"reviewerEmail"`
-}
-
-func (RequestDeclined) EventType() string {
-	return RequestDeclinedType
-}
-
-// RequestEventPayload is a payload which is common to
-// all Request events. It is used to conveniently unmarshal
-// the Request payloads in our event handler code.
-type RequestEventPayload struct {
-	Request    access.Request `json:"request"`
-	ReviewerID string         `json:"reviewerId"`
+	return RequestCancelCompletedType
 }

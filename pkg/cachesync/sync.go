@@ -20,17 +20,8 @@ type CacheSyncer struct {
 // if a particular argument fails to sync, the error is logged and it continues to try syncing the other arguments/providers
 func (s *CacheSyncer) Sync(ctx context.Context) error {
 	log := logger.Get(ctx)
-
-	err := s.TargetDeployments(ctx)
-	if err != nil {
-		log.Errorw("failed to refresh target group resources", "error", err)
-	}
-	return nil
-}
-func (s *CacheSyncer) TargetDeployments(ctx context.Context) error {
-	log := logger.Get(ctx)
 	q := storage.ListTargetGroups{}
-	_, err := s.DB.Query(ctx, &q)
+	err := s.DB.All(ctx, &q)
 	if err != nil {
 		return err
 	}
@@ -43,5 +34,7 @@ func (s *CacheSyncer) TargetDeployments(ctx context.Context) error {
 		}
 		log.Infow("completed syncing target group resources cache", "targetgroup", tg)
 	}
-	return nil
+
+	// Finally, update targets for requesting access
+	return s.Cache.RefreshCachedTargets(ctx)
 }

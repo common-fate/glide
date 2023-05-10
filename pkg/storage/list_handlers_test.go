@@ -1,20 +1,30 @@
 package storage
 
 import (
-	"context"
 	"testing"
 
 	"github.com/common-fate/common-fate/pkg/handler"
+	"github.com/common-fate/ddb"
 	"github.com/common-fate/ddb/ddbtest"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestListHandlers(t *testing.T) {
-	db := newTestingStorage(t)
+	ts := newTestingStorage(t)
+	err := ts.deleteAll()
+	if err != nil {
+		t.Fatal(err)
+	}
 	h := handler.TestHandler("test")
-	ddbtest.PutFixtures(t, db, []handler.Handler{h})
-	q := &ListHandlers{}
-	_, err := db.Query(context.TODO(), q)
-	assert.NoError(t, err)
-	assert.Contains(t, q.Result, h)
+
+	ddbtest.PutFixtures(t, ts.db, []ddb.Keyer{&h})
+
+	tc := []ddbtest.QueryTestCase{
+		{
+			Name:  "ok",
+			Query: &ListHandlers{},
+			Want:  &ListHandlers{Result: []handler.Handler{h}},
+		},
+	}
+
+	ddbtest.RunQueryTests(t, ts.db, tc)
 }

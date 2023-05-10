@@ -144,6 +144,13 @@ func (Build) Governance() error {
 	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/governance", "cmd/lambda/governance/handler.go")
 }
 
+func (Build) EventHandler() error {
+	env := map[string]string{
+		"GOOS":   "linux",
+		"GOARCH": "amd64",
+	}
+	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/event-handler", "cmd/lambda/event-handlers/eventhandler/handler.go")
+}
 func (Build) FrontendAWSExports() error {
 	// create the aws-exports.js file if it doesn't exist. This prevents the frontend build from breaking.
 	f := "web/src/utils/aws-exports.js"
@@ -205,7 +212,7 @@ func PackageHealthChecker() error {
 }
 
 func Package() {
-	mg.Deps(PackageBackend, PackageSlackNotifier)
+	mg.Deps(PackageBackend, PackageSlackNotifier, PackageEventHandler)
 	mg.Deps(PackageSyncer, PackageWebhook, PackageGovernance, PackageFrontendDeployer)
 	mg.Deps(PackageCacheSyncer, PackageHealthChecker, PackageTargetGroupGranter)
 }
@@ -246,6 +253,12 @@ func PackageGovernance() error {
 	return sh.Run("zip", "--junk-paths", "bin/governance.zip", "bin/governance")
 }
 
+// PackageEventHandler zips the Go event handler so that it can be deployed to Lambda.
+func PackageEventHandler() error {
+	mg.Deps(Build.EventHandler)
+	return sh.Run("zip", "--junk-paths", "bin/event-handler.zip", "bin/event-handler")
+}
+
 type Deploy mg.Namespace
 
 // CDK deploys the CDK infrastructure stack to AWS
@@ -264,6 +277,15 @@ func (Deploy) CDK() error {
 	zap.S().Infow("deploying CDK stack", "stack", cfg.Deployment.StackName)
 
 	return sh.Run("pnpm", args...)
+}
+
+// Dotenv updates the .env file based on the deployed CDK infrastructure
+func AWSExports() error {
+	output, err := ensureCDKOutput()
+	if err != nil {
+		return err
+	}
+	return output.WriteAWSExports()
 }
 
 // Dotenv updates the .env file based on the deployed CDK infrastructure
@@ -299,14 +321,7 @@ func Dotenv() error {
 		}
 		idConf = string(b)
 	}
-	providerConf := "{}"
-	if cfg.Deployment.Parameters.ProviderConfiguration != nil {
-		b, err := json.Marshal(cfg.Deployment.Parameters.ProviderConfiguration)
-		if err != nil {
-			return err
-		}
-		providerConf = string(b)
-	}
+
 	idpType := identitysync.IDPTypeCognito
 	if cfg.Deployment.Parameters.IdentityProviderType != "" {
 		idpType = cfg.Deployment.Parameters.IdentityProviderType
@@ -318,14 +333,11 @@ func Dotenv() error {
 	myEnv["COMMONFATE_EVENT_BUS_ARN"] = o.EventBusArn
 	myEnv["COMMONFATE_EVENT_BUS_SOURCE"] = o.EventBusSource
 	myEnv["COMMONFATE_IDENTITY_SETTINGS"] = idConf
-	myEnv["COMMONFATE_PROVIDER_CONFIG"] = providerConf
-	myEnv["COMMONFATE_STATE_MACHINE_ARN"] = o.GranterStateMachineArn
 	myEnv["COMMONFATE_IDENTITY_PROVIDER"] = idpType
 	myEnv["COMMONFATE_ADMIN_GROUP"] = cfg.Deployment.Parameters.AdministratorGroupID
 	myEnv["COMMONFATE_FRONTEND_URL"] = "http://localhost:3000"
 	myEnv["COMMONFATE_ACCESS_HANDLER_RUNTIME"] = "lambda"
 	myEnv["COMMONFATE_PAGINATION_KMS_KEY_ARN"] = o.PaginationKMSKeyARN
-	myEnv["COMMONFATE_ACCESS_HANDLER_EXECUTION_ROLE_ARN"] = o.AccessHandlerExecutionRoleARN
 	myEnv["COMMONFATE_ACCESS_REMOTE_CONFIG_URL"] = cfg.Deployment.Parameters.ExperimentalRemoteConfigURL
 	myEnv["COMMONFATE_REMOTE_CONFIG_HEADERS"] = cfg.Deployment.Parameters.ExperimentalRemoteConfigHeaders
 	myEnv["COMMONFATE_IDENTITY_GROUP_FILTER"] = cfg.Deployment.Parameters.IdentityGroupFilter
@@ -409,12 +421,6 @@ func (Deploy) StagingFrontend(env, name string) error {
 	if err != nil {
 		return err
 	}
-
-	vaultID := dep.Deployment.Parameters.ProviderConfiguration["test-vault"].With["uniqueId"]
-
-	echoCmd := fmt.Sprintf("::set-output name=vaultID::%s", vaultID)
-
-	fmt.Printf("%s\n", echoCmd)
 
 	return cdkout.DeployFrontend()
 }

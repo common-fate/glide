@@ -5,11 +5,13 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
-import type { Provider } from './provider';
+import type { TargetGroup } from './targetGroup';
+import type { AccessRuleTargetFieldFilterExpessions } from './accessRuleTargetFieldFilterExpessions';
 
 /**
- * A target for an access rule
+ * a request body for an Access Rule Target
  */
 export interface AccessRuleTarget {
-  provider: Provider;
+  targetGroup: TargetGroup;
+  fieldFilterExpessions: AccessRuleTargetFieldFilterExpessions;
 }

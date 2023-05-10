@@ -2,8 +2,8 @@ import { Container } from "@chakra-ui/react";
 import { Helmet } from "react-helmet";
 
 import { AdminLayout } from "../../../components/Layout";
-import ProviderSetupNotice from "../../../components/ProviderSetupNotice";
 import { AccessRuleTable } from "../../../components/tables/AccessRuleTable";
+import { useUserListEntitlementTargets } from "../../../utils/backend-client/default/default";
 
 const Index = () => {
   return (
@@ -17,7 +17,7 @@ const Index = () => {
         minW={{ base: "100%", xl: "container.xl" }}
         overflowX="auto"
       >
-        <ProviderSetupNotice />
+        {/* <ProviderSetupNotice /> */}
         <AccessRuleTable />
       </Container>
     </AdminLayout>

@@ -22,74 +22,23 @@ import { useMatch, useNavigate } from "react-location";
 import {
   adminUpdateAccessRule,
   useAdminGetAccessRule,
-  adminArchiveAccessRule,
   useAdminGetTargetGroup,
 } from "../../../utils/backend-client/admin/admin";
-import {
-  AccessRuleDetail,
-  AccessRuleTargetDetailArgumentsFormElement,
-  TargetGroup,
-} from "../../../utils/backend-client/types";
-import {
-  AccessRuleFormData,
-  AccessRuleFormDataTarget,
-  accessRuleFormDataToApi,
-} from "./CreateForm";
+import { adminDeleteAccessRule } from "../../../utils/backend-client/default/default";
+import { AccessRule, TargetGroup } from "../../../utils/backend-client/types";
+import { AccessRuleFormData, accessRuleFormDataToApi } from "./CreateForm";
 
 import { ApprovalStep } from "./steps/Approval";
 import { GeneralStep } from "./steps/General";
-import { ProviderStep } from "./steps/Provider";
+import { TargetStep } from "./steps/Provider";
 import { RequestsStep } from "./steps/Request";
 import { TimeStep } from "./steps/Time";
 import { StepsProvider } from "./StepsContext";
 interface Props {
-  data: AccessRuleDetail;
-  readOnly?: boolean;
+  data: AccessRule;
 }
 
-//converts target api data to form data
-export const accessRuleTargetApiToTargetFormData = (
-  apiData: AccessRuleDetail,
-  targetGroup: TargetGroup | undefined
-): AccessRuleFormDataTarget => {
-  console.log({ apiData, targetGroup });
-  const t: AccessRuleFormDataTarget = {
-    providerId: apiData.target.provider.id,
-    multiSelects: {},
-    argumentGroups: {},
-    inputs: {},
-  };
-  if (targetGroup !== undefined) {
-    Object.entries(targetGroup.schema).forEach(([k, v]) => {
-      if (
-        v.ruleFormElement ===
-        AccessRuleTargetDetailArgumentsFormElement.MULTISELECT
-      ) {
-        t.multiSelects[k] = apiData.target.with[k].values;
-      } else {
-        t.inputs[k] =
-          apiData.target.with[k].values.length == 1
-            ? apiData.target.with[k].values[0]
-            : "";
-      }
-    });
-  } else {
-    Object.entries(apiData.target.with).forEach(([k, v]) => {
-      if (
-        v.formElement === AccessRuleTargetDetailArgumentsFormElement.MULTISELECT
-      ) {
-        t.multiSelects[k] = v.values;
-        t.argumentGroups[k] = v.groupings;
-      } else {
-        t.inputs[k] = v.values.length == 1 ? v.values[0] : "";
-      }
-    });
-  }
-
-  return t;
-};
-
-const UpdateAccessRuleForm = ({ data, readOnly }: Props) => {
+const UpdateAccessRuleForm = ({ data }: Props) => {
   const {
     params: { id: ruleId },
   } = useMatch();
@@ -101,19 +50,14 @@ const UpdateAccessRuleForm = ({ data, readOnly }: Props) => {
   // we use this to ensure that data for selected and then deselected providers is not included.
   const methods = useForm<AccessRuleFormData>({
     shouldUnregister: true,
+    defaultValues: {
+      targets: [],
+    },
   });
 
-  const [isArchiving, setIsArchiving] = useState<boolean>(false);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
 
   const { mutate } = useAdminGetAccessRule(ruleId);
-  const { data: targetGroup } = useAdminGetTargetGroup(
-    data.target.targetGroup ?? "",
-    {
-      swr: {
-        enabled: data.target.targetGroup !== undefined,
-      },
-    }
-  );
 
   useEffect(() => {
     // We will only reset form data if it has changed on the backend
@@ -133,11 +77,12 @@ const UpdateAccessRuleForm = ({ data, readOnly }: Props) => {
           users: data.approval.users,
           groups: data.approval.groups,
         },
-        target: accessRuleTargetApiToTargetFormData(data, targetGroup),
+        targets: [],
+        priority: data.priority,
       };
       methods.reset(f);
     }
-  }, [data, methods, targetGroup]);
+  }, [data, methods]);
 
   const onSubmit = async (data: AccessRuleFormData) => {
     console.debug("submit form data for edit", { data });
@@ -170,13 +115,13 @@ const UpdateAccessRuleForm = ({ data, readOnly }: Props) => {
     }
   };
 
-  const handleArchive = async () => {
+  const handleDelete = async () => {
     try {
-      setIsArchiving(true);
-      await adminArchiveAccessRule(ruleId);
+      setIsDeleting(true);
+      await adminDeleteAccessRule(ruleId);
 
       toast({
-        title: "Access rule archived",
+        title: "Access rule deleted",
         status: "success",
         variant: "subtle",
         duration: 2200,
@@ -190,7 +135,7 @@ const UpdateAccessRuleForm = ({ data, readOnly }: Props) => {
         description = err?.response?.data.error;
       }
       toast({
-        title: "Error archiving access rule",
+        title: "Error deleting access rule",
         description,
         status: "error",
         variant: "subtle",
@@ -198,30 +143,29 @@ const UpdateAccessRuleForm = ({ data, readOnly }: Props) => {
         isClosable: true,
       });
     } finally {
-      setIsArchiving(false);
+      setIsDeleting(false);
     }
   };
 
   return (
     <Container pt={6} maxW="container.md">
-      {!readOnly && (
-        <Flex justifyContent="flex-end" w="100%" flexGrow={1} mb={4}>
-          <Button
-            size="sm"
-            variant="ghost"
-            leftIcon={<DeleteIcon />}
-            onClick={onOpen}
-          >
-            Archive Access Rule
-          </Button>
-        </Flex>
-      )}
+      <Flex justifyContent="flex-end" w="100%" flexGrow={1} mb={4}>
+        <Button
+          size="sm"
+          variant="ghost"
+          leftIcon={<DeleteIcon />}
+          onClick={onOpen}
+        >
+          Delete Access Rule
+        </Button>
+      </Flex>
+
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmit)}>
           <VStack w="100%" spacing={6}>
-            <StepsProvider isEditMode={!readOnly} isReadOnly={readOnly}>
+            <StepsProvider isEditMode={true}>
               <GeneralStep />
-              <ProviderStep />
+              <TargetStep />
               <TimeStep />
               <RequestsStep />
               <ApprovalStep />
@@ -233,10 +177,10 @@ const UpdateAccessRuleForm = ({ data, readOnly }: Props) => {
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Archive Access Rule</ModalHeader>
+          <ModalHeader>Delete Access Rule</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            Are you sure you want to archive this access rule?
+            Are you sure you want to delete this access rule?
           </ModalBody>
 
           <ModalFooter>
@@ -245,15 +189,15 @@ const UpdateAccessRuleForm = ({ data, readOnly }: Props) => {
               colorScheme="red"
               rounded="full"
               mr={3}
-              onClick={handleArchive}
-              isLoading={isArchiving}
+              onClick={handleDelete}
+              isLoading={isDeleting}
             >
-              Archive Rule
+              Delete Rule
             </Button>
             <Button
               variant={"brandSecondary"}
               onClick={onClose}
-              isDisabled={isArchiving}
+              isDisabled={isDeleting}
             >
               Cancel
             </Button>
@@ -264,16 +208,9 @@ const UpdateAccessRuleForm = ({ data, readOnly }: Props) => {
   );
 };
 
-const BottomActionButtons: React.FC<{ rule: AccessRuleDetail }> = ({
-  rule,
-}) => {
+const BottomActionButtons: React.FC<{ rule: AccessRule }> = ({ rule }) => {
   const { formState } = useFormContext();
   const navigate = useNavigate();
-
-  // No available actions for archived rules
-  if (rule.status === "ARCHIVED") {
-    return <ButtonGroup w="100%"></ButtonGroup>;
-  }
 
   return (
     <ButtonGroup w="100%">

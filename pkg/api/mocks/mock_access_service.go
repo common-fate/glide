@@ -9,7 +9,9 @@ import (
 	reflect "reflect"
 
 	access "github.com/common-fate/common-fate/pkg/access"
+	identity "github.com/common-fate/common-fate/pkg/identity"
 	accesssvc "github.com/common-fate/common-fate/pkg/service/accesssvc"
+	types "github.com/common-fate/common-fate/pkg/types"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -36,21 +38,6 @@ func (m *MockAccessService) EXPECT() *MockAccessServiceMockRecorder {
 	return m.recorder
 }
 
-// AddReviewAndGrantAccess mocks base method.
-func (m *MockAccessService) AddReviewAndGrantAccess(arg0 context.Context, arg1 accesssvc.AddReviewOpts) (*accesssvc.AddReviewResult, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddReviewAndGrantAccess", arg0, arg1)
-	ret0, _ := ret[0].(*accesssvc.AddReviewResult)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// AddReviewAndGrantAccess indicates an expected call of AddReviewAndGrantAccess.
-func (mr *MockAccessServiceMockRecorder) AddReviewAndGrantAccess(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddReviewAndGrantAccess", reflect.TypeOf((*MockAccessService)(nil).AddReviewAndGrantAccess), arg0, arg1)
-}
-
 // CancelRequest mocks base method.
 func (m *MockAccessService) CancelRequest(arg0 context.Context, arg1 accesssvc.CancelRequestOpts) error {
 	m.ctrl.T.Helper()
@@ -65,47 +52,46 @@ func (mr *MockAccessServiceMockRecorder) CancelRequest(arg0, arg1 interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CancelRequest", reflect.TypeOf((*MockAccessService)(nil).CancelRequest), arg0, arg1)
 }
 
-// CreateFavorite mocks base method.
-func (m *MockAccessService) CreateFavorite(arg0 context.Context, arg1 accesssvc.CreateFavoriteOpts) (*access.Favorite, error) {
+// CreateRequest mocks base method.
+func (m *MockAccessService) CreateRequest(arg0 context.Context, arg1 identity.User, arg2 types.CreateAccessRequestRequest) (*access.RequestWithGroupsWithTargets, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateFavorite", arg0, arg1)
-	ret0, _ := ret[0].(*access.Favorite)
+	ret := m.ctrl.Call(m, "CreateRequest", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*access.RequestWithGroupsWithTargets)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// CreateFavorite indicates an expected call of CreateFavorite.
-func (mr *MockAccessServiceMockRecorder) CreateFavorite(arg0, arg1 interface{}) *gomock.Call {
+// CreateRequest indicates an expected call of CreateRequest.
+func (mr *MockAccessServiceMockRecorder) CreateRequest(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateFavorite", reflect.TypeOf((*MockAccessService)(nil).CreateFavorite), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRequest", reflect.TypeOf((*MockAccessService)(nil).CreateRequest), arg0, arg1, arg2)
 }
 
-// CreateRequests mocks base method.
-func (m *MockAccessService) CreateRequests(arg0 context.Context, arg1 accesssvc.CreateRequestsOpts) ([]accesssvc.CreateRequestResult, error) {
+// Review mocks base method.
+func (m *MockAccessService) Review(arg0 context.Context, arg1 identity.User, arg2 bool, arg3, arg4 string, arg5 types.ReviewRequest) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateRequests", arg0, arg1)
-	ret0, _ := ret[0].([]accesssvc.CreateRequestResult)
+	ret := m.ctrl.Call(m, "Review", arg0, arg1, arg2, arg3, arg4, arg5)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Review indicates an expected call of Review.
+func (mr *MockAccessServiceMockRecorder) Review(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Review", reflect.TypeOf((*MockAccessService)(nil).Review), arg0, arg1, arg2, arg3, arg4, arg5)
+}
+
+// RevokeRequest mocks base method.
+func (m *MockAccessService) RevokeRequest(arg0 context.Context, arg1 access.RequestWithGroupsWithTargets) (*access.RequestWithGroupsWithTargets, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RevokeRequest", arg0, arg1)
+	ret0, _ := ret[0].(*access.RequestWithGroupsWithTargets)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// CreateRequests indicates an expected call of CreateRequests.
-func (mr *MockAccessServiceMockRecorder) CreateRequests(arg0, arg1 interface{}) *gomock.Call {
+// RevokeRequest indicates an expected call of RevokeRequest.
+func (mr *MockAccessServiceMockRecorder) RevokeRequest(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRequests", reflect.TypeOf((*MockAccessService)(nil).CreateRequests), arg0, arg1)
-}
-
-// UpdateFavorite mocks base method.
-func (m *MockAccessService) UpdateFavorite(arg0 context.Context, arg1 accesssvc.UpdateFavoriteOpts) (*access.Favorite, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateFavorite", arg0, arg1)
-	ret0, _ := ret[0].(*access.Favorite)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// UpdateFavorite indicates an expected call of UpdateFavorite.
-func (mr *MockAccessServiceMockRecorder) UpdateFavorite(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFavorite", reflect.TypeOf((*MockAccessService)(nil).UpdateFavorite), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevokeRequest", reflect.TypeOf((*MockAccessService)(nil).RevokeRequest), arg0, arg1)
 }

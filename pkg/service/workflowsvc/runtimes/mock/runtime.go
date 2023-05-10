@@ -2,32 +2,59 @@ package mock
 
 import (
 	"context"
-	"time"
+	"encoding/json"
 
-	"github.com/common-fate/apikit/logger"
-	"github.com/common-fate/common-fate/pkg/types"
+	"github.com/common-fate/common-fate/pkg/access"
+	"github.com/common-fate/common-fate/pkg/gevent"
+	"github.com/common-fate/common-fate/pkg/handler"
+	"github.com/common-fate/common-fate/pkg/service/requestroutersvc"
+	"github.com/common-fate/common-fate/pkg/service/workflowsvc/runtimes/local"
+	"github.com/common-fate/common-fate/pkg/targetgroupgranter"
+	"github.com/common-fate/ddb"
+	"github.com/common-fate/provider-registry-sdk-go/pkg/handlerclient"
+	"github.com/common-fate/provider-registry-sdk-go/pkg/msg"
 )
 
-// The mock runtime always returns success
+type EventPutter interface {
+	Put(ctx context.Context, detail gevent.EventTyper) error
+}
+
+type MockRuntimeGetter struct{}
+
+func (m *MockRuntimeGetter) GetRuntime(ctx context.Context, handler handler.Handler) (*handlerclient.Client, error) {
+	return &handlerclient.Client{Executor: &MockRuntimeGetter{}}, nil
+}
+
+func (m *MockRuntimeGetter) Execute(ctx context.Context, request msg.Request) (*msg.Result, error) {
+	if request.Type() == msg.RequestTypeGrant {
+		b, err := json.Marshal(msg.GrantResponse{})
+		if err != nil {
+			return nil, err
+		}
+		return &msg.Result{Response: b}, nil
+	}
+	b, err := json.Marshal(struct{}{})
+	if err != nil {
+		return nil, err
+	}
+	return &msg.Result{Response: b}, nil
+}
+
 type Runtime struct {
+	runtime *local.Runtime
 }
 
-func (r *Runtime) Grant(ctx context.Context, grant types.CreateGrant, isForTargetGroup bool) error {
-	go func() {
-		ctx := context.Background()
-		waitFor := time.Until(grant.Start.Time)
-		time.Sleep(waitFor)
-
-		logger.Get(ctx).Infow("activating grant", "grant", grant)
-
-		dur := grant.End.Sub(grant.Start.Time)
-		time.Sleep(dur)
-
-		logger.Get(ctx).Infow("deactivating grant", "grant", grant)
-	}()
-	return nil
+func NewRuntime(db ddb.Storage, eventBus EventPutter, router *requestroutersvc.Service) *Runtime {
+	return &Runtime{local.NewRuntime(db, &targetgroupgranter.Granter{
+		DB: db, EventPutter: eventBus, RequestRouter: router,
+		RuntimeGetter: &MockRuntimeGetter{},
+	}, router)}
 }
 
-func (r *Runtime) Revoke(ctx context.Context, grantID string, isForTargetGroup bool) error {
-	return nil
+func (r *Runtime) Grant(ctx context.Context, grant access.GroupTarget) error {
+	return r.runtime.Grant(ctx, grant)
+}
+
+func (r *Runtime) Revoke(ctx context.Context, grantID string) error {
+	return r.runtime.Revoke(ctx, grantID)
 }

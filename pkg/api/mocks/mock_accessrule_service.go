@@ -8,7 +8,6 @@ import (
 	context "context"
 	reflect "reflect"
 
-	identity "github.com/common-fate/common-fate/pkg/identity"
 	rule "github.com/common-fate/common-fate/pkg/rule"
 	rulesvc "github.com/common-fate/common-fate/pkg/service/rulesvc"
 	types "github.com/common-fate/common-fate/pkg/types"
@@ -38,21 +37,6 @@ func (m *MockAccessRuleService) EXPECT() *MockAccessRuleServiceMockRecorder {
 	return m.recorder
 }
 
-// ArchiveAccessRule mocks base method.
-func (m *MockAccessRuleService) ArchiveAccessRule(arg0 context.Context, arg1 string, arg2 rule.AccessRule) (*rule.AccessRule, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ArchiveAccessRule", arg0, arg1, arg2)
-	ret0, _ := ret[0].(*rule.AccessRule)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ArchiveAccessRule indicates an expected call of ArchiveAccessRule.
-func (mr *MockAccessRuleServiceMockRecorder) ArchiveAccessRule(arg0, arg1, arg2 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ArchiveAccessRule", reflect.TypeOf((*MockAccessRuleService)(nil).ArchiveAccessRule), arg0, arg1, arg2)
-}
-
 // CreateAccessRule mocks base method.
 func (m *MockAccessRuleService) CreateAccessRule(arg0 context.Context, arg1 string, arg2 types.CreateAccessRuleRequest) (*rule.AccessRule, error) {
 	m.ctrl.T.Helper()
@@ -68,49 +52,18 @@ func (mr *MockAccessRuleServiceMockRecorder) CreateAccessRule(arg0, arg1, arg2 i
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAccessRule", reflect.TypeOf((*MockAccessRuleService)(nil).CreateAccessRule), arg0, arg1, arg2)
 }
 
-// GetRule mocks base method.
-func (m *MockAccessRuleService) GetRule(arg0 context.Context, arg1 string, arg2 *identity.User, arg3 bool) (*rule.GetAccessRuleResponse, error) {
+// DeleteRule mocks base method.
+func (m *MockAccessRuleService) DeleteRule(arg0 context.Context, arg1 string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetRule", arg0, arg1, arg2, arg3)
-	ret0, _ := ret[0].(*rule.GetAccessRuleResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret := m.ctrl.Call(m, "DeleteRule", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
-// GetRule indicates an expected call of GetRule.
-func (mr *MockAccessRuleServiceMockRecorder) GetRule(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+// DeleteRule indicates an expected call of DeleteRule.
+func (mr *MockAccessRuleServiceMockRecorder) DeleteRule(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRule", reflect.TypeOf((*MockAccessRuleService)(nil).GetRule), arg0, arg1, arg2, arg3)
-}
-
-// LookupRule mocks base method.
-func (m *MockAccessRuleService) LookupRule(arg0 context.Context, arg1 rulesvc.LookupRuleOpts) ([]rulesvc.LookedUpRule, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LookupRule", arg0, arg1)
-	ret0, _ := ret[0].([]rulesvc.LookedUpRule)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// LookupRule indicates an expected call of LookupRule.
-func (mr *MockAccessRuleServiceMockRecorder) LookupRule(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LookupRule", reflect.TypeOf((*MockAccessRuleService)(nil).LookupRule), arg0, arg1)
-}
-
-// RequestArguments mocks base method.
-func (m *MockAccessRuleService) RequestArguments(arg0 context.Context, arg1 rule.Target) (map[string]types.RequestArgument, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RequestArguments", arg0, arg1)
-	ret0, _ := ret[0].(map[string]types.RequestArgument)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// RequestArguments indicates an expected call of RequestArguments.
-func (mr *MockAccessRuleServiceMockRecorder) RequestArguments(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RequestArguments", reflect.TypeOf((*MockAccessRuleService)(nil).RequestArguments), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRule", reflect.TypeOf((*MockAccessRuleService)(nil).DeleteRule), arg0, arg1)
 }
 
 // UpdateRule mocks base method.

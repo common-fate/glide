@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 
 	"github.com/common-fate/apikit/logger"
 
@@ -12,7 +13,6 @@ import (
 	"github.com/common-fate/common-fate/pkg/auth/localauth"
 	"github.com/common-fate/common-fate/pkg/auth/nolocalauth"
 	"github.com/common-fate/common-fate/pkg/deploy"
-	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/identity/identitysync"
 	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 
@@ -75,12 +75,6 @@ func run() error {
 		}
 		authMiddleware = a
 	}
-	eventBus, err := gevent.NewSender(ctx, gevent.SenderOpts{
-		EventBusARN: cfg.EventBusArn,
-	})
-	if err != nil {
-		return err
-	}
 
 	dc, err := deploy.GetDeploymentConfig()
 	if err != nil {
@@ -109,20 +103,19 @@ func run() error {
 		return err
 	}
 	api, err := api.New(ctx, api.Opts{
-		Log:                 log,
-		DynamoTable:         cfg.DynamoTable,
-		PaginationKMSKeyARN: cfg.PaginationKMSKeyARN,
-		EventSender:         eventBus,
-		AdminGroup:          cfg.AdminGroup,
-		DeploymentSuffix:    cfg.DeploymentSuffix,
-		IdentitySyncer:      idsync,
-		CognitoUserPoolID:   cfg.CognitoUserPoolID,
-		IDPType:             cfg.IdpProvider,
-		AdminGroupID:        cfg.AdminGroup,
-		DeploymentConfig:    dc,
-
+		Log:                    log,
+		DynamoTable:            cfg.DynamoTable,
+		PaginationKMSKeyARN:    cfg.PaginationKMSKeyARN,
+		AdminGroup:             cfg.AdminGroup,
+		DeploymentSuffix:       cfg.DeploymentSuffix,
+		IdentitySyncer:         idsync,
+		CognitoUserPoolID:      cfg.CognitoUserPoolID,
+		IDPType:                cfg.IdpProvider,
+		AdminGroupID:           cfg.AdminGroup,
+		DeploymentConfig:       dc,
+		UseLocalEventHandler:   os.Getenv("USE_LAMBDA_EVENT_HANDLER") != "true",
+		EventBusArn:            cfg.EventBusArn,
 		ProviderRegistryClient: registryClient,
-		StateMachineARN:        cfg.StateMachineARN,
 		FrontendURL:            cfg.FrontendURL,
 	})
 	if err != nil {

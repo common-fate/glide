@@ -30,8 +30,8 @@ type ErrorResponse struct {
 
 // ListAccessRulesDetailResponse defines model for ListAccessRulesDetailResponse.
 type ListAccessRulesDetailResponse struct {
-	AccessRules []externalRef0.AccessRuleDetail `json:"accessRules"`
-	Next        *string                         `json:"next"`
+	AccessRules []externalRef0.AccessRule `json:"accessRules"`
+	Next        *string                   `json:"next"`
 }
 
 // ListAccessRulesResponse defines model for ListAccessRulesResponse.
@@ -43,8 +43,8 @@ type ListAccessRulesResponse struct {
 // CreateAccessRuleRequest defines model for CreateAccessRuleRequest.
 type CreateAccessRuleRequest struct {
 	// Approver config for access rules
-	Approval    externalRef0.ApproverConfig `json:"approval"`
-	Description string                      `json:"description"`
+	Approval    externalRef0.AccessRuleApproverConfig `json:"approval"`
+	Description string                                `json:"description"`
 
 	// The group IDs that the access rule applies to.
 	Groups []string `json:"groups"`
@@ -54,20 +54,20 @@ type CreateAccessRuleRequest struct {
 	Target externalRef0.CreateAccessRuleTarget `json:"target"`
 
 	// Time configuration for an Access Rule.
-	TimeConstraints externalRef0.TimeConstraints `json:"timeConstraints"`
+	TimeConstraints externalRef0.AccessRuleTimeConstraints `json:"timeConstraints"`
 }
 
 // UpdateAccessRuleRequest defines model for UpdateAccessRuleRequest.
 type UpdateAccessRuleRequest struct {
 	// Approver config for access rules
-	Approval    externalRef0.ApproverConfig `json:"approval"`
-	Description string                      `json:"description"`
-	Groups      []string                    `json:"groups"`
-	Name        string                      `json:"name"`
+	Approval    externalRef0.AccessRuleApproverConfig `json:"approval"`
+	Description string                                `json:"description"`
+	Groups      []string                              `json:"groups"`
+	Name        string                                `json:"name"`
 
 	// Time configuration for an Access Rule.
-	TimeConstraints externalRef0.TimeConstraints `json:"timeConstraints"`
-	UpdateMessage   *string                      `json:"updateMessage,omitempty"`
+	TimeConstraints externalRef0.AccessRuleTimeConstraints `json:"timeConstraints"`
+	UpdateMessage   *string                                `json:"updateMessage,omitempty"`
 }
 
 // GovListAccessRulesParams defines parameters for GovListAccessRules.
@@ -177,8 +177,8 @@ type ClientInterface interface {
 
 	GovUpdateAccessRule(ctx context.Context, ruleId string, body GovUpdateAccessRuleJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GovArchiveAccessRule request
-	GovArchiveAccessRule(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GovDeleteAccessRule request
+	GovDeleteAccessRule(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) GovListAccessRules(ctx context.Context, params *GovListAccessRulesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -253,8 +253,8 @@ func (c *Client) GovUpdateAccessRule(ctx context.Context, ruleId string, body Go
 	return c.Client.Do(req)
 }
 
-func (c *Client) GovArchiveAccessRule(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGovArchiveAccessRuleRequest(c.Server, ruleId)
+func (c *Client) GovDeleteAccessRule(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGovDeleteAccessRuleRequest(c.Server, ruleId)
 	if err != nil {
 		return nil, err
 	}
@@ -449,8 +449,8 @@ func NewGovUpdateAccessRuleRequestWithBody(server string, ruleId string, content
 	return req, nil
 }
 
-// NewGovArchiveAccessRuleRequest generates requests for GovArchiveAccessRule
-func NewGovArchiveAccessRuleRequest(server string, ruleId string) (*http.Request, error) {
+// NewGovDeleteAccessRuleRequest generates requests for GovDeleteAccessRule
+func NewGovDeleteAccessRuleRequest(server string, ruleId string) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -465,7 +465,7 @@ func NewGovArchiveAccessRuleRequest(server string, ruleId string) (*http.Request
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/gov/v1/access-rules/%s/archive", pathParam0)
+	operationPath := fmt.Sprintf("/gov/v1/access-rules/%s/delete", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -542,16 +542,16 @@ type ClientWithResponsesInterface interface {
 
 	GovUpdateAccessRuleWithResponse(ctx context.Context, ruleId string, body GovUpdateAccessRuleJSONRequestBody, reqEditors ...RequestEditorFn) (*GovUpdateAccessRuleResponse, error)
 
-	// GovArchiveAccessRule request
-	GovArchiveAccessRuleWithResponse(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*GovArchiveAccessRuleResponse, error)
+	// GovDeleteAccessRule request
+	GovDeleteAccessRuleWithResponse(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*GovDeleteAccessRuleResponse, error)
 }
 
 type GovListAccessRulesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		AccessRules []externalRef0.AccessRuleDetail `json:"accessRules"`
-		Next        *string                         `json:"next"`
+		AccessRules []externalRef0.AccessRule `json:"accessRules"`
+		Next        *string                   `json:"next"`
 	}
 }
 
@@ -574,7 +574,7 @@ func (r GovListAccessRulesResponse) StatusCode() int {
 type GovCreateAccessRuleResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON201      *externalRef0.AccessRuleDetail
+	JSON201      *externalRef0.AccessRule
 	JSON400      *struct {
 		Error string `json:"error"`
 	}
@@ -602,7 +602,7 @@ func (r GovCreateAccessRuleResponse) StatusCode() int {
 type GovGetAccessRuleResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *externalRef0.AccessRuleDetail
+	JSON200      *externalRef0.AccessRule
 	JSON401      *struct {
 		Error string `json:"error"`
 	}
@@ -630,7 +630,7 @@ func (r GovGetAccessRuleResponse) StatusCode() int {
 type GovUpdateAccessRuleResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *externalRef0.AccessRuleDetail
+	JSON200      *externalRef0.AccessRule
 }
 
 // Status returns HTTPResponse.Status
@@ -649,10 +649,10 @@ func (r GovUpdateAccessRuleResponse) StatusCode() int {
 	return 0
 }
 
-type GovArchiveAccessRuleResponse struct {
+type GovDeleteAccessRuleResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *externalRef0.AccessRuleDetail
+	JSON200      *externalRef0.AccessRule
 	JSON401      *struct {
 		Error string `json:"error"`
 	}
@@ -665,7 +665,7 @@ type GovArchiveAccessRuleResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r GovArchiveAccessRuleResponse) Status() string {
+func (r GovDeleteAccessRuleResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -673,7 +673,7 @@ func (r GovArchiveAccessRuleResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GovArchiveAccessRuleResponse) StatusCode() int {
+func (r GovDeleteAccessRuleResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -732,13 +732,13 @@ func (c *ClientWithResponses) GovUpdateAccessRuleWithResponse(ctx context.Contex
 	return ParseGovUpdateAccessRuleResponse(rsp)
 }
 
-// GovArchiveAccessRuleWithResponse request returning *GovArchiveAccessRuleResponse
-func (c *ClientWithResponses) GovArchiveAccessRuleWithResponse(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*GovArchiveAccessRuleResponse, error) {
-	rsp, err := c.GovArchiveAccessRule(ctx, ruleId, reqEditors...)
+// GovDeleteAccessRuleWithResponse request returning *GovDeleteAccessRuleResponse
+func (c *ClientWithResponses) GovDeleteAccessRuleWithResponse(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*GovDeleteAccessRuleResponse, error) {
+	rsp, err := c.GovDeleteAccessRule(ctx, ruleId, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGovArchiveAccessRuleResponse(rsp)
+	return ParseGovDeleteAccessRuleResponse(rsp)
 }
 
 // ParseGovListAccessRulesResponse parses an HTTP response from a GovListAccessRulesWithResponse call
@@ -757,8 +757,8 @@ func ParseGovListAccessRulesResponse(rsp *http.Response) (*GovListAccessRulesRes
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			AccessRules []externalRef0.AccessRuleDetail `json:"accessRules"`
-			Next        *string                         `json:"next"`
+			AccessRules []externalRef0.AccessRule `json:"accessRules"`
+			Next        *string                   `json:"next"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -785,7 +785,7 @@ func ParseGovCreateAccessRuleResponse(rsp *http.Response) (*GovCreateAccessRuleR
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
-		var dest externalRef0.AccessRuleDetail
+		var dest externalRef0.AccessRule
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -829,7 +829,7 @@ func ParseGovGetAccessRuleResponse(rsp *http.Response) (*GovGetAccessRuleRespons
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest externalRef0.AccessRuleDetail
+		var dest externalRef0.AccessRule
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -873,7 +873,7 @@ func ParseGovUpdateAccessRuleResponse(rsp *http.Response) (*GovUpdateAccessRuleR
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest externalRef0.AccessRuleDetail
+		var dest externalRef0.AccessRule
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -884,22 +884,22 @@ func ParseGovUpdateAccessRuleResponse(rsp *http.Response) (*GovUpdateAccessRuleR
 	return response, nil
 }
 
-// ParseGovArchiveAccessRuleResponse parses an HTTP response from a GovArchiveAccessRuleWithResponse call
-func ParseGovArchiveAccessRuleResponse(rsp *http.Response) (*GovArchiveAccessRuleResponse, error) {
+// ParseGovDeleteAccessRuleResponse parses an HTTP response from a GovDeleteAccessRuleWithResponse call
+func ParseGovDeleteAccessRuleResponse(rsp *http.Response) (*GovDeleteAccessRuleResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GovArchiveAccessRuleResponse{
+	response := &GovDeleteAccessRuleResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest externalRef0.AccessRuleDetail
+		var dest externalRef0.AccessRule
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -952,8 +952,8 @@ type ServerInterface interface {
 	// (PUT /gov/v1/access-rules/{ruleId})
 	GovUpdateAccessRule(w http.ResponseWriter, r *http.Request, ruleId string)
 	// Archive Access Rule
-	// (POST /gov/v1/access-rules/{ruleId}/archive)
-	GovArchiveAccessRule(w http.ResponseWriter, r *http.Request, ruleId string)
+	// (POST /gov/v1/access-rules/{ruleId}/delete)
+	GovDeleteAccessRule(w http.ResponseWriter, r *http.Request, ruleId string)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -1074,8 +1074,8 @@ func (siw *ServerInterfaceWrapper) GovUpdateAccessRule(w http.ResponseWriter, r 
 	handler(w, r.WithContext(ctx))
 }
 
-// GovArchiveAccessRule operation middleware
-func (siw *ServerInterfaceWrapper) GovArchiveAccessRule(w http.ResponseWriter, r *http.Request) {
+// GovDeleteAccessRule operation middleware
+func (siw *ServerInterfaceWrapper) GovDeleteAccessRule(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var err error
@@ -1090,7 +1090,7 @@ func (siw *ServerInterfaceWrapper) GovArchiveAccessRule(w http.ResponseWriter, r
 	}
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GovArchiveAccessRule(w, r, ruleId)
+		siw.Handler.GovDeleteAccessRule(w, r, ruleId)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1226,7 +1226,7 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Put(options.BaseURL+"/gov/v1/access-rules/{ruleId}", wrapper.GovUpdateAccessRule)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/gov/v1/access-rules/{ruleId}/archive", wrapper.GovArchiveAccessRule)
+		r.Post(options.BaseURL+"/gov/v1/access-rules/{ruleId}/delete", wrapper.GovDeleteAccessRule)
 	})
 
 	return r
@@ -1235,26 +1235,26 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/+xXTXPbNhD9Kztojywpt8lMqpsif1TTpum4bi6pD2tyJSEGAWQBKlE9+u8dgJRFUrQt",
-	"j90mnenJMgi8fdj3+ADeiNyU1mjS3onxjWD6WJHzr00hKQ5MmdDTJM/JufNK0Xk9ITzKjfak40+0Vskc",
-	"vTQ6++CMDmMuX1KJ4ZdlY4l9g4jWslmhCr+/ZZqLsUgzY0mjlem6VN9kO0pZDeKySVxEPDV6Lhdik4iC",
-	"XM7ShpIBiT5jaRWJsZgUpdSAkTF4A2+vPYpE+LUNT51nqSPAgk1lI6MOlLhYEsRnMDt24JfowS9pC8iV",
-	"IojbpYCeikRIT2XE2SvRDCAzrsP/Gkvqkg3kAAPjIYoeeUH+UY3q63VRQwQwWdLUaOcZZaP2wagXvbWb",
-	"TRKtIpkKMX6/7WWyE7fZbFen2x3ts7m83b65+kC5F5tNKPKHLf4T9rvHXY+3x/7E55QuEVVs6htyDhdD",
-	"BXvi9qsnh8o9qGkEd9ZoV+txwmz4vBl5gq4UcB7eTD1tiFlPUzHRECcDk69YUwFzNmXMAke8kjmloZm/",
-	"SOd3/nTH5FGqZ9gP7jA7Ljrcs7cANadBx9HnSExXSuFVSCTPFSUP9LBNrcE4pKEnderBVv6B7n1dffvi",
-	"HZuAks6DmUNNCiJCWk+Vem62fcK8JhUDRExNWRoNp+jDG1mxEmOx9N66cRY2XBo9R0+pNGLI9JPfZjA3",
-	"DJbNgrEs0csclVpDiRoXUi/aR6EDqeGMUXsqYNKkgUtjwPv6ON4OwllIUI06p1BDJGJF7OqyR+kocGmk",
-	"EWPxQzpKRyIRFv0yypctzCpbHWV17e94q29zPnZ3EVwFqFSHqYj4HF00K8RYnJlVz36xIGNJntiJ8fs+",
-	"7qlUnrgjBlytAcEie5lXChmcR1/FDsiw5GNFvN7GY/BHeCqSln1JV2XwyGR6MXt3IhIxOZ/+NHt3ctyy",
-	"yM5WfUqkc17b0H1vrklDdIPUQSYb1IrbheiVYUbBjBdhaYdUv+5lL7W/H41aL1XnPbqdl90fjcHDripL",
-	"5PVWsnZj42VhEVQQO+OIy00irHEDmtcXH0DdFn1I8/4NSSStW+/6oKjo3JKzu67Im72eHT0q156Q9PtR",
-	"UpMsAqkXHe3u2+VWyO4ZHSGOngbR0b6RrqX+XeJvksEgyG7Cn1mxuTMRzsgHa7RKpEPeOCPfM8a+57+M",
-	"fm9/fpa+B4gXzyhd6OsBuu3lakyiEO67IKolFO2Dsz5a700lWw2oXX81uL7iEMfjCVZ/x+XReA4QNH2C",
-	"5jgaNEb/O+RfDI2vwHSj/Ra/xgJanBtj9mTQWPmlYfnXNnhe7E/61Xg4NZWOM14OlZppH5yk4HfiFTFE",
-	"P/Z8WOvzHBGSIedLuYpX0H/MtIMn2Bvka9c7wAAdNISK9E890WuwpIvg4cZPLl7W/FK6zrpPUim4IsjD",
-	"tpWiYtDWkxr6/8x7EOLlUw/Njl2bvh/k17AwGr824e46P84yZXJUS+P8+NWrVz+K4K0G5PZjoAW2udz8",
-	"HQAA//8SEgxp8BMAAA==",
+	"H4sIAAAAAAAC/+xYTXPbNhD9Kxi0R1aUW2fG1U2RP6rpRzqum0vqA0yuJCQggCyWSlQP/3tnQcoiKdrx",
+	"V9LJTE6mQfDtw77HB1DXMnOFdxYsBTm5lgjvSwj00uUa4sAMQRFMswxCOC8NnNcT+FbmLIGNl8p7ozNF",
+	"2tn0bXCWx0K2gkLxlUfnAalBVN6jWyvD198jLOREjlLnwSqvR5vCfJfuKKU1SEh3BKbxccCZswu9lFUi",
+	"cwgZas/FGRM+qsIbkBM5zQtthYqPCnLi1TtSMpG08Xw3EGobAZboSh+5daDkxQpEvCfmx0HQSpGgFWwB",
+	"sTQg4sKB0UcykZqgiDh7JZoBhag2/L9VBXTJMjmhmPEQRVK4BHpQy/rKXdQQDKYLmDkbCJVudH+EEBc9",
+	"lKpKon00Qi4nb7ZdTXaCN8vuKnaztn1elzeNcFdvISNZVVzkb59/ZZa8w3EPt8z+xM8jZyLL2OjfIQS1",
+	"HCrdE7zPI7mvBQZ1juDBOxtqjU4QHZ43I0/QGhjn04uppw0x66krp1bEyQKBSrSQiwW6IiZFAFzrDEbc",
+	"zN90oF23wzGQ0uYZ1qN2mB0/PcICg66Dj5GSLY1RV5xUhCUkn+hem1SDcZ9WntRpKLbCD/TtW8e65hNG",
+	"BxJuIWpSIiKM6qnaLty2TyqrScUQkTNXFM6KU0X8LpZo5ESuiHyYpLzgwtmFIhhpJ4fsPv1zLhYOhUe3",
+	"RFUUinSmjNmIQlm11HbZ3iKD0FacobIEuZg2ORBGMe6p3qa3g+KMU9QqmwHXkIlcA4a67MFozFwaaeRE",
+	"/jQaj8YykV7RKsqXLt06XR+kde0fcKtvs292V8GuEsqYDlMZ8TG6aJ7LiTxz6579YkFUBRBgkJM3fdxT",
+	"bQiwI4a42gglvELSWWkUikCKytgBzY+8LwE322Bkf/BdmbTsC7Ys2CPT2cX89YlM5PR89sv89clxyyI7",
+	"W/Upgc1w47n75N6BFdEN2rJMntWKyxXRK8OM2IwX/GiHVL/uZS+vfxyPWy9V5z26mZfeHYrs4VAWhcLN",
+	"VrJ2Y+PRYckqyJ1x5GWVSO/CgOb1gUgo2xZ9SPP+yUkmrXPx5l5R0TlHp7cdoqu9nh08KNcelVj7IVLT",
+	"y5nOYUe1u9a3lbC7L0eIg6dBdFRvRGvpfpvsVTIYAek1/5nn1a1ZcAbEpmiVGA254gyoZ4l9t39p5V79",
+	"+iwdZ4jDZxSNO3oPxfayNKYPB/oufGrxZHuzrLfTO5PIlwM6198Noa+1iONx16q/6bJouSCUsPBBNFvQ",
+	"oCX6XyJfMCj+V7uN95v7UuWixbaxZE8Aq0paOdT/bsPmcH/SH47EqSttnPFiqNTcEnvIiL8A14AiOrHn",
+	"wFqZ54iNNAcDFM+bn82tg9vVcazbt+s/dmo3woPN2bGNe0I8jtFKh86PEx+0MeIKRMZLNQbyQRPXdb5F",
+	"2x0QL566K3a8OcVspdf3Myc/GF1eW253Up+kqXGZMisXaHJ0dPSzZCc1IDfn/BZYdVn9FwAA//8eCtaN",
+	"7RMAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

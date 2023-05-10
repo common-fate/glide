@@ -3,242 +3,211 @@ package api
 import (
 	"errors"
 	"net/http"
-	"time"
 
-	"github.com/common-fate/analytics-go"
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/auth"
-	"github.com/common-fate/common-fate/pkg/service/accesssvc"
-	"github.com/common-fate/common-fate/pkg/service/workflowsvc"
+	"github.com/common-fate/common-fate/pkg/storage/keys"
 
+	"github.com/common-fate/common-fate/pkg/service/accesssvc"
+	"github.com/common-fate/common-fate/pkg/service/preflightsvc"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
-	"github.com/hashicorp/go-multierror"
-	"go.uber.org/zap"
 )
 
-// List my requests
-// (GET /api/v1/requests/upcoming)
-func (a *API) UserListRequestsUpcoming(w http.ResponseWriter, r *http.Request, params types.UserListRequestsUpcomingParams) {
-	ctx := r.Context()
-	uid := auth.UserIDFromContext(ctx)
-
-	queryOpts := []func(*ddb.QueryOpts){ddb.Limit(50)}
-	if params.NextToken != nil {
-		queryOpts = append(queryOpts, ddb.Page(*params.NextToken))
-	}
-
-	// the items in the list will be sorted by the request endtime not requestedAt
-	// is this going to be a problem?
-	q := storage.ListRequestsForUserAndRequestend{
-		UserID:               uid,
-		RequestEndComparator: storage.GreaterThan,
-		CompareTo:            time.Now(),
-	}
-	qr, err := a.DB.Query(ctx, &q, queryOpts...)
-	if err != nil && err != ddb.ErrNoItems {
-		apio.Error(ctx, w, err)
-		return
-	}
-
-	var next *string
-	if qr.NextPage != "" {
-		next = &qr.NextPage
-	}
-
-	res := types.ListRequestsResponse{
-		Requests: make([]types.Request, len(q.Result)),
-		Next:     next,
-	}
-	for i, r := range q.Result {
-		res.Requests[i] = r.ToAPI()
-	}
-	apio.JSON(ctx, w, res, http.StatusOK)
-}
-
-// List my requests
-// (GET /api/v1/requests/past)
-func (a *API) UserListRequestsPast(w http.ResponseWriter, r *http.Request, params types.UserListRequestsPastParams) {
-	ctx := r.Context()
-	uid := auth.UserIDFromContext(ctx)
-
-	queryOpts := []func(*ddb.QueryOpts){ddb.Limit(50)}
-	if params.NextToken != nil {
-		queryOpts = append(queryOpts, ddb.Page(*params.NextToken))
-	}
-
-	// the items in the list will be sorted by the request endtime not requestedAt
-	// is this going to be a problem?
-	q := storage.ListRequestsForUserAndRequestend{
-		UserID:               uid,
-		RequestEndComparator: storage.LessThanEqual,
-		CompareTo:            time.Now(),
-	}
-	qr, err := a.DB.Query(ctx, &q, queryOpts...)
-	if err != nil && err != ddb.ErrNoItems {
-		apio.Error(ctx, w, err)
-		return
-	}
-
-	var next *string
-	if qr.NextPage != "" {
-		next = &qr.NextPage
-	}
-
-	res := types.ListRequestsResponse{
-		Requests: make([]types.Request, len(q.Result)),
-		Next:     next,
-	}
-	for i, r := range q.Result {
-		res.Requests[i] = r.ToAPI()
-	}
-	apio.JSON(ctx, w, res, http.StatusOK)
-}
-
-// List my requests
+// List Requests
 // (GET /api/v1/requests)
 func (a *API) UserListRequests(w http.ResponseWriter, r *http.Request, params types.UserListRequestsParams) {
 	ctx := r.Context()
-	uid := auth.UserIDFromContext(ctx)
-	var err error
-	var requests []access.Request
+	user := auth.UserFromContext(ctx)
 
-	queryOpts := []func(*ddb.QueryOpts){ddb.Limit(50)}
+	var opts []func(*ddb.QueryOpts)
 	if params.NextToken != nil {
-		queryOpts = append(queryOpts, ddb.Page(*params.NextToken))
+		opts = append(opts, ddb.Page(*params.NextToken))
 	}
 
-	if params.Reviewer != nil && *params.Reviewer {
-		if params.Status != nil {
-			q := &storage.ListRequestsForReviewerAndStatus{ReviewerID: uid, Status: access.Status(*params.Status)}
-			_, err = a.DB.Query(ctx, q, queryOpts...)
-			if err != nil {
-				apio.Error(ctx, w, err)
-				return
-			}
-			requests = q.Result
-		} else {
-			q := &storage.ListRequestsForReviewer{ReviewerID: uid}
-			_, err = a.DB.Query(ctx, q, queryOpts...)
-			if err != nil {
-				apio.Error(ctx, w, err)
-				return
-			}
-			requests = q.Result
+	var result []access.RequestWithGroupsWithTargets
+	var qo *ddb.QueryResult
+	var err error
+	if params.Filter != nil {
+		q := storage.ListRequestWithGroupsWithTargetsForUserAndPastUpcoming{
+			UserID:       user.ID,
+			PastUpcoming: keys.AccessRequestPastUpcomingUPCOMING,
 		}
-
-	} else if params.Status != nil {
-		q := &storage.ListRequestsForUserAndStatus{Status: access.Status(*params.Status), UserId: uid}
-		_, err = a.DB.Query(ctx, q, queryOpts...)
+		if *params.Filter == "PAST" {
+			q.PastUpcoming = keys.AccessRequestPastUpcomingPAST
+		}
+		qo, err = a.DB.Query(ctx, &q, opts...)
 		if err != nil {
 			apio.Error(ctx, w, err)
 			return
 		}
-		requests = q.Result
+		result = q.Result
+
 	} else {
-		q := &storage.ListRequestsForUser{UserId: uid}
-		_, err = a.DB.Query(ctx, q, queryOpts...)
+		q := storage.ListRequestWithGroupsWithTargetsForUser{
+			UserID: user.ID,
+		}
+		qo, err = a.DB.Query(ctx, &q, opts...)
 		if err != nil {
 			apio.Error(ctx, w, err)
 			return
 		}
-		requests = q.Result
+		result = q.Result
 	}
+
 	res := types.ListRequestsResponse{
-		Requests: make([]types.Request, len(requests)),
+		Requests: []types.Request{},
 	}
-	for i, r := range requests {
-		res.Requests[i] = r.ToAPI()
+	if qo.NextPage != "" {
+		res.Next = &qo.NextPage
+	}
+
+	for _, request := range result {
+		res.Requests = append(res.Requests, request.ToAPI())
 	}
 
 	apio.JSON(ctx, w, res, http.StatusOK)
 }
 
-// Get a request
+// Get Request
 // (GET /api/v1/requests/{requestId})
 func (a *API) UserGetRequest(w http.ResponseWriter, r *http.Request, requestId string) {
 	ctx := r.Context()
 	u := auth.UserFromContext(ctx)
-	q := storage.GetRequest{ID: requestId}
+	q := storage.GetRequestWithGroupsWithTargetsForUserOrReviewer{UserID: u.ID, RequestID: requestId}
 	_, err := a.DB.Query(ctx, &q)
 	if err == ddb.ErrNoItems {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusNotFound))
 		return
-	} else if err != nil {
-		apio.Error(ctx, w, err)
-		return
 	}
-	qr := storage.GetAccessRuleVersion{ID: q.Result.Rule, VersionID: q.Result.RuleVersion}
-	_, err = a.DB.Query(ctx, &qr)
-	// Any error fetching the access rule is an internal server error because it should exist if the request exists
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
-	if qr.Result == nil {
-		apio.Error(ctx, w, errors.New("access rule result was nil"))
-		return
-	}
-	requestArguments, err := a.Rules.RequestArguments(ctx, qr.Result.Target)
-	if err != nil {
-		apio.Error(ctx, w, err)
-		return
-	}
-	if q.Result.RequestedBy == u.ID {
-		apio.JSON(ctx, w, q.Result.ToAPIDetail(*qr.Result, false, requestArguments), http.StatusOK)
-		return
-	}
-	qrv := storage.GetRequestReviewer{RequestID: requestId, ReviewerID: u.ID}
-	_, err = a.DB.Query(ctx, &qrv)
-	if err == ddb.ErrNoItems {
-		// user is not a reviewer of this request or the requestor
-		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusNotFound))
-		return
-	} else if err != nil {
-		apio.Error(ctx, w, err)
-		return
-	}
-	apio.JSON(ctx, w, qrv.Result.Request.ToAPIDetail(*qr.Result, true, requestArguments), http.StatusOK)
+
+	apio.JSON(ctx, w, q.Result.ToAPI(), http.StatusOK)
 }
 
-// Creates a request
-// (POST /api/v1/requests/)
-func (a *API) UserCreateRequest(w http.ResponseWriter, r *http.Request) {
+// Get Preflight
+// (GET /api/v1/preflight/{preflightId})
+func (a *API) UserGetPreflight(w http.ResponseWriter, r *http.Request, preflightId string) {
 	ctx := r.Context()
-	u := auth.UserFromContext(ctx)
-
-	var incomingRequest types.CreateRequestRequest
-	err := apio.DecodeJSONBody(w, r, &incomingRequest)
+	user := auth.UserFromContext(ctx)
+	q := storage.GetPreflight{
+		ID:     preflightId,
+		UserId: user.ID,
+	}
+	_, err := a.DB.Query(ctx, &q)
+	if err == ddb.ErrNoItems {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusNotFound))
+		return
+	}
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
 
-	log := zap.S()
-	log.Infow("validating and creating grant")
-	_, err = a.Access.CreateRequests(ctx, accesssvc.CreateRequestsOpts{
-		User: *u,
-		Create: accesssvc.CreateRequests{
-			AccessRuleId: incomingRequest.AccessRuleId,
-			Reason:       incomingRequest.Reason,
-			Timing:       incomingRequest.Timing,
-			With:         incomingRequest.With,
-		},
-	})
-	var me *multierror.Error
-	// multipart error will contain
-	if errors.As(err, &me) {
+	apio.JSON(ctx, w, q.Result.ToAPI(), http.StatusOK)
+}
+
+// (POST /api/v1/preflight)
+func (a *API) UserRequestPreflight(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var createPreflightRequest types.CreatePreflightRequest
+	err := apio.DecodeJSONBody(w, r, &createPreflightRequest)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	user := auth.UserFromContext(ctx)
+
+	out, err := a.PreflightService.ProcessPreflight(ctx, *user, createPreflightRequest)
+	if err == preflightsvc.ErrDuplicateTargetIDsRequested {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
 		return
 	}
+	if err == preflightsvc.ErrUserNotAuthorisedForRequestedTarget {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusUnauthorized))
+		return
+	}
+	if err == ddb.ErrNoItems {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusNotFound))
+		return
+	}
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
 
-	apio.JSON(ctx, w, nil, http.StatusOK)
+	apio.JSON(ctx, w, out.ToAPI(), http.StatusOK)
+}
+
+// (POST /api/v1/requests)
+func (a *API) UserPostRequests(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	user := auth.UserFromContext(ctx)
+
+	var createRequest types.CreateAccessRequestRequest
+	err := apio.DecodeJSONBody(w, r, &createRequest)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+
+	//request create service takes a preflight request, validates its fields and initiates the granding process
+	//on all of the entitlements in the preflight
+	result, err := a.Access.CreateRequest(ctx, *user, createRequest)
+	if err == accesssvc.ErrPreflightNotFound {
+		// wrap the error in a 404 status code
+		err = apio.NewRequestError(err, http.StatusNotFound)
+	}
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	//do we need to return anything via this api?
+	apio.JSON(ctx, w, result.ToAPI(), http.StatusOK)
+}
+
+func (a *API) UserRevokeRequest(w http.ResponseWriter, r *http.Request, requestID string) {
+	ctx := r.Context()
+	isAdmin := auth.IsAdmin(ctx)
+	u := auth.UserFromContext(ctx)
+	var req access.RequestWithGroupsWithTargets
+	q := storage.GetRequestWithGroupsWithTargets{ID: requestID}
+	_, err := a.DB.Query(ctx, &q)
+	if err == ddb.ErrNoItems {
+		//grant not found return 404
+		apio.Error(ctx, w, apio.NewRequestError(errors.New("request not found or you don't have access to it"), http.StatusNotFound))
+		return
+	}
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	// user can revoke their own request and admins can revoke any request
+	if q.Result.Request.RequestedBy.Email == u.ID || isAdmin {
+		req = *q.Result
+	} else { // reviewers can revoke reviewable requests
+		p := storage.GetRequestReviewer{RequestID: requestID, ReviewerID: u.Email}
+		_, err := a.DB.Query(ctx, &p)
+		if err == ddb.ErrNoItems {
+			//grant not found return 404
+			apio.Error(ctx, w, apio.NewRequestError(errors.New("request not found or you don't have access to it"), http.StatusNotFound))
+			return
+		}
+		req = *q.Result
+	}
+
+	result, err := a.Access.RevokeRequest(ctx, req)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	apio.JSON(ctx, w, result.ToAPI(), http.StatusOK)
 }
 
 func (a *API) UserCancelRequest(w http.ResponseWriter, r *http.Request, requestId string) {
@@ -267,112 +236,113 @@ func (a *API) UserCancelRequest(w http.ResponseWriter, r *http.Request, requestI
 	apio.JSON(ctx, w, struct{}{}, http.StatusOK)
 }
 
-func (a *API) UserRevokeRequest(w http.ResponseWriter, r *http.Request, requestID string) {
+// Your GET endpoint
+// (GET /api/v1/requests/upcoming)
+func (a *API) AdminListRequests(w http.ResponseWriter, r *http.Request, params types.AdminListRequestsParams) {
 	ctx := r.Context()
-	isAdmin := auth.IsAdmin(ctx)
-	u := auth.UserFromContext(ctx)
-	var req access.Request
-	q := storage.GetRequest{ID: requestID}
-	_, err := a.DB.Query(ctx, &q)
-	if err == ddb.ErrNoItems {
-		//grant not found return 404
-		apio.Error(ctx, w, apio.NewRequestError(errors.New("request not found or you don't have access to it"), http.StatusNotFound))
-		return
+	var opts []func(*ddb.QueryOpts)
+	if params.NextToken != nil {
+		opts = append(opts, ddb.Page(*params.NextToken))
 	}
-	if err != nil {
-		apio.Error(ctx, w, err)
-		return
-	}
-	// user can revoke their own request and admins can revoke any request
-	if q.Result.RequestedBy == u.ID || isAdmin {
-		req = *q.Result
-	} else { // reviewers can revoke reviewable requests
-		q := storage.GetRequestReviewer{RequestID: requestID, ReviewerID: u.Email}
-		_, err := a.DB.Query(ctx, &q)
-		if err == ddb.ErrNoItems {
-			//grant not found return 404
-			apio.Error(ctx, w, apio.NewRequestError(errors.New("request not found or you don't have access to it"), http.StatusNotFound))
-			return
+	var results []access.RequestWithGroupsWithTargets
+	var qo *ddb.QueryResult
+	var err error
+	if params.Status != nil {
+		q := storage.ListRequestWithGroupsWithTargetsForStatus{
+			Status: types.RequestStatus(*params.Status),
 		}
+		qo, err = a.DB.Query(ctx, &q, opts...)
 		if err != nil {
 			apio.Error(ctx, w, err)
 			return
 		}
-		req = q.Result.Request
+		results = q.Result
+	} else {
+		q := storage.ListRequestWithGroupsWithTargets{}
+		qo, err = a.DB.Query(ctx, &q, opts...)
+		if err != nil {
+			apio.Error(ctx, w, err)
+			return
+		}
+		results = q.Result
 	}
 
-	_, err = a.Workflow.Revoke(ctx, req, u.ID, u.Email)
-	if err == workflowsvc.ErrGrantInactive {
-		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
-		return
+	res := types.ListRequestsResponse{
+		Requests: []types.Request{},
 	}
-	if err == workflowsvc.ErrNoGrant {
-		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
-		return
-	}
-	if err != nil {
-		apio.Error(ctx, w, err)
-		return
+	if qo.NextPage != "" {
+		res.Next = &qo.NextPage
 	}
 
-	analytics.FromContext(ctx).Track(&analytics.RequestRevoked{
-		RequestedBy: req.RequestedBy,
-		RevokedBy:   u.ID,
-		RuleID:      req.Rule,
-		Timing:      req.RequestedTiming.ToAnalytics(),
-		HasReason:   req.HasReason(),
-	})
+	for _, request := range results {
+		res.Requests = append(res.Requests, request.ToAPI())
+	}
 
-	apio.JSON(ctx, w, nil, http.StatusOK)
+	apio.JSON(ctx, w, res, http.StatusOK)
+
 }
 
-// Get Access Instructions
-// (GET /api/v1/requests/{requestId}/access-instructions)
-func (a *API) UserGetAccessInstructions(w http.ResponseWriter, r *http.Request, requestId string) {
+// List Reviews
+// (GET /api/v1/reviews)
+func (a *API) UserListReviews(w http.ResponseWriter, r *http.Request, params types.UserListReviewsParams) {
 	ctx := r.Context()
-	q := storage.GetRequest{ID: requestId}
-	_, err := a.DB.Query(ctx, &q)
-	if err == ddb.ErrNoItems {
-		// we couldn't find the request
-		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusNotFound))
-		return
+	user := auth.UserFromContext(ctx)
+	q := storage.ListRequestWithGroupsWithTargetsForReviewer{
+		ReviewerID: user.ID,
 	}
+	var opts []func(*ddb.QueryOpts)
+	if params.NextToken != nil {
+		opts = append(opts, ddb.Page(*params.NextToken))
+	}
+
+	qo, err := a.DB.Query(ctx, &q, opts...)
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
-	if q.Result.Grant == nil {
-		apio.ErrorString(ctx, w, "request has no grant", http.StatusBadRequest)
+
+	res := types.ListRequestsResponse{
+		Requests: []types.Request{},
+	}
+	if qo.NextPage != "" {
+		res.Next = &qo.NextPage
+	}
+
+	for _, request := range q.Result {
+		res.Requests = append(res.Requests, request.ToAPI())
+	}
+
+	apio.JSON(ctx, w, res, http.StatusOK)
+}
+
+func (a *API) GetGroupTargetInstructions(w http.ResponseWriter, r *http.Request, targetId string) {
+	ctx := r.Context()
+	user := auth.UserFromContext(ctx)
+	q := storage.GetGroupTargetGrantInstructions{
+		TargetID: targetId,
+		UserId:   user.ID,
+	}
+
+	_, err := a.DB.Query(ctx, &q)
+	if err != nil {
+		apio.Error(ctx, w, err)
 		return
 	}
 
-	if a.isTargetGroup(ctx, q.Result.Grant.Provider) {
-		q := storage.GetRequestInstructions{ID: requestId}
-		_, err := a.DB.Query(ctx, &q)
-		if err == ddb.ErrNoItems {
-			// we couldn't find the request
-			apio.Error(ctx, w, apio.NewRequestError(err, http.StatusNotFound))
-			return
-		}
-		if err != nil {
-			apio.Error(ctx, w, err)
-			return
-		}
-
-		i := types.AccessInstructions{
+	res := types.AccessInstructionsResponse{
+		Instructions: types.RequestAccessGroupTargetAccessInstructions{
 			Instructions: &q.Result.Instructions,
-		}
-		apio.JSON(ctx, w, i, http.StatusOK)
-		return
+		},
 	}
 
+	apio.JSON(ctx, w, res, http.StatusOK)
 }
 
 func (a *API) UserListRequestEvents(w http.ResponseWriter, r *http.Request, requestId string) {
 	ctx := r.Context()
 	u := auth.UserFromContext(ctx)
 	canView := auth.IsAdmin(ctx)
-	q := storage.GetRequest{ID: requestId}
+	q := storage.GetRequestWithGroupsWithTargets{ID: requestId}
 	_, err := a.DB.Query(ctx, &q)
 	if err == ddb.ErrNoItems {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusUnauthorized))
@@ -382,7 +352,7 @@ func (a *API) UserListRequestEvents(w http.ResponseWriter, r *http.Request, requ
 		return
 	}
 	if !canView {
-		if q.Result.RequestedBy == u.ID {
+		if q.Result.Request.RequestedBy.ID == u.ID {
 			canView = true
 		} else {
 			qrv := storage.GetRequestReviewer{RequestID: requestId, ReviewerID: u.ID}
@@ -418,38 +388,4 @@ func (a *API) UserListRequestEvents(w http.ResponseWriter, r *http.Request, requ
 		res.Events[i] = re.ToAPI()
 	}
 	apio.JSON(ctx, w, res, http.StatusOK)
-}
-
-// (GET /api/v1/requests/{requestId}/access-token)
-func (a *API) UserGetAccessToken(w http.ResponseWriter, r *http.Request, requestId string) {
-	ctx := r.Context()
-
-	// get user from context
-	uid := auth.UserIDFromContext(ctx)
-	q := storage.GetRequest{ID: requestId}
-	_, err := a.DB.Query(ctx, &q)
-	if err == ddb.ErrNoItems {
-		apio.Error(ctx, w, apio.NewRequestError(errors.New("request not found"), http.StatusNotFound))
-		return
-	}
-	if err != nil {
-		apio.Error(ctx, w, err)
-		return
-	}
-	if q.Result.RequestedBy == uid {
-		q := storage.GetAccessToken{RequestID: requestId}
-		_, err := a.DB.Query(ctx, &q)
-		if err == ddb.ErrNoItems {
-			apio.JSON(ctx, w, types.AccessTokenResponse{HasToken: false}, http.StatusOK)
-			return
-		}
-		if err != nil {
-			apio.Error(ctx, w, err)
-			return
-		}
-		apio.JSON(ctx, w, types.AccessTokenResponse{HasToken: true, Token: &q.Result.Token}, http.StatusOK)
-	} else {
-		// not authorised
-		apio.Error(ctx, w, apio.NewRequestError(errors.New("not authorised"), http.StatusUnauthorized))
-	}
 }

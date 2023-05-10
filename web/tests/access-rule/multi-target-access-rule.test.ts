@@ -109,7 +109,7 @@ test.describe.serial("Running test sequentially", () => {
     await expect(page).toHaveTitle(/Common Fate/);
 
     // make sure the access rule has permission for the user
-    await page.goto(`/access/request/${accessRuleId}`);
+    await page.goto(`/access/requests/${accessRuleId}`);
 
     await clickFormElementByID("user-request-access", page);
     await page.locator("text=fifth >> nth=1").click();
@@ -147,7 +147,7 @@ test.describe.serial("Running test sequentially", () => {
     await expect(page).toHaveTitle(/Common Fate/);
 
     // make sure the access rule has permission for the user
-    await page.goto(`/access/request/${accessRuleId}`);
+    await page.goto(`/access/requests/${accessRuleId}`);
 
     // add first request
     await clickFormElementByID("user-request-access", page);
@@ -183,7 +183,7 @@ test.describe.serial("Running test sequentially", () => {
   test("user can favourite an access request", async ({ page }) => {
     await LoginUser(page);
     await expect(page).toHaveTitle(/Common Fate/);
-    await page.goto(`/access/request/${accessRuleId}`);
+    await page.goto(`/access/requests/${accessRuleId}`);
     await page.waitForLoadState("networkidle");
 
     const requiredOptions = ["first", "second", "fifth"];

@@ -14,7 +14,6 @@ import (
 	"github.com/common-fate/common-fate/pkg/auth"
 	"github.com/common-fate/common-fate/pkg/config"
 	"github.com/common-fate/common-fate/pkg/deploy"
-	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/identity/identitysync"
 	"github.com/common-fate/common-fate/pkg/server"
 	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
@@ -51,13 +50,6 @@ func buildHandler() (*Lambda, error) {
 	zap.ReplaceGlobals(log.Desugar())
 	auth := &auth.LambdaAuthenticator{}
 
-	eventBus, err := gevent.NewSender(ctx, gevent.SenderOpts{
-		EventBusARN: cfg.EventBusArn,
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	dc, err := deploy.GetDeploymentConfig()
 	if err != nil {
 		return nil, err
@@ -83,11 +75,10 @@ func buildHandler() (*Lambda, error) {
 		return nil, err
 	}
 	api, err := api.New(ctx, api.Opts{
-		Log:                 log,
-		DynamoTable:         cfg.DynamoTable,
-		PaginationKMSKeyARN: cfg.PaginationKMSKeyARN,
-
-		EventSender:            eventBus,
+		Log:                    log,
+		DynamoTable:            cfg.DynamoTable,
+		PaginationKMSKeyARN:    cfg.PaginationKMSKeyARN,
+		EventBusArn:            cfg.EventBusArn,
 		AdminGroup:             cfg.AdminGroup,
 		DeploymentSuffix:       cfg.DeploymentSuffix,
 		IdentitySyncer:         idsync,
@@ -96,7 +87,6 @@ func buildHandler() (*Lambda, error) {
 		AdminGroupID:           cfg.AdminGroup,
 		DeploymentConfig:       dc,
 		ProviderRegistryClient: registryClient,
-		StateMachineARN:        cfg.StateMachineARN,
 		FrontendURL:            cfg.FrontendURL,
 	})
 	if err != nil {

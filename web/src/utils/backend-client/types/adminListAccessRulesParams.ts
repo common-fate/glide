@@ -5,6 +5,5 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
-import type { AdminListAccessRulesStatus } from './adminListAccessRulesStatus';
 
-export type AdminListAccessRulesParams = { status?: AdminListAccessRulesStatus; nextToken?: string };
+export type AdminListAccessRulesParams = { nextToken?: string };

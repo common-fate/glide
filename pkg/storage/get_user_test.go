@@ -10,12 +10,12 @@ import (
 )
 
 func TestGetUser(t *testing.T) {
-	db := newTestingStorage(t)
+	ts := newTestingStorage(t)
 
 	us := identity.User{
 		ID: types.NewUserID(),
 	}
-	ddbtest.PutFixtures(t, db, &us)
+	ddbtest.PutFixtures(t, ts.db, &us)
 
 	tc := []ddbtest.QueryTestCase{
 		{
@@ -30,5 +30,5 @@ func TestGetUser(t *testing.T) {
 		},
 	}
 
-	ddbtest.RunQueryTests(t, db, tc)
+	ddbtest.RunQueryTests(t, ts.db, tc)
 }

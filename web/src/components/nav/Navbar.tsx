@@ -23,23 +23,25 @@ import {
 import * as React from "react";
 import { useMemo } from "react";
 import { Link, useNavigate } from "react-location";
-import { useUserListRequests } from "../../utils/backend-client/end-user/end-user";
 import { useCognito } from "../../utils/context/cognitoContext";
 import { useUser } from "../../utils/context/userContext";
-import CommandPalette from "../CommandPalette";
+// import CommandPalette from "../CommandPalette";
 import Counter from "../Counter";
 import { DoorIcon } from "../icons/Icons";
 import { CommonFateLogo } from "../icons/Logos";
 import { DrawerNav } from "./DrawerNav";
+import {
+  useUserListRequests,
+  useUserListReviews,
+} from "../../utils/backend-client/default/default";
 
 export const Navbar: React.FC = () => {
   const isDesktop = useBreakpointValue({ base: false, lg: true }, "800px");
 
   const user = useUser();
   const auth = useCognito();
-  const { data: requests } = useUserListRequests({ status: "PENDING" });
-  const { data: reviews } = useUserListRequests({ reviewer: true });
-
+  const { data: requests } = useUserListRequests({ filter: "UPCOMING" });
+  const { data: reviews } = useUserListReviews({ status: "PENDING" });
   const { isOpen, onOpen, onClose } = useDisclosure();
   const modal = useDisclosure();
 
@@ -68,7 +70,6 @@ export const Navbar: React.FC = () => {
       modal.isOpen ? modal.onClose() : modal.onOpen();
     }
   });
-
   const showReqCount = useMemo(
     () => requests?.requests && requests?.requests.length > 0,
     [requests]
@@ -79,7 +80,6 @@ export const Navbar: React.FC = () => {
       reviews.requests.filter((r) => r.status === "PENDING").length > 0,
     [reviews]
   );
-
   return (
     <Box as="section">
       <Box
@@ -132,7 +132,7 @@ export const Navbar: React.FC = () => {
                   // left="50%"
                 >
                   {/* I've hardcoded widths here to prevent the bold/unbold text from 
-                  altering the containing divs width. Reduces *jittering* */}
+               altering the containing divs width. Reduces *jittering* */}
                   <TabsStyledButton
                     href="/requests"
                     w={showReqCount ? "190px" : "142px"}
@@ -242,7 +242,7 @@ export const Navbar: React.FC = () => {
         </Container>
       </Box>
       <DrawerNav isOpen={isOpen} onClose={onClose} />
-      <CommandPalette isOpen={modal.isOpen} onClose={modal.onClose} />
+      {/* <CommandPalette isOpen={modal.isOpen} onClose={modal.onClose} /> */}
     </Box>
   );
 };

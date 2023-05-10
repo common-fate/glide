@@ -15,13 +15,7 @@ deployment:
   region: "us-east-1"
   release: "v0.1.0"
   parameters:
-    CognitoDomainPrefix: ""
-    ProviderConfiguration:
-      okta:
-        uses: "commonfate/okta@v1"
-        with:
-          orgUrl: "https://test.internal"
-          apiToken: "awsssm:///granted/okta/apiToken"
+    CognitoDomainPrefix: "a"
 `
 
 func TestParseConfig(t *testing.T) {
@@ -30,7 +24,7 @@ func TestParseConfig(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, "commonfate/okta@v1", c.Deployment.Parameters.ProviderConfiguration["okta"].Uses)
+	assert.Equal(t, "a", c.Deployment.Parameters.CognitoDomainPrefix)
 }
 
 func TestTestCfnParams(t *testing.T) {
@@ -56,19 +50,10 @@ func TestTestCfnParams(t *testing.T) {
 			name: "provider config",
 			give: Config{
 				Deployment: Deployment{
-					Parameters: Parameters{
-						ProviderConfiguration: map[string]Provider{
-							"okta": {
-								Uses: "commonfate/okta@v1",
-								With: map[string]string{
-									"orgUrl": "test.internal",
-								},
-							},
-						},
-					},
+					Parameters: Parameters{},
 				},
 			},
-			want: `[{"ParameterKey":"CognitoDomainPrefix","ParameterValue":"","ResolvedValue":null,"UsePreviousValue":null},{"ParameterKey":"ProviderConfiguration","ParameterValue":"{\"okta\":{\"uses\":\"commonfate/okta@v1\",\"with\":{\"orgUrl\":\"test.internal\"}}}","ResolvedValue":null,"UsePreviousValue":null}]`,
+			want: `[{"ParameterKey":"CognitoDomainPrefix","ParameterValue":"","ResolvedValue":null,"UsePreviousValue":null}]`,
 		},
 	}
 
@@ -137,21 +122,6 @@ func TestCfnTemplateURL(t *testing.T) {
 	}
 }
 
-func TestProviderMap(t *testing.T) {
-	// Tests that the Add method works as expected
-	var p Parameters
-	err := p.ProviderConfiguration.Add("test", Provider{})
-	assert.NoError(t, err)
-	err = p.ProviderConfiguration.Add("test2", Provider{})
-	assert.NoError(t, err)
-
-	// Expect this to return an error
-	err = p.ProviderConfiguration.Add("test", Provider{})
-	assert.EqualError(t, err, "provider test already exists in the config")
-
-	// assert that the map is as expected
-	assert.Equal(t, ProviderMap{"test": Provider{}, "test2": Provider{}}, p.ProviderConfiguration)
-}
 func TestFeatureMap(t *testing.T) {
 	// Tests that the Add method works as expected
 	var p Parameters
@@ -161,87 +131,4 @@ func TestFeatureMap(t *testing.T) {
 
 	// assert that the map is as expected
 	assert.Equal(t, FeatureMap{"test": map[string]string{}, "test2": map[string]string{}}, p.IdentityConfiguration)
-}
-
-func TestGetIDForNewProvider(t *testing.T) {
-	type testcase struct {
-		name   string
-		giveID string
-		give   Config
-		want   string
-	}
-
-	testcases := []testcase{
-		{
-			name: "ok",
-			give: Config{
-				Deployment: Deployment{
-					Parameters: Parameters{
-						ProviderConfiguration: ProviderMap{},
-					},
-				},
-			},
-			giveID: "aws-sso",
-			want:   "aws-sso",
-		},
-		{
-			name:   "uninitialised map",
-			give:   Config{},
-			giveID: "aws-sso",
-			want:   "aws-sso",
-		},
-		{
-			name: "duplicate entry",
-			give: Config{
-				Deployment: Deployment{
-					Parameters: Parameters{
-						ProviderConfiguration: ProviderMap{
-							"aws-sso": Provider{},
-						},
-					},
-				},
-			},
-			giveID: "aws-sso",
-			want:   "aws-sso-2",
-		},
-		{
-			name: "multiple duplicate entries",
-			give: Config{
-				Deployment: Deployment{
-					Parameters: Parameters{
-						ProviderConfiguration: ProviderMap{
-							"aws-sso":   Provider{},
-							"aws-sso-2": Provider{},
-							"aws-sso-3": Provider{},
-						},
-					},
-				},
-			},
-			giveID: "aws-sso",
-			want:   "aws-sso-4",
-		},
-		{
-			name: "different ID",
-			give: Config{
-				Deployment: Deployment{
-					Parameters: Parameters{
-						ProviderConfiguration: ProviderMap{
-							"aws-sso":   Provider{},
-							"aws-sso-2": Provider{},
-							"aws-sso-3": Provider{},
-						},
-					},
-				},
-			},
-			giveID: "something-else",
-			want:   "something-else",
-		},
-	}
-
-	for _, tc := range testcases {
-		t.Run(tc.name, func(t *testing.T) {
-			got := tc.give.Deployment.Parameters.ProviderConfiguration.GetIDForNewProvider(tc.giveID)
-			assert.Equal(t, tc.want, got)
-		})
-	}
 }

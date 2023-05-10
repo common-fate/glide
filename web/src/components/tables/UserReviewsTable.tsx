@@ -1,21 +1,22 @@
-import { Button, ButtonGroup, Flex } from "@chakra-ui/react";
+import { Flex } from "@chakra-ui/react";
 import format from "date-fns/format";
 import { useMemo } from "react";
-import { Link, MakeGenerics, useNavigate, useSearch } from "react-location";
+import { MakeGenerics, useNavigate, useSearch } from "react-location";
 import { Column } from "react-table";
+import {
+  Request,
+  UserListReviewsStatus,
+} from "../../utils/backend-client/types";
 import { usePaginatorApi } from "../../utils/usePaginatorApi";
-import { useUserListRequests } from "../../utils/backend-client/end-user/end-user";
-import { Request, RequestStatus } from "../../utils/backend-client/types";
-import { durationString } from "../../utils/durationString";
-import { RuleNameCell } from "../AccessRuleNameCell";
-import { RequestStatusDisplay } from "../Request";
+
+import { useUserListReviews } from "../../utils/backend-client/default/default";
+import { CFAvatar } from "../CFAvatar";
 import { RequestsFilterMenu } from "./RequestsFilterMenu";
 import { TableRenderer } from "./TableRenderer";
-import { CFAvatar } from "../CFAvatar";
 
 type MyLocationGenerics = MakeGenerics<{
   Search: {
-    status?: Lowercase<RequestStatus>;
+    status?: Lowercase<UserListReviewsStatus>;
   };
 }>;
 
@@ -25,48 +26,48 @@ export const UserReviewsTable = () => {
 
   const { status } = search;
 
-  // const [status, setStatus] = useState<RequestStatus | undefined>();
+  // const [status, setStatus] = useState<UserListReviewsStatus | undefined>();
 
-  const paginator = usePaginatorApi<typeof useUserListRequests>({
-    swrHook: useUserListRequests,
+  const paginator = usePaginatorApi<typeof useUserListReviews>({
+    swrHook: useUserListReviews,
     hookProps: {
-      reviewer: true,
-
-      status: status ? (status.toUpperCase() as RequestStatus) : undefined,
+      status: status
+        ? (status.toUpperCase() as UserListReviewsStatus)
+        : undefined,
     },
     swrProps: { swr: { refreshInterval: 10000 } },
   });
 
   const cols: Column<Request>[] = useMemo(
     () => [
+      // {
+      //   accessor: "context",
+      //   Header: "Request",
+      //   // Cell: (props) => (
+      //   //   <Link to={"/requests/" + props.row.original.id}>
+      //   //     <RuleNameCell
+      //   //       accessRuleId={props.row.original.accessRuleId}
+      //   //       reason={props.value ?? ""}
+      //   //       as="a"
+      //   //       _hover={{
+      //   //         textDecor: "underline",
+      //   //       }}
+      //   //       adminRoute={false}
+      //   //     />
+      //   //   </Link>
+      //   // ),
+      // },
+      // {
+      //   accessor: "timing",
+      //   Header: "Duration",
+      //   Cell: ({ cell }) => (
+      //     <Flex textStyle="Body/Small">
+      //       {durationString(cell.value.durationSeconds)}
+      //     </Flex>
+      //   ),
+      // },
       {
-        accessor: "reason",
-        Header: "Request",
-        Cell: (props) => (
-          <Link to={"/requests/" + props.row.original.id}>
-            <RuleNameCell
-              accessRuleId={props.row.original.accessRuleId}
-              reason={props.value ?? ""}
-              as="a"
-              _hover={{
-                textDecor: "underline",
-              }}
-              adminRoute={false}
-            />
-          </Link>
-        ),
-      },
-      {
-        accessor: "timing",
-        Header: "Duration",
-        Cell: ({ cell }) => (
-          <Flex textStyle="Body/Small">
-            {durationString(cell.value.durationSeconds)}
-          </Flex>
-        ),
-      },
-      {
-        accessor: "requestor",
+        accessor: "requestedBy",
         Header: "Requested by",
         Cell: ({ cell }) => (
           <Flex textStyle="Body/Small">
@@ -79,7 +80,7 @@ export const UserReviewsTable = () => {
               variant="withBorder"
               mr={0}
               size="xs"
-              userId={cell.value}
+              userId={cell.value.id}
             />
           </Flex>
         ),
@@ -93,13 +94,13 @@ export const UserReviewsTable = () => {
           </Flex>
         ),
       },
-      {
-        accessor: "status",
-        Header: "Status",
-        Cell: (props) => {
-          return <RequestStatusDisplay request={props.row.original} />;
-        },
-      },
+      // {
+      //   accessor: "status",
+      //   Header: "Status",
+      //   Cell: (props) => {
+      //     return <UserListReviewsStatusDisplay request={props.row.original} />;
+      //   },
+      // },
     ],
     []
   );
@@ -112,11 +113,11 @@ export const UserReviewsTable = () => {
             navigate({
               search: (old) => ({
                 ...old,
-                status: s?.toLowerCase() as Lowercase<RequestStatus>,
+                status: s?.toLowerCase() as Lowercase<UserListReviewsStatus>,
               }),
             })
           }
-          status={status?.toUpperCase() as RequestStatus}
+          status={status?.toUpperCase() as UserListReviewsStatus}
         />
       </Flex>
       {TableRenderer<Request>({
@@ -128,7 +129,7 @@ export const UserReviewsTable = () => {
           "_hover": { bg: "gray.50" },
           "cursor": "pointer",
           // in our test cases we use reason for the unique key
-          "data-testid": row.original.reason,
+          "data-testid": row.original.purpose.reason,
           "alignItems": "center",
           "onClick": () => {
             navigate({ to: "/requests/" + row.original.id });
