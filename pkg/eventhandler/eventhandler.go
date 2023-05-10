@@ -172,7 +172,7 @@ func (n *EventHandler) HandleEvent(ctx context.Context, event events.CloudWatchE
 		}
 
 	} else {
-		log.Info("ignoring unhandled event type")
+		log.Info("ignoring unhandled event type", event.DetailType)
 	}
 	return nil
 }
