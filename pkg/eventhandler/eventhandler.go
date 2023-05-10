@@ -14,6 +14,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/service/requestroutersvc"
 	"github.com/common-fate/common-fate/pkg/service/workflowsvc"
 	"github.com/common-fate/common-fate/pkg/service/workflowsvc/runtimes/local"
+	"github.com/common-fate/common-fate/pkg/service/workflowsvc/runtimes/mock"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/targetgroupgranter"
 	"github.com/common-fate/ddb"
@@ -39,9 +40,21 @@ type EventHandler struct {
 	eventQueue    chan gevent.EventTyper
 	SlackNotifier slacknotifier.SlackNotifier
 }
+type LocalDevEventHandlerOpts struct {
+	UseMockWorkflowRuntime bool
+}
+type LocalDevEventHandlerOptsFunc func(*LocalDevEventHandlerOpts)
 
-func NewLocalDevEventHandler(ctx context.Context, db ddb.Storage, clk clock.Clock) *EventHandler {
-
+func WithUseMockWorkflowRuntime(use bool) LocalDevEventHandlerOptsFunc {
+	return func(ldeho *LocalDevEventHandlerOpts) {
+		ldeho.UseMockWorkflowRuntime = use
+	}
+}
+func NewLocalDevEventHandler(ctx context.Context, db ddb.Storage, clk clock.Clock, opts ...LocalDevEventHandlerOptsFunc) *EventHandler {
+	cfg := &LocalDevEventHandlerOpts{}
+	for _, opt := range opts {
+		opt(cfg)
+	}
 	eh := &EventHandler{
 		DB:         db,
 		eventQueue: make(chan gevent.EventTyper, 100),
@@ -69,15 +82,25 @@ func NewLocalDevEventHandler(ctx context.Context, db ddb.Storage, clk clock.Cloc
 		}
 		eh.SlackNotifier = *notifier
 	}
+	var runtime workflowsvc.Runtime
 
-	wf := &workflowsvc.Service{
-		Runtime: local.NewRuntime(db, &targetgroupgranter.Granter{
+	if cfg.UseMockWorkflowRuntime {
+		runtime = mock.NewRuntime(db, eh, &requestroutersvc.Service{
+			DB: db,
+		})
+	} else {
+		runtime = local.NewRuntime(db, &targetgroupgranter.Granter{
 			DB:          db,
 			EventPutter: eh,
 			RequestRouter: &requestroutersvc.Service{
 				DB: db,
 			},
-		}),
+		}, &requestroutersvc.Service{
+			DB: db,
+		})
+	}
+	wf := &workflowsvc.Service{
+		Runtime:  runtime,
 		DB:       db,
 		Clk:      clk,
 		Eventbus: eh,
