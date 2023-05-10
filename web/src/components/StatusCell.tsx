@@ -44,17 +44,25 @@ export const StatusCell = <T,>({
   // default color is warning
   let statusColor = "actionWarning.200";
 
+  // Pulsing status added to match Figma Designs
+  // https://www.figma.com/file/ziXjEufb8v3FVDZQo55ZK2/CF-UI-Designs?type=design&node-id=3149%3A18483&t=bfWcublL9Zq6bwPX-1
+  let statusColorforPulse = "actionSuccess.100";
+
   if (Array.isArray(success) ? success.includes(value) : success === value) {
     statusColor = "actionSuccess.200";
+    statusColorforPulse = "actionSuccess.100";
   }
   if (Array.isArray(danger) ? danger.includes(value) : danger === value) {
     statusColor = "actionDanger.200";
+    statusColorforPulse = "actionDanger.100";
   }
   if (Array.isArray(warning) ? warning.includes(value) : warning === value) {
     statusColor = "actionWarning.200";
+    statusColorforPulse = "actionWarning.100";
   }
   if (Array.isArray(info) ? info.includes(value) : info === value) {
     statusColor = "actionInfo.200";
+    statusColorforPulse = "actionInfo.100";
   }
 
   //Dont pulse status for warning and error status's
@@ -73,24 +81,6 @@ export const StatusCell = <T,>({
         </Text>
       </Flex>
     );
-  }
-
-  // Pulsing status added to match Figma Designs
-  // https://www.figma.com/file/ziXjEufb8v3FVDZQo55ZK2/CF-UI-Designs?type=design&node-id=3149%3A18483&t=bfWcublL9Zq6bwPX-1
-  let statusColorforPulse = "actionSuccess.100";
-  switch (statusColor) {
-    case "actionWarning.200":
-      statusColorforPulse = "actionWarning.100";
-      break;
-    case "actionDanger.200":
-      statusColorforPulse = "actionDanger.100";
-      break;
-    case "actionInfo.200":
-      statusColorforPulse = "actionInfo.100";
-      break;
-    default:
-      statusColorforPulse = "actionSuccess.100";
-      break;
   }
 
   return (
