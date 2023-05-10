@@ -335,7 +335,7 @@ export const HeaderStatusCell = ({ group }: AccessGroupProps) => {
           <Flex flex="1">
             <StatusCell
               success="ACTIVE"
-              value={group.status}
+              value={group.requestStatus}
               replaceValue={
                 "Active for the next " +
                 durationStringHoursMinutes(
