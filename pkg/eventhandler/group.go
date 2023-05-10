@@ -7,9 +7,12 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/benbjohnson/clock"
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/gevent"
+	"github.com/common-fate/common-fate/pkg/storage"
+	"github.com/common-fate/common-fate/pkg/storage/keys"
 	"github.com/common-fate/common-fate/pkg/types"
 	"go.uber.org/zap"
 )
@@ -81,8 +84,53 @@ func (n *EventHandler) handleReviewEvent(ctx context.Context, detail json.RawMes
 		})
 	}
 
-	return nil
+}
 
+func (n *EventHandler) isGrantOverlapping(ctx context.Context, groupToTest access.GroupWithTargets) (bool, error) {
+	upcomingRequestsForUser := storage.ListRequestWithGroupsWithTargetsForUserAndPastUpcoming{
+		UserID:       groupToTest.Group.RequestedBy.ID,
+		PastUpcoming: keys.AccessRequestPastUpcomingUPCOMING,
+	}
+	err := n.DB.All(ctx, &upcomingRequestsForUser)
+	if err != nil {
+		return false, err
+	}
+
+	if len(upcomingRequestsForUser.Result) > 0 {
+		upcomingTargets := upcomingRequestsForUser.Result
+
+		groupToTestStart, groupToTestEnd := groupToTest.Group.GetInterval(access.WithNow(clock.New().Now()))
+		groupTargetCacheIDMap := make(map[string]access.GroupTarget)
+		for _, target := range groupToTest.Targets {
+			groupTargetCacheIDMap[target.TargetCacheID] = target
+		}
+
+		for _, request := range upcomingTargets {
+
+			for _, group := range request.Groups {
+				// one of the upcoming request is actually this request so we need to check the group id
+				if group.Group.ID == groupToTest.Group.ID {
+					continue
+				}
+
+				// for each group which is approved
+				if group.Group.Status == types.RequestAccessGroupStatusAPPROVED {
+					// Check whether the timing window of the upcoming group overlaps the group to test
+					upcomingStart, upcomingEnd := group.Group.GetInterval(access.WithNow(clock.New().Now()))
+					if (groupToTestStart.Before(upcomingEnd) || groupToTestStart.Equal(upcomingEnd)) && (groupToTestEnd.After(upcomingStart) || groupToTestEnd.Equal(upcomingStart)) {
+						// now check wether any of the targets overlap
+						for _, target := range group.Targets {
+							if _, ok := groupTargetCacheIDMap[target.TargetCacheID]; ok {
+								return true, nil
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return false, nil
 }
 
 // the group will already be marked as approved here
@@ -96,6 +144,22 @@ func (n *EventHandler) handleAccessGroupApprovedEvent(ctx context.Context, detai
 	if err != nil {
 		return err
 	}
+
+	overlapping, err := n.isGrantOverlapping(ctx, groupEvent.AccessGroup)
+	if err != nil {
+		return err
+	}
+
+	if overlapping {
+		log.Infow("grant event skipped due to overlapping grants", "requestId", groupEvent.AccessGroup.Group.RequestID, "groupId", groupEvent.AccessGroup.Group.ID)
+		err = n.handleAccessGroupOverlap(ctx, groupEvent)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
+
 	request, err := n.GetRequestFromDatabase(ctx, groupEvent.AccessGroup.Group.RequestID)
 	if err != nil {
 		return err
@@ -137,4 +201,26 @@ func (n *EventHandler) handleAccessGroupDeclinedDeclinedEvent(ctx context.Contex
 		request.UpdateStatus(types.ACTIVE)
 	}
 	return n.DB.PutBatch(ctx, request.DBItems()...)
+}
+
+func (n *EventHandler) handleAccessGroupOverlap(ctx context.Context, event gevent.AccessGroupApproved) error {
+	for _, target := range event.AccessGroup.Targets {
+
+		failedEvent := gevent.GrantFailed{
+			Grant:  target,
+			Reason: "overlapping grant exists",
+		}
+
+		failedEventRawMsg, err := json.Marshal(failedEvent)
+		if err != nil {
+			return err
+		}
+
+		err = n.handleGrantFailed(ctx, failedEventRawMsg)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

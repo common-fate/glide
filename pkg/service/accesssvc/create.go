@@ -12,6 +12,10 @@ import (
 	"github.com/common-fate/ddb"
 )
 
+// 1. what is preflight request
+// 2. create a new Request struct
+// 3.
+
 func (s *Service) CreateRequest(ctx context.Context, user identity.User, createRequest types.CreateAccessRequestRequest) (*access.RequestWithGroupsWithTargets, error) {
 	//check preflight
 	preflightReq := storage.GetPreflight{
