@@ -106,11 +106,11 @@ func (n *EventHandler) handleRequestCancelInitiated(ctx context.Context, detail 
 	if err != nil {
 		return err
 	}
-	items := []ddb.Keyer{}
 
 	//handle changing status's of request, and targets
-	requestEvent.Request.Request.RequestStatus = types.CANCELLED
-	items = append(items, &requestEvent.Request.Request)
+	requestEvent.Request.UpdateStatus(types.CANCELLED)
+
+	items := requestEvent.Request.DBItems()
 
 	for _, group := range requestEvent.Request.Groups {
 		for _, target := range group.Targets {
@@ -206,10 +206,12 @@ func (n *EventHandler) handleRequestStatusChange(ctx context.Context, requestId 
 	allExpired := true
 	for _, group := range request.Result.Groups {
 		for _, target := range group.Targets {
-			if target.Grant.Status != types.RequestAccessGroupTargetStatusEXPIRED &&
-				target.Grant.Status != types.RequestAccessGroupTargetStatusERROR {
-				allExpired = false
-				break
+			if target.Grant != nil {
+				if target.Grant.Status != types.RequestAccessGroupTargetStatusEXPIRED &&
+					target.Grant.Status != types.RequestAccessGroupTargetStatusERROR {
+					allExpired = false
+					break
+				}
 			}
 
 		}

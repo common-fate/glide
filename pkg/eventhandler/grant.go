@@ -117,7 +117,7 @@ func (n *EventHandler) handleGrantFailed(ctx context.Context, detail json.RawMes
 	grant.Grant.Status = types.RequestAccessGroupTargetStatusERROR
 
 	newStatus := grant.Grant.Status
-	reqEvent := access.NewTargetStatusChangeEvent(grantEvent.Grant.RequestID, grantEvent.Grant.CreatedAt, aws.String(""), oldStatus, newStatus, grant)
+	reqEvent := access.NewGrantFailedEvent(grantEvent.Grant.RequestID, grantEvent.Grant.CreatedAt, oldStatus, newStatus, grantEvent.Reason)
 
 	err = n.DB.Put(ctx, &reqEvent)
 	if err != nil {

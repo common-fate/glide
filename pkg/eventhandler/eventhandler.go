@@ -51,7 +51,7 @@ func WithUseMockWorkflowRuntime(use bool) LocalDevEventHandlerOptsFunc {
 	}
 }
 func NewLocalDevEventHandler(ctx context.Context, db ddb.Storage, clk clock.Clock, opts ...LocalDevEventHandlerOptsFunc) *EventHandler {
-	cfg := &LocalDevEventHandlerOpts{}
+	cfg := &LocalDevEventHandlerOpts{UseMockWorkflowRuntime: true}
 	for _, opt := range opts {
 		opt(cfg)
 	}
