@@ -86,6 +86,8 @@ func (n *EventHandler) handleReviewEvent(ctx context.Context, detail json.RawMes
 
 }
 
+// IsGrantOverlapping fetches all the upcomming grants for given user.
+// Loop over all the groups in upcomming requests and if there is any overlapping grant then return true.
 func (n *EventHandler) isGrantOverlapping(ctx context.Context, groupToTest access.GroupWithTargets) (bool, error) {
 	upcomingRequestsForUser := storage.ListRequestWithGroupsWithTargetsForUserAndPastUpcoming{
 		UserID:       groupToTest.Group.RequestedBy.ID,
@@ -109,6 +111,7 @@ func (n *EventHandler) isGrantOverlapping(ctx context.Context, groupToTest acces
 
 			for _, group := range request.Groups {
 				// one of the upcoming request is actually this request so we need to check the group id
+				// skip if upcoming request's group is same as the groupToTest.
 				if group.Group.ID == groupToTest.Group.ID {
 					continue
 				}
@@ -203,23 +206,15 @@ func (n *EventHandler) handleAccessGroupDeclinedDeclinedEvent(ctx context.Contex
 	return n.DB.PutBatch(ctx, request.DBItems()...)
 }
 
+// Overlapping Grants would be converted to Grant FAILED status.
 func (n *EventHandler) handleAccessGroupOverlap(ctx context.Context, event gevent.AccessGroupApproved) error {
 	for _, target := range event.AccessGroup.Targets {
 
-		failedEvent := gevent.GrantFailed{
+		// send a failed grant event for targets in overlapping group.
+		n.Eventbus.Put(ctx, gevent.GrantFailed{
 			Grant:  target,
 			Reason: "overlapping grant exists",
-		}
-
-		failedEventRawMsg, err := json.Marshal(failedEvent)
-		if err != nil {
-			return err
-		}
-
-		err = n.handleGrantFailed(ctx, failedEventRawMsg)
-		if err != nil {
-			return err
-		}
+		})
 	}
 
 	return nil
