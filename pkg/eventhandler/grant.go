@@ -107,8 +107,13 @@ func (n *EventHandler) handleGrantFailed(ctx context.Context, detail json.RawMes
 
 	grant := grantEvent.Grant
 
-	oldStatus := grant.Grant.Status
+	if grant.Grant == nil {
+		grant.Grant = &access.Grant{
+			Status: types.RequestAccessGroupTargetStatusAWAITINGSTART,
+		}
+	}
 
+	var oldStatus = grant.Grant.Status
 	grant.Grant.Status = types.RequestAccessGroupTargetStatusERROR
 
 	newStatus := grant.Grant.Status
