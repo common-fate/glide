@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/benbjohnson/clock"
 	"github.com/common-fate/common-fate/pkg/access"
+	"github.com/common-fate/common-fate/pkg/config"
 	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/common-fate/common-fate/pkg/gevent"
 	slacknotifier "github.com/common-fate/common-fate/pkg/notifiers/slack"
@@ -18,6 +19,8 @@ import (
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/targetgroupgranter"
 	"github.com/common-fate/ddb"
+	"github.com/joho/godotenv"
+	"github.com/sethvargo/go-envconfig"
 	"go.uber.org/zap"
 )
 
@@ -72,9 +75,17 @@ func NewLocalDevEventHandler(ctx context.Context, db ddb.Storage, clk clock.Cloc
 	// rather than from env vars. This adds latency but this is an async operation
 	// anyway so it doesn't really matter.
 
+	var cf config.Config
+	_ = godotenv.Load()
+
+	err = envconfig.Process(ctx, &cf)
+	if err != nil {
+		panic(err)
+	}
+
 	notifier := &slacknotifier.SlackNotifier{
 		DB:          db,
-		FrontendURL: "http://localhost:3000",
+		FrontendURL: cf.FrontendURL,
 	}
 
 	if dc.Deployment.Parameters.NotificationsConfiguration != nil {
