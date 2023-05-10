@@ -25,7 +25,7 @@ type Request struct {
 	Purpose          Purpose     `json:"purpose" dynamodbav:"purpose"`
 	RequestedBy      RequestedBy `json:"requestedBy" dynamodbav:"requestedBy"`
 	CreatedAt        time.Time   `json:"createdAt" dynamodbav:"createdAt"`
-	// request reviewers are users who have one or more groups to review on the request as a whole
+	// request reviewers are users who have one or more groups to review on the request as a whole; id = access.Reviewer.ID
 	RequestReviewers []string `json:"requestReviewers" dynamodbav:"requestReviewers, set"`
 }
 

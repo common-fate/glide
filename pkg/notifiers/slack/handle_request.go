@@ -3,9 +3,13 @@ package slacknotifier
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"sync"
 
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/gevent"
+	"github.com/common-fate/common-fate/pkg/notifiers"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/pkg/errors"
@@ -13,24 +17,9 @@ import (
 )
 
 func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.SugaredLogger, event events.CloudWatchEvent) error {
-	// var requestEvent gevent.RequestEventPayload
-	// err := json.Unmarshal(event.Detail, &requestEvent)
-	// if err != nil {
-	// 	return err
-	// }
 
-	// request := requestEvent.Request
-	// requestedRuleQuery := storage.GetAccessRule{ID: ""}
-	// _, err = n.DB.Query(ctx, &requestedRuleQuery)
-	// if err != nil {
-	// 	return errors.Wrap(err, "getting access rule")
-	// }
-	// requestedRule := *requestedRuleQuery.Result
-	// requestingUserQuery := storage.GetUser{ID: request.RequestedBy.ID}
-	// _, err = n.DB.Query(ctx, &requestingUserQuery)
-	// if err != nil {
-	// 	return errors.Wrap(err, "getting requestor")
-	// }
+	// NOTE: we've remove all pre-switch logic due to the new cloud watch event types,
+	// if there is in fact duplicate lookup logic, we should move it to a shared function
 
 	switch event.DetailType {
 	case gevent.RequestCreatedType:
@@ -40,6 +29,11 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 		if err != nil {
 			return err
 		}
+		req := requestEvent.Request
+		requestor := req.Request.RequestedBy
+
+		// requestEvent.Request.Request.
+
 		// can get all the values/props here..... 😇
 		// requestEvent.Request.Groups
 
@@ -57,10 +51,15 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 		// 	// reviwer
 		// }
 
+		// @TODO: use josh's new mock service
+		// ensure grants are working so review process complete's correcltyl
+		// try with jordi+e2e-user@commonfate.io
+
 		// for each access group run notification logic
 		for _, group := range requestEvent.Request.Groups {
 
 			if group.Group.Status == types.RequestAccessGroupStatusPENDINGAPPROVAL {
+
 				// for each reviewer in the group run notification logic
 				for _, reviewer := range group.Group.GroupReviewers {
 					reviewerObj := storage.GetUser{ID: reviewer}
@@ -68,15 +67,106 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 					if err != nil {
 						return errors.Wrap(err, "getting requestor")
 					}
-				}
-				// todo: reviewer specific handling
-				// msg := fmt.Sprintf("Your request to access *%s* requires approval. We've notified the approvers and will let you know once your request has been reviewed.", requestedRule.Name)
-				// fallback := fmt.Sprintf("Your request to access %s requires approval.", requestedRule.Name)
-				if n.directMessageClient != nil {
-					// _, err = SendMessage(ctx, n.directMessageClient.client, "requestingUserQuery.Result.Email", msg, fallback, nil)
-					// if err != nil {
-					// 	log.Errorw("Failed to send direct message", "email", requestingUserQuery.Result.Email, "msg", msg, "error", err)
-					// }
+
+					// Notify approvers
+					reviewURL, err := notifiers.ReviewURL(n.FrontendURL, req.Request.ID)
+					if err != nil {
+						return errors.Wrap(err, "building review URL")
+					}
+
+					if n.directMessageClient != nil {
+						// get the requestor's Slack user ID if it exists to render it nicely in the message to approvers.
+						var slackUserID string
+						requestor, err := n.directMessageClient.client.GetUserByEmailContext(ctx, requestor.Email)
+						if err != nil {
+							zap.S().Infow("couldn't get slack user from requestor - falling back to email address", "requestor.id",
+								//  requestingUserQuery.Result.ID,
+								zap.Error(err))
+						}
+						if requestor != nil {
+							slackUserID = requestor.ID
+						}
+
+						reviewerSummary, reviewerMsg := BuildRequestReviewMessage(RequestMessageOpts{
+							Request: req,
+							// RequestArguments: requestArguments,
+							RequestorSlackID: slackUserID,
+							ReviewURLs:       reviewURL,
+							IsWebhook:        false,
+						})
+
+						// reviewerArr := []access.Reviewer{}
+						// hydrate all these so we can get the email.......
+						// 🚨🚨🚨🚨 TODO: check if its better to just normalize this on the query (may already be available) 🚨🚨🚨🚨
+
+						// var reviewersObj map[string]identity.User
+						// for _, u := range req.Request.RequestReviewers {
+						// 	user := storage.GetUser{ID: u}
+						// 	_, err := n.DB.Query(ctx, &user)
+						// 	if err != nil {
+						// 		log.Errorw("failed to fetch user by id while trying to send message in slack", "user.id", u, zap.Error(err))
+						// 		continue
+						// 	}
+						// 	u := user.Result
+						// 	reviewersObj[u.Email] = *u
+						// }
+
+						reviewersQuery := storage.ListAccessGroupReviewers{AccessGroupId: group.Group.ID}
+						_, err = n.DB.Query(ctx, &reviewersQuery)
+						if err != nil {
+							return err
+						}
+
+						var wg sync.WaitGroup
+						for _, usr := range reviewersQuery.Result {
+							if usr.ReviewerID == req.Request.RequestedBy.ID {
+								log.Infow("skipping sending approval message to requestor", "user.id", usr)
+								continue
+							}
+							wg.Add(1)
+							go func(usr access.Reviewer) {
+								defer wg.Done()
+
+								approver := storage.GetUser{ID: usr.ReviewerID}
+								_, err := n.DB.Query(ctx, &approver)
+								if err != nil {
+									log.Errorw("failed to fetch user by id while trying to send message in slack", "user.id", usr, zap.Error(err))
+									return
+								}
+
+								ts, err := SendMessageBlocks(ctx, n.directMessageClient.client, approver.Result.Email, reviewerMsg, reviewerSummary)
+								if err != nil {
+									log.Errorw("failed to send request approval message", "user", usr, "msg", reviewerMsg, zap.Error(err))
+								}
+
+								updatedUsr := usr
+								updatedUsr.Notifications = access.Notifications{
+									SlackMessageID: &ts,
+								}
+								log.Infow("updating reviewer with slack msg id", "updatedUsr.SlackMessageID", ts)
+
+								err = n.DB.Put(ctx, &updatedUsr)
+
+								if err != nil {
+									log.Errorw("failed to update reviewer", "user", usr, zap.Error(err))
+								}
+							}(usr)
+						}
+						wg.Wait()
+					}
+
+					// todo: reviewer specific handling
+					msg := fmt.Sprintf("Your request to access *%s* requires approval. We've notified the approvers and will let you know once your request has been reviewed.", "TEST")
+					fallback := fmt.Sprintf("Your request to access %s requires approval.", "FIX ME")
+					if n.directMessageClient != nil {
+						// email := reviewerObj.Result.Email
+						email := "jordi@commonfate.io"
+
+						_, err = SendMessage(ctx, n.directMessageClient.client, email, msg, fallback, nil)
+						if err != nil {
+							log.Errorw("Failed to send direct message", "email", email, "msg", msg, "error", err)
+						}
+					}
 				}
 
 			}
@@ -138,7 +228,6 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 		// 		RequestorEmail: requestingUserQuery.Result.Email,
 		// 		ReviewURLs:     reviewURL,
 		// 		IsWebhook:      true,
-		// 		AccessGroups:   accessGroups.Result,
 		// 	})
 
 		// 	// log for testing purposes
