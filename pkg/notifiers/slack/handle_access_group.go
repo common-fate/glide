@@ -51,46 +51,8 @@ func (n *SlackNotifier) HandleAccessGroupEvent(ctx context.Context, log *zap.Sug
 		fallback := fmt.Sprintf("Your request to access %s has been declined.", accessGroup.Group.AccessRuleSnapshot.Name)
 		n.sendAccessGroupDetailsMessage(ctx, log, accessGroup, msg, fallback)
 
-		accessGroup.Group.Request
-
 		// REVIWER Message Update:
-		// need to itterate over accessGroupEvent.AccessGroup.Group.RequestReviewers
-		for _, reviewer := range accessGroup.Group.RequestReviewers {
-
-			// fetch the reviewer user obj
-			// construct a message
-			// send the message to the reviewer
-			// update the notification id on the reviewer
-
-			// req := storage.GetRequestGroupTarget{
-			// 	RequestID: accessGroupEvent.AccessGroup.Group.RequestID,
-			// 	GroupID: accessGroup.Group.ID,
-			// 	// TargetID: accesGroupEvent.Tar,
-			// }
-
-			// use this
-			reqReviewer := storage.GetRequestReviewer{
-				RequestID:  accessGroupEvent.AccessGroup.Group.RequestID,
-				ReviewerID: reviewer,
-			}
-			_, err := n.DB.Query(ctx, &reqReviewer)
-			if err != nil {
-				return err
-			}
-
-			// reqReviewer.Result.
-			// storage.GetRequestGroupTarget
-
-			// TODO: wondering if we can access request here since it will be needed to construct review messages
-			// accessGroup.Group.RequestedBy
-
-			summ, slackMsg := BuildRequestReviewMessage(RequestMessageOpts{
-				Group: accessGroup.Group,
-			})
-
-			// 🚨🚨🚨🚨 TODO: now fire this off 🚨🚨🚨🚨
-
-		}
+		n.sendAccessGroupUpdates(ctx, log, accessGroup)
 
 	default:
 		zap.S().Infow("unhandled access group event", "detailType", event.DetailType)
@@ -156,3 +118,71 @@ See if you can reproduce BuildRequestDetailMessage with with just those props
 
 
 */
+
+func (n *SlackNotifier) sendAccessGroupUpdates(ctx context.Context, log *zap.SugaredLogger, accessGroup access.GroupWithTargets) {
+
+	var HAS_SLACK_CLIENT = n.directMessageClient != nil
+	var HAS_SLACK_WEBHOOKS = len(n.webhooks) > 0
+
+	requestor := accessGroup.Group.RequestedBy
+
+	if HAS_SLACK_CLIENT {
+
+		for _, reviewer := range accessGroup.Group.RequestReviewers {
+
+			reqReviewer := storage.GetRequestReviewer{
+				RequestID:  accessGroup.Group.RequestID,
+				ReviewerID: reviewer,
+			}
+			_, err := n.DB.Query(ctx, &reqReviewer)
+			if err != nil {
+				log.Errorw("failed to get request reviewer", "error", err)
+				return
+			}
+
+			// reqReviewer.Result.
+			// storage.GetRequestGroupTarget
+
+			// TODO: wondering if we can access request here since it will be needed to construct review messages
+			// accessGroup.Group.RequestedBy
+
+			// summ, slackMsg := BuildRequestReviewMessage(RequestMessageOpts{
+			// 	Group: accessGroup.Group,
+			// })
+
+			// 🚨🚨🚨🚨 TODO: now fire this off 🚨🚨🚨🚨
+
+			summary, slackMsg := BuildRequestReviewMessage(RequestMessageOpts{
+				Group: accessGroup.Group,
+			})
+
+			_, err = SendMessageBlocks(ctx, n.directMessageClient.client, requestor.Email, slackMsg, summary)
+
+			if err != nil {
+				log.Errorw("failed to send slack message", "user", requestor, zap.Error(err))
+			}
+		}
+
+	}
+
+	if HAS_SLACK_WEBHOOKS {
+		// 	for _, webhook := range n.webhooks {
+		// 		// if !approvalRequired {
+		// 		// headingMsg = fmt.Sprintf(":white_check_mark: %s's request to access *%s* has been automatically approved.\n", requestingUser.Email, requestedRule.Name)
+
+		// 		// summary = fmt.Sprintf("%s's request to access %s has been automatically approved.", requestingUser.Email, requestedRule.Name)
+		// 		// }
+		// 		_, msg := BuildRequestDetailMessage(RequestDetailMessageOpts{
+		// 			Request: accessGroup,
+		// 			// RequestArguments: requestArguments,
+		// 			HeadingMessage: headingMsg,
+		// 		})
+
+		// 		err := webhook.SendWebhookMessage(ctx, msg.Blocks, summary)
+		// 		if err != nil {
+		// 			log.Errorw("failed to send slack message to webhook channel", "error", err)
+		// 		}
+		// 	}
+	}
+
+}

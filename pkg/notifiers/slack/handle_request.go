@@ -251,7 +251,7 @@ func (n *SlackNotifier) sendRequestDetailsMessage(ctx context.Context, log *zap.
 				// summary = fmt.Sprintf("%s's request to access %s has been automatically approved.", requestingUser.Email, requestedRule.Name)
 			}
 			_, msg := BuildRequestDetailMessage(RequestDetailMessageOpts{
-				Request: request,
+				// Request: request,
 				// RequestArguments: requestArguments,
 				HeadingMessage: headingMsg,
 			})
