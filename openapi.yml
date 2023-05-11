@@ -1263,9 +1263,6 @@ components:
           type: array
           items:
             type: string
-      required:
-        - users
-        - groups
       x-stoplight:
         id: 4f87f733cb70f
     AccessRuleTimeConstraints:

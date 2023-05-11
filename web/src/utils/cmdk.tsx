@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-types */
 // @ts-ignore
 // @ts-nocheck
 import * as RadixDialog from "@radix-ui/react-dialog";

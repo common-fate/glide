@@ -9,6 +9,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
+	"golang.org/x/sync/errgroup"
 )
 
 func (s *Service) ProcessTargets(ctx context.Context, in []types.CreateAccessRuleTarget) ([]rule.Target, error) {
@@ -55,36 +56,36 @@ func (s *Service) CreateAccessRule(ctx context.Context, userID string, in types.
 
 	log := logger.Get(ctx).With("user.id", userID, "access_rule.id", id)
 	now := s.Clock.Now()
-	// g, gctx := errgroup.WithContext(ctx)
+	g, gctx := errgroup.WithContext(ctx)
 
-	//check if user and group exists
-	// if in.Approval.Users != nil {
-	// 	g.Go(func() error {
-	// 		for _, u := range *in.Approval.Users {
+	// check if user and group exists
+	if in.Approval.Users != nil {
+		g.Go(func() error {
+			for _, u := range *in.Approval.Users {
 
-	// 			userLookup := storage.GetUser{ID: u}
+				userLookup := storage.GetUser{ID: u}
 
-	// 			_, err := s.DB.Query(gctx, &userLookup)
+				_, err := s.DB.Query(gctx, &userLookup)
 
-	// 			return err
-	// 		}
-	// 		return nil
-	// 	})
-	// }
+				return err
+			}
+			return nil
+		})
+	}
 
-	// if in.Approval.Groups != nil {
-	// 	g.Go(func() error {
-	// 		for _, u := range *in.Approval.Groups {
+	if in.Approval.Groups != nil {
+		g.Go(func() error {
+			for _, u := range *in.Approval.Groups {
 
-	// 			groupLookup := storage.GetGroup{ID: u}
+				groupLookup := storage.GetGroup{ID: u}
 
-	// 			_, err := s.DB.Query(ctx, &groupLookup)
+				_, err := s.DB.Query(ctx, &groupLookup)
 
-	// 			return err
-	// 		}
-	// 		return nil
-	// 	})
-	// }
+				return err
+			}
+			return nil
+		})
+	}
 
 	targets, err := s.ProcessTargets(ctx, in.Targets)
 	if err != nil {
@@ -96,19 +97,19 @@ func (s *Service) CreateAccessRule(ctx context.Context, userID string, in types.
 		return nil, errors.New("access rule cannot be longer than 6 months")
 	}
 
-	// approvals := rule.Approval{}
+	approvals := rule.Approval{}
 
-	// if in.Approval.Groups != nil {
-	// 	approvals.Groups = *in.Approval.Groups
-	// }
+	if in.Approval.Groups != nil {
+		approvals.Groups = *in.Approval.Groups
+	}
 
-	// if in.Approval.Users != nil {
-	// 	approvals.Users = *in.Approval.Users
-	// }
+	if in.Approval.Users != nil {
+		approvals.Users = *in.Approval.Users
+	}
 
 	rul := rule.AccessRule{
 		ID:          id,
-		Approval:    rule.Approval(in.Approval),
+		Approval:    approvals,
 		Description: in.Description,
 		Name:        in.Name,
 		Groups:      in.Groups,
