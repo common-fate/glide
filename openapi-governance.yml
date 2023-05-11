@@ -42,7 +42,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: ./openapi.yml#/components/schemas/AccessRuleDetail
+                $ref: ./openapi.yml#/components/schemas/AccessRule
         '400':
           $ref: ./openapi.yml#/components/responses/ErrorResponse
         '401':
@@ -66,7 +66,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: ./openapi.yml#/components/schemas/AccessRuleDetail
+                $ref: ./openapi.yml#/components/schemas/AccessRule
         '401':
           $ref: ./openapi.yml#/components/responses/ErrorResponse
         '404':
@@ -90,7 +90,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: ./openapi.yml#/components/schemas/AccessRuleDetail
+                $ref: ./openapi.yml#/components/schemas/AccessRule
         '400':
           $ref: '#/components/responses/ErrorResponse'
         '401':
@@ -104,7 +104,7 @@ paths:
       description: Updates an Access Rule. Updating a rule creates a new version.
       tags:
         - Governance
-  '/gov/v1/access-rules/{ruleId}/archive':
+  '/gov/v1/access-rules/{ruleId}/delete':
     parameters:
       - schema:
           type: string
@@ -113,14 +113,14 @@ paths:
         required: true
     post:
       summary: Archive Access Rule
-      operationId: gov-archive-access-rule
+      operationId: gov-delete-access-rule
       responses:
         '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: ./openapi.yml#/components/schemas/AccessRuleDetail
+                $ref: ./openapi.yml#/components/schemas/AccessRule
         '401':
           $ref: ./openapi.yml#/components/responses/ErrorResponse
         '404':
@@ -128,7 +128,7 @@ paths:
         '500':
           $ref: ./openapi.yml#/components/responses/ErrorResponse
       description: |-
-        Marks an access rule as archived.
+        Deletes an Access Rule
         Any pending requests for this access rule will be cancelled.
       tags:
         - Governance
@@ -173,7 +173,7 @@ components:
               accessRules:
                 type: array
                 items:
-                  $ref: ./openapi.yml#/components/schemas/AccessRuleDetail
+                  $ref: ./openapi.yml#/components/schemas/AccessRule
               next:
                 type: string
                 nullable: true
@@ -191,13 +191,13 @@ components:
             type: object
             properties:
               timeConstraints:
-                $ref: ./openapi.yml#/components/schemas/TimeConstraints
+                $ref: ./openapi.yml#/components/schemas/AccessRuleTimeConstraints
               groups:
                 type: array
                 items:
                   type: string
               approval:
-                $ref: ./openapi.yml#/components/schemas/ApproverConfig
+                $ref: ./openapi.yml#/components/schemas/AccessRuleApproverConfig
               name:
                 type: string
               description:
@@ -224,7 +224,7 @@ components:
                 items:
                   type: string
               approval:
-                $ref: ./openapi.yml#/components/schemas/ApproverConfig
+                $ref: ./openapi.yml#/components/schemas/AccessRuleApproverConfig
               name:
                 type: string
                 example: Okta admin
@@ -234,7 +234,7 @@ components:
               target:
                 $ref: ./openapi.yml#/components/schemas/CreateAccessRuleTarget
               timeConstraints:
-                $ref: ./openapi.yml#/components/schemas/TimeConstraints
+                $ref: ./openapi.yml#/components/schemas/AccessRuleTimeConstraints
             required:
               - groups
               - approval

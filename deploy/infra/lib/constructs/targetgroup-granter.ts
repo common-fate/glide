@@ -55,7 +55,7 @@ export class TargetGroupGranter extends Construct {
           Type: "Choice",
           Choices: [
             {
-              Variable: "$.grant.end",
+              Variable: "$.requestAccessGroupTarget.grant.end",
               TimestampGreaterThanPath: "$$.State.EnteredTime",
               Next: "Wait for Grant Start Time",
             },
@@ -65,7 +65,7 @@ export class TargetGroupGranter extends Construct {
         },
         "Wait for Grant Start Time": {
           Type: "Wait",
-          TimestampPath: "$.grant.start",
+          TimestampPath: "$.requestAccessGroupTarget.grant.start",
           Next: "Activate Access",
         },
         "Activate Access": {
@@ -75,7 +75,7 @@ export class TargetGroupGranter extends Construct {
             FunctionName: this._lambda.functionArn,
             Payload: {
               "action": "ACTIVATE",
-              "grant.$": "$.grant",
+              "requestAccessGroupTarget.$": "$.requestAccessGroupTarget",
             },
           },
           Retry: [
@@ -96,7 +96,7 @@ export class TargetGroupGranter extends Construct {
         },
         "Wait for Window End": {
           Type: "Wait",
-          TimestampPath: "$.grant.end",
+          TimestampPath: "$.requestAccessGroupTarget.grant.end",
           Next: "Expire Access",
         },
         "Expire Access": {
@@ -108,7 +108,7 @@ export class TargetGroupGranter extends Construct {
             // This passes the output into the revoke action which may or may not include state
             Payload: {
               "action": "DEACTIVATE",
-              "grant.$": "$.grant",
+              "requestAccessGroupTarget.$": "$.requestAccessGroupTarget",
               "state.$": "$.state",
             },
           },

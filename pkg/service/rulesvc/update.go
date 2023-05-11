@@ -2,12 +2,11 @@ package rulesvc
 
 import (
 	"context"
+	"errors"
 
 	"github.com/common-fate/analytics-go"
 	"github.com/common-fate/common-fate/pkg/rule"
-	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
-	"golang.org/x/sync/errgroup"
 )
 
 type UpdateOpts struct {
@@ -18,94 +17,80 @@ type UpdateOpts struct {
 }
 
 func (s *Service) UpdateRule(ctx context.Context, in *UpdateOpts) (*rule.AccessRule, error) {
-	clk := s.Clock
 
 	//check if user and group exists
-	g, gctx := errgroup.WithContext(ctx)
-	if in.UpdateRequest.Approval.Users != nil {
-		g.Go(func() error {
-			for _, u := range *in.UpdateRequest.Approval.Users {
+	// g, gctx := errgroup.WithContext(ctx)
+	// if in.UpdateRequest.Approval.Users != nil {
+	// 	g.Go(func() error {
+	// 		for _, u := range *in.UpdateRequest.Approval.Users {
 
-				userLookup := storage.GetUser{ID: u}
+	// 			userLookup := storage.GetUser{ID: u}
 
-				_, err := s.DB.Query(gctx, &userLookup)
+	// 			_, err := s.DB.Query(gctx, &userLookup)
 
-				return err
-			}
-			return nil
-		})
+	// 			return err
+	// 		}
+	// 		return nil
+	// 	})
 
-	}
+	// }
 
-	if in.UpdateRequest.Approval.Groups != nil {
-		g.Go(func() error {
-			for _, u := range *in.UpdateRequest.Approval.Groups {
+	// if in.UpdateRequest.Approval.Groups != nil {
+	// 	g.Go(func() error {
+	// 		for _, u := range *in.UpdateRequest.Approval.Groups {
 
-				groupLookup := storage.GetGroup{ID: u}
+	// 			groupLookup := storage.GetGroup{ID: u}
 
-				_, err := s.DB.Query(ctx, &groupLookup)
+	// 			_, err := s.DB.Query(ctx, &groupLookup)
 
-				return err
-			}
-			return nil
-		})
-	}
+	// 			return err
+	// 		}
+	// 		return nil
+	// 	})
+	// }
 
-	var isTargetGroup bool
-	if in.Rule.Target.TargetGroupID != "" {
-		isTargetGroup = true
-	}
-
-	target, err := s.ProcessTarget(ctx, in.UpdateRequest.Target, isTargetGroup)
+	targets, err := s.ProcessTargets(ctx, in.UpdateRequest.Targets)
 	if err != nil {
 		return nil, err
 	}
 
-	// makes a copy of the existing version which will be mutated
-	newVersion := in.Rule
-
-	// fields to be updated
-	newVersion.Description = in.UpdateRequest.Description
-	newVersion.Name = in.UpdateRequest.Name
-	if in.UpdateRequest.Approval.Users != nil {
-		newVersion.Approval.Users = *in.UpdateRequest.Approval.Users
-
-	} else {
-		newVersion.Approval.Groups = []string{}
+	// validate it is under 6 months
+	if in.UpdateRequest.TimeConstraints.MaxDurationSeconds > 26*7*24*3600 {
+		return nil, errors.New("access rule cannot be longer than 6 months")
 	}
-	if in.UpdateRequest.Approval.Groups != nil {
-		newVersion.Approval.Groups = *in.UpdateRequest.Approval.Groups
-	} else {
-		newVersion.Approval.Groups = []string{}
-	}
-	newVersion.Groups = in.UpdateRequest.Groups
-	newVersion.Metadata.UpdatedBy = in.UpdaterID
-	newVersion.Metadata.UpdatedAt = clk.Now()
-	newVersion.TimeConstraints = in.UpdateRequest.TimeConstraints
-	newVersion.Version = types.NewVersionID()
-	newVersion.Target = target
 
-	// Set the existing version to not current
-	in.Rule.Current = false
+	meta := in.Rule.Metadata
+	meta.UpdatedAt = s.Clock.Now()
+	meta.UpdatedBy = in.UpdaterID
+	rul := rule.AccessRule{
+		ID:              in.Rule.ID,
+		Approval:        rule.Approval(in.UpdateRequest.Approval),
+		Description:     in.UpdateRequest.Description,
+		Name:            in.UpdateRequest.Name,
+		Groups:          in.UpdateRequest.Groups,
+		Metadata:        meta,
+		Targets:         targets,
+		TimeConstraints: in.UpdateRequest.TimeConstraints,
+		Priority:        in.UpdateRequest.Priority,
+	}
 
 	// updated the previous version to be a version and inserts the new one as current
-	err = s.DB.PutBatch(ctx, &newVersion, &in.Rule)
+	err = s.DB.Put(ctx, &rul)
 	if err != nil {
 		return nil, err
 	}
 
 	// analytics event
 	analytics.FromContext(ctx).Track(&analytics.RuleUpdated{
-		UpdatedBy:             in.UpdaterID,
-		RuleID:                in.Rule.ID,
-		BuiltInProvider:       in.Rule.Target.BuiltInProviderType,
-		Provider:              in.Rule.Target.TargetGroupFrom.ToAnalytics(),
-		PDKProvider:           in.Rule.Target.IsForTargetGroup(),
-		MaxDurationSeconds:    in.Rule.TimeConstraints.MaxDurationSeconds,
-		UsesSelectableOptions: in.Rule.Target.UsesSelectableOptions(),
-		UsesDynamicOptions:    in.Rule.Target.UsesDynamicOptions(),
-		RequiresApproval:      in.Rule.Approval.IsRequired(),
+		UpdatedBy: in.UpdaterID,
+		RuleID:    in.Rule.ID,
+		// Provider:           in.Rule.Target.TargetGroupFrom.ToAnalytics(),
+		MaxDurationSeconds: in.Rule.TimeConstraints.MaxDurationSeconds,
+		RequiresApproval:   in.Rule.Approval.IsRequired(),
 	})
-
-	return &newVersion, nil
+	err = s.Cache.RefreshCachedTargets(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &rul, nil
 }

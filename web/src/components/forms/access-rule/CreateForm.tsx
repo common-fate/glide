@@ -4,62 +4,25 @@ import { FormProvider, useForm } from "react-hook-form";
 import { useNavigate } from "react-location";
 import { adminCreateAccessRule } from "../../../utils/backend-client/admin/admin";
 
-import {
-  CreateAccessRuleRequestBody,
-  AccessRuleTarget,
-  Provider,
-  CreateAccessRuleTarget,
-} from "../../../utils/backend-client/types";
+import { CreateAccessRuleRequestBody } from "../../../utils/backend-client/types";
 import { ApprovalStep } from "./steps/Approval";
 import { GeneralStep } from "./steps/General";
-import { ProviderStep } from "./steps/Provider";
+import { TargetStep } from "./steps/Provider";
 import { RequestsStep } from "./steps/Request";
 import { TimeStep } from "./steps/Time";
 import { StepsProvider } from "./StepsContext";
 
-export type AccessRuleFormDataTarget = {
-  providerId: string;
-  multiSelects: { [key: string]: string[] };
-  argumentGroups: { [key: string]: { [key: string]: string[] } };
-  inputs: { [key: string]: string };
-};
-export interface AccessRuleFormData
-  extends Omit<CreateAccessRuleRequestBody, "target"> {
+export interface AccessRuleFormData extends CreateAccessRuleRequestBody {
   approval: { required: boolean; users: string[]; groups: string[] };
-  // with text is used for single text fields
-  target: AccessRuleFormDataTarget;
 }
-
-export const accessRuleFormDataTargetToApi = (
-  target: AccessRuleFormDataTarget
-): CreateAccessRuleTarget => {
-  const t: CreateAccessRuleTarget = {
-    providerId: target.providerId,
-    with: {},
-  };
-  for (const k in target.inputs) {
-    t.with[k] = {
-      groupings: {},
-      values: [target.inputs[k]],
-    };
-  }
-  for (const k in target.multiSelects) {
-    t.with[k] = {
-      groupings: target.argumentGroups?.[k] || {},
-      values: target.multiSelects[k],
-    };
-  }
-  return t;
-};
 
 export const accessRuleFormDataToApi = (
   formData: AccessRuleFormData
 ): CreateAccessRuleRequestBody => {
-  const { approval, target, ...d } = formData;
+  const { approval, ...d } = formData;
 
   const ruleData: CreateAccessRuleRequestBody = {
     approval: { users: [], groups: [] },
-    target: accessRuleFormDataTargetToApi(target),
     ...d,
   };
   // only apply these fields if approval is enabled
@@ -78,7 +41,13 @@ const CreateAccessRuleForm = () => {
   const toast = useToast();
   //  Should unregister controls how the form will persist data if a component is unmounted
   // we use this to ensure that data for selected and then deselected providers is not included.
-  const methods = useForm<AccessRuleFormData>({ shouldUnregister: true });
+  const methods = useForm<AccessRuleFormData>({
+    shouldUnregister: true,
+    defaultValues: {
+      targets: [],
+      priority: 1,
+    },
+  });
   const onSubmit = async (data: AccessRuleFormData) => {
     console.debug("submit form data", { data });
 
@@ -116,7 +85,7 @@ const CreateAccessRuleForm = () => {
           <VStack w="100%" spacing={6}>
             <StepsProvider>
               <GeneralStep />
-              <ProviderStep />
+              <TargetStep />
               <TimeStep />
               <RequestsStep />
               <ApprovalStep />

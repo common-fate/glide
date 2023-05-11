@@ -18,15 +18,15 @@ import (
 // return true if options were refetched, false if they were already cached
 func (s *Service) RefreshCachedTargetGroupResources(ctx context.Context, tg target.Group) error {
 
-	cachedResources := storage.ListCachedTargetGroupResource{}
+	cachedResources := storage.ListCachedTargetGroupResourceForTargetGroup{TargetGroupID: tg.ID}
 
-	_, err := s.DB.Query(ctx, &cachedResources)
+	err := s.DB.All(ctx, &cachedResources)
 	if err != nil && err != ddb.ErrNoItems {
 		return err
 	}
 
 	type resource struct {
-		resource     cache.TargateGroupResource
+		resource     cache.TargetGroupResource
 		shouldUpsert bool
 	}
 
@@ -75,7 +75,7 @@ func (s *Service) RefreshCachedTargetGroupResources(ctx context.Context, tg targ
 	return nil
 }
 
-func (s *Service) fetchResources(ctx context.Context, tg target.Group) ([]cache.TargateGroupResource, error) {
+func (s *Service) fetchResources(ctx context.Context, tg target.Group) ([]cache.TargetGroupResource, error) {
 	var tasks []string
 
 	routeResult, err := s.RequestRouter.Route(ctx, tg)

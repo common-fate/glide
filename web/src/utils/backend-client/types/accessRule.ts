@@ -6,22 +6,22 @@
  * OpenAPI spec version: 1.0
  */
 import type { AccessRuleTarget } from './accessRuleTarget';
-import type { TimeConstraints } from './timeConstraints';
+import type { AccessRuleTimeConstraints } from './accessRuleTimeConstraints';
+import type { AccessRuleApproverConfig } from './accessRuleApproverConfig';
+import type { AccessRuleMetadata } from './accessRuleMetadata';
 
 /**
- * Access Rule contains information for an end user to make a request for access.
+ * AccessRule contains detailed information about a rule and is used in administrative apis.
  */
 export interface AccessRule {
   id: string;
-  /** A unique version identifier for the Access Rule. Updating a rule creates a new version. 
-When a rule is updated, it's ID remains consistent.
- */
-  version: string;
   name: string;
   description: string;
-  target: AccessRuleTarget;
-  timeConstraints: TimeConstraints;
-  isCurrent: boolean;
-  createdAt: string;
-  updatedAt: string;
+  targets: AccessRuleTarget[];
+  timeConstraints: AccessRuleTimeConstraints;
+  /** The group IDs that the access rule applies to. */
+  groups: string[];
+  approval: AccessRuleApproverConfig;
+  metadata: AccessRuleMetadata;
+  priority: number;
 }

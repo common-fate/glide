@@ -9,20 +9,13 @@ import (
 
 func TestReviewerDDBKeys(t *testing.T) {
 	r := Reviewer{
+		RequestID:  "req_1",
 		ReviewerID: "1",
-		Request: Request{
-			ID:     "req_1",
-			Status: APPROVED,
-		},
 	}
 
 	want := ddb.Keys{
-		PK:     "REQUEST_REVIEWER#",
-		SK:     "req_1#1",
-		GSI1PK: "REQUEST_REVIEWER#1",
-		GSI1SK: "req_1",
-		GSI2PK: "REQUEST_REVIEWER#1",
-		GSI2SK: "APPROVED#req_1",
+		PK: "REQUEST_REVIEWERV2#",
+		SK: "req_1#1",
 	}
 	got, err := r.DDBKeys()
 	if err != nil {

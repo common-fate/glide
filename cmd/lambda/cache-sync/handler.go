@@ -5,7 +5,6 @@ import (
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/common-fate/apikit/logger"
-	"github.com/common-fate/common-fate/internal"
 	"github.com/common-fate/common-fate/pkg/cachesync"
 	"github.com/common-fate/common-fate/pkg/config"
 	"github.com/common-fate/common-fate/pkg/service/cachesvc"
@@ -29,17 +28,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	ahc, err := internal.BuildAccessHandlerClient(ctx, internal.BuildAccessHandlerClientOpts{Region: cfg.Region, AccessHandlerURL: cfg.AccessHandlerURL})
-	if err != nil {
-		panic(err)
-	}
 
 	syncer := cachesync.CacheSyncer{
-		DB:                  db,
-		AccessHandlerClient: ahc,
+		DB: db,
 		Cache: cachesvc.Service{
-			DB:                  db,
-			AccessHandlerClient: ahc,
+			DB: db,
 			RequestRouter: &requestroutersvc.Service{
 				DB: db,
 			},

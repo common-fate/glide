@@ -6,10 +6,10 @@
  * OpenAPI spec version: 1.0
  */
 import type { ReviewDecision } from './reviewDecision';
-import type { RequestTiming } from './requestTiming';
+import type { RequestAccessGroupTiming } from './requestAccessGroupTiming';
 
 export type ReviewRequestBody = {
   decision: ReviewDecision;
   comment?: string;
-  overrideTiming?: RequestTiming;
+  overrideTiming?: RequestAccessGroupTiming;
 };

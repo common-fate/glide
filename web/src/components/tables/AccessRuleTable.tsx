@@ -1,63 +1,45 @@
-import { ChevronDownIcon, EditIcon, SmallAddIcon } from "@chakra-ui/icons";
+import { EditIcon, SmallAddIcon } from "@chakra-ui/icons";
 import {
   Button,
   Flex,
   HStack,
   Menu,
-  MenuButton,
   MenuIcon,
   MenuItem,
-  MenuItemOption,
   MenuList,
-  MenuOptionGroup,
   Text,
   Tooltip,
 } from "@chakra-ui/react";
 import { format } from "date-fns";
 import { useMemo, useState } from "react";
-import { Link, MakeGenerics, useNavigate, useSearch } from "react-location";
+import { Link } from "react-location";
 import { Column } from "react-table";
-import { usePaginatorApi } from "../../utils/usePaginatorApi";
 import { useAdminListAccessRules } from "../../utils/backend-client/admin/admin";
-import {
-  AccessRule,
-  AccessRuleDetail,
-  AccessRuleStatus,
-} from "../../utils/backend-client/types";
+import { AccessRule } from "../../utils/backend-client/types";
 import { durationString } from "../../utils/durationString";
-import { ProviderIcon } from "../icons/providerIcon";
-import RuleConfigModal from "../modals/RuleConfigModal";
-import { StatusCell } from "../StatusCell";
-import { TableRenderer } from "./TableRenderer";
+import { usePaginatorApi } from "../../utils/usePaginatorApi";
 import { CFAvatar } from "../CFAvatar";
-
-type MyLocationGenerics = MakeGenerics<{
-  Search: {
-    status?: Lowercase<AccessRuleStatus>;
-  };
-}>;
+import { TableRenderer } from "./TableRenderer";
 
 export const AccessRuleTable = () => {
-  const search = useSearch<MyLocationGenerics>();
-  const navigate = useNavigate<MyLocationGenerics>();
-
-  const status = useMemo(
-    () =>
-      search.status !== undefined
-        ? (search.status.toUpperCase() as AccessRuleStatus)
-        : AccessRuleStatus.ACTIVE,
-    [search]
-  );
-
   const paginator = usePaginatorApi<typeof useAdminListAccessRules>({
     swrHook: useAdminListAccessRules,
-    hookProps: { status: status },
+    hookProps: {},
   });
 
-  const [selectedAccessRule, setSelectedAccessRule] = useState<AccessRule>();
-
-  const cols = useMemo<Column<AccessRuleDetail>[]>(
+  const cols = useMemo<Column<AccessRule>[]>(
     () => [
+      {
+        accessor: "priority",
+        Header: "Priority",
+        Cell: ({ cell }) => {
+          return (
+            <Text textStyle="Body/Small" color="neutrals.700" as="a">
+              {cell.value}
+            </Text>
+          );
+        },
+      },
       {
         accessor: "name",
         Header: "Name",
@@ -90,26 +72,12 @@ export const AccessRuleTable = () => {
         },
       },
       {
-        accessor: "status",
-        Header: "Status",
-        Cell: ({ cell }) => {
-          return (
-            <StatusCell
-              value={cell.value}
-              danger={AccessRuleStatus.ARCHIVED}
-              success={AccessRuleStatus.ACTIVE}
-              textStyle="Body/Small"
-            />
-          );
-        },
-      },
-      {
-        accessor: "target",
+        accessor: "targets",
         Header: "Details",
         Cell: ({ cell }) => {
           return (
             <HStack>
-              <ProviderIcon shortType={cell.value.provider.type} />
+              {/* <ProviderIcon shortType={cell.value.provider.type} /> */}
 
               <Text
                 color="neutrals.700"
@@ -208,72 +176,15 @@ export const AccessRuleTable = () => {
         >
           New Access Rule
         </Button>
-        <Menu>
-          <MenuButton
-            as={Button}
-            rightIcon={<ChevronDownIcon />}
-            variant="ghost"
-            size="sm"
-          >
-            {status === "ACTIVE"
-              ? "Active"
-              : status === "ARCHIVED"
-              ? "Archived"
-              : "All"}
-          </MenuButton>
-          <MenuList>
-            <MenuOptionGroup
-              defaultValue="active"
-              title="View option"
-              type="radio"
-              onChange={(e) => {
-                switch (e) {
-                  case "active":
-                    navigate({
-                      search: (old) => ({
-                        ...old,
-                        status: "active",
-                      }),
-                    });
-                    break;
-                  case "archived":
-                    navigate({
-                      search: (old) => ({
-                        ...old,
-                        status: "archived",
-                      }),
-                    });
-                    break;
-                  default:
-                    navigate({
-                      search: (old) => ({
-                        ...old,
-                        status: undefined,
-                      }),
-                    });
-                }
-              }}
-            >
-              <MenuItemOption value="active">Active</MenuItemOption>
-              <MenuItemOption value="archived">Archived</MenuItemOption>
-            </MenuOptionGroup>
-          </MenuList>
-        </Menu>
       </Flex>
 
-      {TableRenderer<AccessRuleDetail>({
+      {TableRenderer<AccessRule>({
         columns: cols,
         data: paginator?.data?.accessRules,
         emptyText: "No access rules",
         linkTo: true,
         apiPaginator: paginator,
       })}
-
-      <RuleConfigModal
-        isOpen={selectedAccessRule !== undefined}
-        onClose={() => setSelectedAccessRule(undefined)}
-        rule={selectedAccessRule}
-      />
     </>
   );
 };

@@ -17,8 +17,7 @@ import (
 	"path"
 	"strings"
 
-	externalRef0 "github.com/common-fate/common-fate/accesshandler/pkg/types"
-	externalRef1 "github.com/common-fate/common-fate/pkg/types"
+	externalRef0 "github.com/common-fate/common-fate/pkg/types"
 	"github.com/deepmap/oapi-codegen/pkg/runtime"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/go-chi/chi/v5"
@@ -31,44 +30,44 @@ type ErrorResponse struct {
 
 // ListAccessRulesDetailResponse defines model for ListAccessRulesDetailResponse.
 type ListAccessRulesDetailResponse struct {
-	AccessRules []externalRef1.AccessRuleDetail `json:"accessRules"`
-	Next        *string                         `json:"next"`
+	AccessRules []externalRef0.AccessRule `json:"accessRules"`
+	Next        *string                   `json:"next"`
 }
 
 // ListAccessRulesResponse defines model for ListAccessRulesResponse.
 type ListAccessRulesResponse struct {
-	AccessRules []externalRef1.AccessRule `json:"accessRules"`
+	AccessRules []externalRef0.AccessRule `json:"accessRules"`
 	Next        *string                   `json:"next"`
 }
 
 // CreateAccessRuleRequest defines model for CreateAccessRuleRequest.
 type CreateAccessRuleRequest struct {
 	// Approver config for access rules
-	Approval    externalRef1.ApproverConfig `json:"approval"`
-	Description string                      `json:"description"`
+	Approval    externalRef0.AccessRuleApproverConfig `json:"approval"`
+	Description string                                `json:"description"`
 
 	// The group IDs that the access rule applies to.
 	Groups []string `json:"groups"`
 	Name   string   `json:"name"`
 
 	// a request body for creating a Access Rule Target
-	Target externalRef1.CreateAccessRuleTarget `json:"target"`
+	Target externalRef0.CreateAccessRuleTarget `json:"target"`
 
 	// Time configuration for an Access Rule.
-	TimeConstraints externalRef1.TimeConstraints `json:"timeConstraints"`
+	TimeConstraints externalRef0.AccessRuleTimeConstraints `json:"timeConstraints"`
 }
 
 // UpdateAccessRuleRequest defines model for UpdateAccessRuleRequest.
 type UpdateAccessRuleRequest struct {
 	// Approver config for access rules
-	Approval    externalRef1.ApproverConfig `json:"approval"`
-	Description string                      `json:"description"`
-	Groups      []string                    `json:"groups"`
-	Name        string                      `json:"name"`
+	Approval    externalRef0.AccessRuleApproverConfig `json:"approval"`
+	Description string                                `json:"description"`
+	Groups      []string                              `json:"groups"`
+	Name        string                                `json:"name"`
 
 	// Time configuration for an Access Rule.
-	TimeConstraints externalRef1.TimeConstraints `json:"timeConstraints"`
-	UpdateMessage   *string                      `json:"updateMessage,omitempty"`
+	TimeConstraints externalRef0.AccessRuleTimeConstraints `json:"timeConstraints"`
+	UpdateMessage   *string                                `json:"updateMessage,omitempty"`
 }
 
 // GovListAccessRulesParams defines parameters for GovListAccessRules.
@@ -84,10 +83,10 @@ type GovListAccessRulesParams struct {
 type GovListAccessRulesParamsStatus string
 
 // GovCreateAccessRuleJSONRequestBody defines body for GovCreateAccessRule for application/json ContentType.
-type GovCreateAccessRuleJSONRequestBody externalRef1.CreateAccessRuleRequest
+type GovCreateAccessRuleJSONRequestBody externalRef0.CreateAccessRuleRequest
 
 // GovUpdateAccessRuleJSONRequestBody defines body for GovUpdateAccessRule for application/json ContentType.
-type GovUpdateAccessRuleJSONRequestBody externalRef1.CreateAccessRuleRequest
+type GovUpdateAccessRuleJSONRequestBody externalRef0.CreateAccessRuleRequest
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -178,8 +177,8 @@ type ClientInterface interface {
 
 	GovUpdateAccessRule(ctx context.Context, ruleId string, body GovUpdateAccessRuleJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GovArchiveAccessRule request
-	GovArchiveAccessRule(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GovDeleteAccessRule request
+	GovDeleteAccessRule(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) GovListAccessRules(ctx context.Context, params *GovListAccessRulesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -254,8 +253,8 @@ func (c *Client) GovUpdateAccessRule(ctx context.Context, ruleId string, body Go
 	return c.Client.Do(req)
 }
 
-func (c *Client) GovArchiveAccessRule(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGovArchiveAccessRuleRequest(c.Server, ruleId)
+func (c *Client) GovDeleteAccessRule(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGovDeleteAccessRuleRequest(c.Server, ruleId)
 	if err != nil {
 		return nil, err
 	}
@@ -450,8 +449,8 @@ func NewGovUpdateAccessRuleRequestWithBody(server string, ruleId string, content
 	return req, nil
 }
 
-// NewGovArchiveAccessRuleRequest generates requests for GovArchiveAccessRule
-func NewGovArchiveAccessRuleRequest(server string, ruleId string) (*http.Request, error) {
+// NewGovDeleteAccessRuleRequest generates requests for GovDeleteAccessRule
+func NewGovDeleteAccessRuleRequest(server string, ruleId string) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -466,7 +465,7 @@ func NewGovArchiveAccessRuleRequest(server string, ruleId string) (*http.Request
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/gov/v1/access-rules/%s/archive", pathParam0)
+	operationPath := fmt.Sprintf("/gov/v1/access-rules/%s/delete", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -543,16 +542,16 @@ type ClientWithResponsesInterface interface {
 
 	GovUpdateAccessRuleWithResponse(ctx context.Context, ruleId string, body GovUpdateAccessRuleJSONRequestBody, reqEditors ...RequestEditorFn) (*GovUpdateAccessRuleResponse, error)
 
-	// GovArchiveAccessRule request
-	GovArchiveAccessRuleWithResponse(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*GovArchiveAccessRuleResponse, error)
+	// GovDeleteAccessRule request
+	GovDeleteAccessRuleWithResponse(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*GovDeleteAccessRuleResponse, error)
 }
 
 type GovListAccessRulesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		AccessRules []externalRef1.AccessRuleDetail `json:"accessRules"`
-		Next        *string                         `json:"next"`
+		AccessRules []externalRef0.AccessRule `json:"accessRules"`
+		Next        *string                   `json:"next"`
 	}
 }
 
@@ -575,7 +574,7 @@ func (r GovListAccessRulesResponse) StatusCode() int {
 type GovCreateAccessRuleResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON201      *externalRef1.AccessRuleDetail
+	JSON201      *externalRef0.AccessRule
 	JSON400      *struct {
 		Error string `json:"error"`
 	}
@@ -609,7 +608,7 @@ func (r GovCreateAccessRuleResponse) StatusCode() int {
 type GovGetAccessRuleResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *externalRef1.AccessRuleDetail
+	JSON200      *externalRef0.AccessRule
 	JSON401      *struct {
 		Error string `json:"error"`
 	}
@@ -637,7 +636,7 @@ func (r GovGetAccessRuleResponse) StatusCode() int {
 type GovUpdateAccessRuleResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *externalRef1.AccessRuleDetail
+	JSON200      *externalRef0.AccessRule
 	JSON400      *struct {
 		Error string `json:"error"`
 	}
@@ -668,10 +667,10 @@ func (r GovUpdateAccessRuleResponse) StatusCode() int {
 	return 0
 }
 
-type GovArchiveAccessRuleResponse struct {
+type GovDeleteAccessRuleResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *externalRef1.AccessRuleDetail
+	JSON200      *externalRef0.AccessRule
 	JSON401      *struct {
 		Error string `json:"error"`
 	}
@@ -684,7 +683,7 @@ type GovArchiveAccessRuleResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r GovArchiveAccessRuleResponse) Status() string {
+func (r GovDeleteAccessRuleResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -692,7 +691,7 @@ func (r GovArchiveAccessRuleResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GovArchiveAccessRuleResponse) StatusCode() int {
+func (r GovDeleteAccessRuleResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -751,13 +750,13 @@ func (c *ClientWithResponses) GovUpdateAccessRuleWithResponse(ctx context.Contex
 	return ParseGovUpdateAccessRuleResponse(rsp)
 }
 
-// GovArchiveAccessRuleWithResponse request returning *GovArchiveAccessRuleResponse
-func (c *ClientWithResponses) GovArchiveAccessRuleWithResponse(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*GovArchiveAccessRuleResponse, error) {
-	rsp, err := c.GovArchiveAccessRule(ctx, ruleId, reqEditors...)
+// GovDeleteAccessRuleWithResponse request returning *GovDeleteAccessRuleResponse
+func (c *ClientWithResponses) GovDeleteAccessRuleWithResponse(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*GovDeleteAccessRuleResponse, error) {
+	rsp, err := c.GovDeleteAccessRule(ctx, ruleId, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGovArchiveAccessRuleResponse(rsp)
+	return ParseGovDeleteAccessRuleResponse(rsp)
 }
 
 // ParseGovListAccessRulesResponse parses an HTTP response from a GovListAccessRulesWithResponse call
@@ -776,8 +775,8 @@ func ParseGovListAccessRulesResponse(rsp *http.Response) (*GovListAccessRulesRes
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			AccessRules []externalRef1.AccessRuleDetail `json:"accessRules"`
-			Next        *string                         `json:"next"`
+			AccessRules []externalRef0.AccessRule `json:"accessRules"`
+			Next        *string                   `json:"next"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -804,7 +803,7 @@ func ParseGovCreateAccessRuleResponse(rsp *http.Response) (*GovCreateAccessRuleR
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
-		var dest externalRef1.AccessRuleDetail
+		var dest externalRef0.AccessRule
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -866,7 +865,7 @@ func ParseGovGetAccessRuleResponse(rsp *http.Response) (*GovGetAccessRuleRespons
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest externalRef1.AccessRuleDetail
+		var dest externalRef0.AccessRule
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -910,7 +909,7 @@ func ParseGovUpdateAccessRuleResponse(rsp *http.Response) (*GovUpdateAccessRuleR
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest externalRef1.AccessRuleDetail
+		var dest externalRef0.AccessRule
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -957,22 +956,22 @@ func ParseGovUpdateAccessRuleResponse(rsp *http.Response) (*GovUpdateAccessRuleR
 	return response, nil
 }
 
-// ParseGovArchiveAccessRuleResponse parses an HTTP response from a GovArchiveAccessRuleWithResponse call
-func ParseGovArchiveAccessRuleResponse(rsp *http.Response) (*GovArchiveAccessRuleResponse, error) {
+// ParseGovDeleteAccessRuleResponse parses an HTTP response from a GovDeleteAccessRuleWithResponse call
+func ParseGovDeleteAccessRuleResponse(rsp *http.Response) (*GovDeleteAccessRuleResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GovArchiveAccessRuleResponse{
+	response := &GovDeleteAccessRuleResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest externalRef1.AccessRuleDetail
+		var dest externalRef0.AccessRule
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -1025,8 +1024,8 @@ type ServerInterface interface {
 	// (PUT /gov/v1/access-rules/{ruleId})
 	GovUpdateAccessRule(w http.ResponseWriter, r *http.Request, ruleId string)
 	// Archive Access Rule
-	// (POST /gov/v1/access-rules/{ruleId}/archive)
-	GovArchiveAccessRule(w http.ResponseWriter, r *http.Request, ruleId string)
+	// (POST /gov/v1/access-rules/{ruleId}/delete)
+	GovDeleteAccessRule(w http.ResponseWriter, r *http.Request, ruleId string)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -1147,8 +1146,8 @@ func (siw *ServerInterfaceWrapper) GovUpdateAccessRule(w http.ResponseWriter, r 
 	handler(w, r.WithContext(ctx))
 }
 
-// GovArchiveAccessRule operation middleware
-func (siw *ServerInterfaceWrapper) GovArchiveAccessRule(w http.ResponseWriter, r *http.Request) {
+// GovDeleteAccessRule operation middleware
+func (siw *ServerInterfaceWrapper) GovDeleteAccessRule(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var err error
@@ -1163,7 +1162,7 @@ func (siw *ServerInterfaceWrapper) GovArchiveAccessRule(w http.ResponseWriter, r
 	}
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GovArchiveAccessRule(w, r, ruleId)
+		siw.Handler.GovDeleteAccessRule(w, r, ruleId)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1299,7 +1298,7 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Put(options.BaseURL+"/gov/v1/access-rules/{ruleId}", wrapper.GovUpdateAccessRule)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/gov/v1/access-rules/{ruleId}/archive", wrapper.GovArchiveAccessRule)
+		r.Post(options.BaseURL+"/gov/v1/access-rules/{ruleId}/delete", wrapper.GovDeleteAccessRule)
 	})
 
 	return r
@@ -1308,25 +1307,25 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
@@ -1368,13 +1367,7 @@ func PathToRawSpec(pathToFile string) map[string]func() ([]byte, error) {
 
 	pathPrefix := path.Dir(pathToFile)
 
-	for rawPath, rawFunc := range externalRef0.PathToRawSpec(path.Join(pathPrefix, "./accesshandler/openapi.yml")) {
-		if _, ok := res[rawPath]; ok {
-			// it is not possible to compare functions in golang, so always overwrite the old value
-		}
-		res[rawPath] = rawFunc
-	}
-	for rawPath, rawFunc := range externalRef1.PathToRawSpec(path.Join(pathPrefix, "./openapi.yml")) {
+	for rawPath, rawFunc := range externalRef0.PathToRawSpec(path.Join(pathPrefix, "./openapi.yml")) {
 		if _, ok := res[rawPath]; ok {
 			// it is not possible to compare functions in golang, so always overwrite the old value
 		}

@@ -5,20 +5,47 @@ import {
   AWSCloudwatch,
   AWSIcon,
   AzureIcon,
+  DataDog,
   ECSIcon,
   EKSIcon,
   FlaskIcon,
+  GoogleCloudIcon,
   GoogleIcon,
+  JenkinsLogo,
+  JiraIcon,
   OktaIcon,
+  OnePasswordIcon,
+  SnowflakeIcon,
 } from "./Icons";
+import { GitHubIcon } from "./SocialIcons";
+
+export type ShortTypes =
+  | "aws-sso"
+  | "aws"
+  | "okta"
+  | "azure-ad"
+  | "azure"
+  | "aws-eks-roles-sso"
+  | "ecs-exec-sso"
+  | "flask"
+  | "aws-cloudwatch"
+  | "cloudwatch"
+  | "google"
+  | "gcp"
+  | "1pass"
+  | "github"
+  | "snowflake"
+  | "jira"
+  | "okta"
+  | "jenkins"
+  | "datadog";
 
 interface Props extends IconProps {
   /**
    * The short type of the provider,
    * e.g. "aws-sso".
-   * @deprecated use `type` instead (which uses the namespaced `commonfate/aws-sso` type).
    */
-  shortType?: string;
+  shortType?: ShortTypes;
 
   /**
    * The type of the provider, including the namespace, e.g. `commonfate/aws-sso`.
@@ -51,11 +78,19 @@ export const ProviderIcon: React.FC<Props> = ({
   }
 
   switch (shortType) {
-    case "aws-sso" || "aws":
+    case "aws-sso":
+      return <AWSIcon {...rest} />;
+    case "aws":
       return <AWSIcon {...rest} />;
     case "okta":
       return <OktaIcon {...rest} />;
-    case "azure-ad" || "azure":
+    case "jira":
+      return <JiraIcon {...rest} />;
+    case "jenkins":
+      return <JenkinsLogo {...rest} />;
+    case "azure-ad":
+      return <AzureIcon {...rest} />;
+    case "azure":
       return <AzureIcon {...rest} />;
     case "aws-eks-roles-sso":
       return <EKSIcon {...rest} />;
@@ -65,8 +100,20 @@ export const ProviderIcon: React.FC<Props> = ({
       return <FlaskIcon {...rest} />;
     case "aws-cloudwatch":
       return <AWSCloudwatch {...rest} />;
+    case "cloudwatch":
+      return <AWSCloudwatch {...rest} />;
     case "google":
       return <GoogleIcon {...rest} />;
+    case "1pass":
+      return <OnePasswordIcon {...rest} />;
+    case "datadog":
+      return <DataDog {...rest} />;
+    case "github":
+      return <GitHubIcon {...rest} />;
+    case "snowflake":
+      return <SnowflakeIcon {...rest} />;
+    case "gcp":
+      return <GoogleCloudIcon {...rest} />;
   }
 
   return <CommonFateIcon {...rest} />;

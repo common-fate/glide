@@ -10,10 +10,10 @@ import (
 )
 
 func TestGetHandler(t *testing.T) {
-	db := newTestingStorage(t)
+	ts := newTestingStorage(t)
 
 	hand := handler.TestHandler("test")
-	ddbtest.PutFixtures(t, db, &hand)
+	ddbtest.PutFixtures(t, ts.db, &hand)
 
 	tc := []ddbtest.QueryTestCase{
 		{
@@ -28,5 +28,5 @@ func TestGetHandler(t *testing.T) {
 		},
 	}
 
-	ddbtest.RunQueryTests(t, db, tc)
+	ddbtest.RunQueryTests(t, ts.db, tc)
 }

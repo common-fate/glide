@@ -1,7 +1,7 @@
 import { intervalToDuration, formatDuration } from "date-fns";
 
 export const durationString = (durationSeconds?: number): string => {
-  if (durationSeconds) {
+  if (durationSeconds || durationSeconds === 0) {
     const d = intervalToDuration({ start: 0, end: durationSeconds * 1000 });
 
     return formatDuration(d);
@@ -26,4 +26,13 @@ export const durationStringHoursMinutes = (d?: Duration): string => {
       format: ["days", "hours", "minutes"],
     });
   } else return "";
+};
+
+export const getEndTimeWithDuration = (
+  start: string,
+  durationSeconds: number
+): Date => {
+  const d = new Date(start);
+  d.setSeconds(durationSeconds);
+  return d;
 };

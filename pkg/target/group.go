@@ -72,12 +72,12 @@ func FromFieldFromAPI(in types.TargetGroupFrom) From {
 }
 
 func (r *Group) ToAPI() types.TargetGroup {
-	schema := types.TargetSchema{
-		AdditionalProperties: make(map[string]types.TargetArgument),
+	schema := types.TargetGroupSchema{
+		AdditionalProperties: make(map[string]types.TargetGroupSchemaArgument),
 	}
 
 	for key, field := range r.Schema.Properties {
-		ta := types.TargetArgument{
+		ta := types.TargetGroupSchemaArgument{
 			Id:          key,
 			Description: field.Description,
 		}
@@ -86,11 +86,11 @@ func (r *Group) ToAPI() types.TargetGroup {
 			ta.Title = *field.Title
 		}
 
-		// if the argument is for a resource that means i should be selected from options
-		// it if is a string argument, resource name is nil meaning it is an input
-		if field.Resource != nil {
-			ta.RuleFormElement = types.TargetArgumentRuleFormElementMULTISELECT
-		}
+		// // if the argument is for a resource that means i should be selected from options
+		// // it if is a string argument, resource name is nil meaning it is an input
+		// if field.Resource != nil {
+		// 	ta.RuleFormElement = types.TargetArgumentRuleFormElementMULTISELECT
+		// }
 		schema.AdditionalProperties[key] = ta
 	}
 

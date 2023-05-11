@@ -4,16 +4,12 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/common-fate/common-fate/pkg/access"
+	"github.com/common-fate/common-fate/pkg/types"
 )
 
 var (
-	// ErrNoMatchingGroup is returned during creating a request if the user is not in the correct group,
-	// based on the Access Rule the request relates to.
-	ErrNoMatchingGroup = errors.New("user was not in a matching group for the access rule")
-
-	// ErrRuleNotFound is returned if we can't find the Access Rule associated with a request.
-	ErrRuleNotFound = errors.New("access rule not found")
+	// ErrRuleNotFound is returned if the preflight does not exist.
+	ErrPreflightNotFound = errors.New("preflight not found")
 
 	// ErrUserNotAuthorized is returned if the user isn't allowed to complete an action,
 	// like reviewing a request.
@@ -24,11 +20,17 @@ var (
 
 	// ErrRequestOverlapsExistingGrant is returned if the request overlaps an existing grant
 	ErrRequestOverlapsExistingGrant = errors.New("this request overlaps an existing grant")
+	// ErrGroupCannotBeApprovedBecauseItWillOverlapExistingGrants is returned if the request overlaps an existing grant
+	ErrGroupCannotBeApprovedBecauseItWillOverlapExistingGrants = errors.New("this group has grants which overlap with existing grants")
+	// ErrRequestNotFoundOrNoAccessToReview is returned if the request is not found for the reviewer
+	ErrAccesGroupNotFoundOrNoAccessToReview = errors.New("this access group doesn't exist or you don't have access to review it")
+	// ErrAccessGroupAlreadyReviewed is returned if the group is already reviewed
+	ErrAccessGroupAlreadyReviewed = errors.New("this access group has already been reviewed")
 )
 
 // InvalidStatusError is returned if a user tries to review a request which wasn't PENDING.
 type InvalidStatusError struct {
-	Status access.Status
+	Status types.RequestStatus
 }
 
 func (e InvalidStatusError) Error() string {

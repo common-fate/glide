@@ -1,13 +1,9 @@
 package events
 
 import (
-	"time"
-
-	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/storage"
-	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
@@ -31,14 +27,14 @@ var requestCommand = cli.Command{
 			return err
 		}
 
-		reason := "Deploying Terraform for CF-123"
+		// reason := "Deploying Terraform for CF-123"
 
 		db, err := ddb.New(ctx, o.DynamoDBTable)
 		if err != nil {
 			return err
 		}
 
-		q := storage.GetAccessRuleCurrent{ID: c.String("rule")}
+		q := storage.GetAccessRule{ID: c.String("rule")}
 
 		_, err = db.Query(ctx, &q)
 		if err != nil {
@@ -53,21 +49,13 @@ var requestCommand = cli.Command{
 		}
 
 		e := gevent.RequestCreated{
-			Request: access.Request{
-				ID:        types.NewRequestID(),
-				CreatedAt: time.Now(),
-				UpdatedAt: time.Now(),
-				Status:    access.PENDING,
-				Data: access.RequestData{
-					Reason: &reason,
-				},
-				RequestedBy: u.Result.ID,
-				RequestedTiming: access.Timing{
-					Duration: time.Hour,
-				},
-				Rule:        q.Result.ID,
-				RuleVersion: q.Result.Version,
-			},
+			// Request: requests.Requestv2{
+			// 	// ID:        types.NewRequestID(),
+			// 	// CreatedAt: time.Now(),
+			// 	// UpdatedAt: time.Now(),
+
+			// 	RequestedBy: *u.Result,
+			// },
 		}
 
 		s, err := gevent.NewSender(c.Context, gevent.SenderOpts{

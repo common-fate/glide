@@ -9,14 +9,11 @@ import (
 	"github.com/aws/aws-lambda-go/lambdacontext"
 	"github.com/awslabs/aws-lambda-go-api-proxy/handlerfunc"
 	"github.com/common-fate/apikit/logger"
-	"github.com/common-fate/common-fate/accesshandler/pkg/psetup"
-	"github.com/common-fate/common-fate/internal"
 	"github.com/common-fate/common-fate/internal/build"
 	"github.com/common-fate/common-fate/pkg/api"
 	"github.com/common-fate/common-fate/pkg/auth"
 	"github.com/common-fate/common-fate/pkg/config"
 	"github.com/common-fate/common-fate/pkg/deploy"
-	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/identity/identitysync"
 	"github.com/common-fate/common-fate/pkg/server"
 	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
@@ -53,25 +50,9 @@ func buildHandler() (*Lambda, error) {
 	zap.ReplaceGlobals(log.Desugar())
 	auth := &auth.LambdaAuthenticator{}
 
-	ahc, err := internal.BuildAccessHandlerClient(ctx, internal.BuildAccessHandlerClientOpts{Region: cfg.Region, AccessHandlerURL: cfg.AccessHandlerURL, MockAccessHandler: cfg.MockAccessHandler})
-	if err != nil {
-		return nil, err
-	}
-
-	eventBus, err := gevent.NewSender(ctx, gevent.SenderOpts{
-		EventBusARN: cfg.EventBusArn,
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	dc, err := deploy.GetDeploymentConfig()
 	if err != nil {
 		return nil, err
-	}
-
-	td := psetup.TemplateData{
-		AccessHandlerExecutionRoleARN: cfg.AccessHandlerExecutionRoleARN,
 	}
 
 	ic, err := deploy.UnmarshalFeatureMap(cfg.IdentitySettings)
@@ -97,10 +78,8 @@ func buildHandler() (*Lambda, error) {
 		Log:                    log,
 		DynamoTable:            cfg.DynamoTable,
 		PaginationKMSKeyARN:    cfg.PaginationKMSKeyARN,
-		AccessHandlerClient:    ahc,
-		EventSender:            eventBus,
+		EventBusArn:            cfg.EventBusArn,
 		AdminGroup:             cfg.AdminGroup,
-		TemplateData:           td,
 		DeploymentSuffix:       cfg.DeploymentSuffix,
 		IdentitySyncer:         idsync,
 		CognitoUserPoolID:      cfg.CognitoUserPoolID,
@@ -108,7 +87,6 @@ func buildHandler() (*Lambda, error) {
 		AdminGroupID:           cfg.AdminGroup,
 		DeploymentConfig:       dc,
 		ProviderRegistryClient: registryClient,
-		StateMachineARN:        cfg.StateMachineARN,
 		FrontendURL:            cfg.FrontendURL,
 	})
 	if err != nil {
