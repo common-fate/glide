@@ -33,7 +33,7 @@ export const StatusCell = <T,>({
   ...rest
 }: Props<T>) => {
   // We may want to handle loading/null states separately, for now this is to serve as a skeleton component
-  if (!value)
+  if (!value || typeof value != "string")
     return (
       <Flex align="center" h="21px" {...rest}>
         <SkeletonCircle size="8px" mr={2} />{" "}
