@@ -12,18 +12,18 @@ type Resource struct {
 	Name string `json:"name" dynamodbav:"name"`
 }
 
-type TargateGroupResource struct {
+type TargetGroupResource struct {
 	Resource      Resource `json:"resource" dynamodbav:"resource"`
 	TargetGroupID string   `json:"targetGroupId" dynamodbav:"targetGroupId"`
 	ResourceType  string   `json:"resourceType" dynamodbav:"resourceType"`
 }
 
 // UniqueKey is TargetGroupID/ResourceType/Resource.ID
-func (t TargateGroupResource) UniqueKey() string {
+func (t TargetGroupResource) UniqueKey() string {
 	return strings.Join([]string{t.TargetGroupID, t.ResourceType, t.Resource.ID}, "/")
 }
 
-func (d *TargateGroupResource) DDBKeys() (ddb.Keys, error) {
+func (d *TargetGroupResource) DDBKeys() (ddb.Keys, error) {
 	keys := ddb.Keys{
 		PK: keys.TargetGroupResource.PK1,
 		SK: keys.TargetGroupResource.SK1(d.TargetGroupID, d.ResourceType, d.Resource.ID),

@@ -3,19 +3,16 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 
 	"github.com/common-fate/apikit/logger"
-	ahConfig "github.com/common-fate/common-fate/accesshandler/pkg/config"
-	"github.com/common-fate/common-fate/accesshandler/pkg/psetup"
-	ahServer "github.com/common-fate/common-fate/accesshandler/pkg/server"
-	"github.com/common-fate/common-fate/internal"
+
 	"github.com/common-fate/common-fate/internal/build"
 	"github.com/common-fate/common-fate/pkg/api"
 	"github.com/common-fate/common-fate/pkg/auth"
 	"github.com/common-fate/common-fate/pkg/auth/localauth"
 	"github.com/common-fate/common-fate/pkg/auth/nolocalauth"
 	"github.com/common-fate/common-fate/pkg/deploy"
-	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/identity/identitysync"
 	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 
@@ -28,12 +25,7 @@ import (
 )
 
 func main() {
-	go func() {
-		err := runAccessHandler()
-		if err != nil {
-			log.Fatal(err)
-		}
-	}()
+
 	err := run()
 	if err != nil {
 		log.Fatal(err)
@@ -84,25 +76,9 @@ func run() error {
 		authMiddleware = a
 	}
 
-	ahc, err := internal.BuildAccessHandlerClient(ctx, internal.BuildAccessHandlerClientOpts{Region: cfg.Region, AccessHandlerURL: cfg.AccessHandlerURL, MockAccessHandler: cfg.MockAccessHandler})
-	if err != nil {
-		return err
-	}
-
-	eventBus, err := gevent.NewSender(ctx, gevent.SenderOpts{
-		EventBusARN: cfg.EventBusArn,
-	})
-	if err != nil {
-		return err
-	}
-
 	dc, err := deploy.GetDeploymentConfig()
 	if err != nil {
 		return err
-	}
-
-	td := psetup.TemplateData{
-		AccessHandlerExecutionRoleARN: cfg.AccessHandlerExecutionRoleARN,
 	}
 
 	ic, err := deploy.UnmarshalFeatureMap(cfg.IdentitySettings)
@@ -130,8 +106,6 @@ func run() error {
 		Log:                    log,
 		DynamoTable:            cfg.DynamoTable,
 		PaginationKMSKeyARN:    cfg.PaginationKMSKeyARN,
-		AccessHandlerClient:    ahc,
-		EventSender:            eventBus,
 		AdminGroup:             cfg.AdminGroup,
 		DeploymentSuffix:       cfg.DeploymentSuffix,
 		IdentitySyncer:         idsync,
@@ -139,9 +113,9 @@ func run() error {
 		IDPType:                cfg.IdpProvider,
 		AdminGroupID:           cfg.AdminGroup,
 		DeploymentConfig:       dc,
-		TemplateData:           td,
+		UseLocalEventHandler:   os.Getenv("USE_LAMBDA_EVENT_HANDLER") != "true",
+		EventBusArn:            cfg.EventBusArn,
 		ProviderRegistryClient: registryClient,
-		StateMachineARN:        cfg.StateMachineARN,
 		FrontendURL:            cfg.FrontendURL,
 	})
 	if err != nil {
@@ -159,35 +133,4 @@ func run() error {
 	}
 
 	return s.Start(ctx)
-}
-
-// runAccessHandler runs a version of the access handler locally if COMMONFATE_RUN_ACCESS_HANDLER env var is not false, if not set it defaults to true
-func runAccessHandler() error {
-	ctx := context.Background()
-	_ = godotenv.Load()
-
-	var commonfateCfg config.Config
-	err := envconfig.Process(ctx, &commonfateCfg)
-	if err != nil {
-		return err
-	}
-
-	if commonfateCfg.RunAccessHandler {
-		var cfg ahConfig.Config
-		err = envconfig.Process(ctx, &cfg)
-		if err != nil {
-			return err
-		}
-
-		s, err := ahServer.New(ctx, cfg)
-		if err != nil {
-			return err
-		}
-
-		return s.Start(ctx)
-	}
-
-	zap.S().Info("Not starting access handler because COMMONFATE_RUN_ACCESS_HANDLER is set to false")
-	return nil
-
 }

@@ -22,59 +22,58 @@ export const RequestsFilterMenu: React.FC<{
         variant="ghost"
         size="sm"
       >
-        {status === "PENDING"
-          ? "Pending only"
-          : status === "DECLINED"
-          ? "Declined only"
-          : status === "APPROVED"
-          ? "Approved only"
-          : status === "CANCELLED"
-          ? "Cancelled only"
-          : "All"}
+        {statusMenuOption(status)}
       </MenuButton>
       <MenuList>
         <MenuOptionGroup
           defaultValue="all"
           title="View option"
           type="radio"
-          value={
-            // map the status input to a value so that the MenuList hydrates the current state
-            status === "PENDING"
-              ? "pend"
-              : status === "DECLINED"
-              ? "den"
-              : status === "APPROVED"
-              ? "apr"
-              : status === "CANCELLED"
-              ? "can"
-              : "all"
-          }
+          value={status}
           onChange={(e) => {
-            switch (e) {
-              case "pend":
-                onChange(RequestStatus.PENDING);
-                break;
-              case "den":
-                onChange(RequestStatus.DECLINED);
-                break;
-              case "apr":
-                onChange(RequestStatus.APPROVED);
-                break;
-              case "can":
-                onChange(RequestStatus.CANCELLED);
+            switch (typeof e) {
+              case "string":
+                onChange(e as RequestStatus);
                 break;
               default:
                 onChange(undefined);
             }
           }}
         >
-          <MenuItemOption value="all">All</MenuItemOption>
-          <MenuItemOption value="pend">Pending only</MenuItemOption>
-          <MenuItemOption value="den">Declined only</MenuItemOption>
-          <MenuItemOption value="apr">Approved only</MenuItemOption>
-          <MenuItemOption value="can">Cancelled only</MenuItemOption>
+          <MenuItemOption value={"ALL"}>All</MenuItemOption>
+          <MenuItemOption value={RequestStatus.PENDING}>
+            {statusMenuOption(RequestStatus.PENDING)}
+          </MenuItemOption>
+          <MenuItemOption value={RequestStatus.ACTIVE}>
+            {statusMenuOption(RequestStatus.ACTIVE)}
+          </MenuItemOption>
+          <MenuItemOption value={RequestStatus.COMPLETE}>
+            {statusMenuOption(RequestStatus.COMPLETE)}
+          </MenuItemOption>
+          <MenuItemOption value={RequestStatus.CANCELLED}>
+            {statusMenuOption(RequestStatus.CANCELLED)}
+          </MenuItemOption>
+          <MenuItemOption value={RequestStatus.REVOKED}>
+            {statusMenuOption(RequestStatus.REVOKED)}
+          </MenuItemOption>
         </MenuOptionGroup>
       </MenuList>
     </Menu>
   );
+};
+
+const statusMenuOption = (
+  status: RequestStatus | "ALL" | undefined
+): string => {
+  return status === "PENDING"
+    ? "Pending only"
+    : status === "ACTIVE"
+    ? "Active only"
+    : status === "COMPLETE"
+    ? "Complete only"
+    : status === "CANCELLED"
+    ? "Cancelled only"
+    : status === "REVOKED"
+    ? "Revoked only"
+    : "All";
 };

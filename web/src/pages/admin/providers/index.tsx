@@ -1,70 +1,241 @@
-import { CloseIcon, SmallAddIcon } from "@chakra-ui/icons";
 import {
   Button,
-  CircularProgress,
+  ButtonGroup,
+  Circle,
   Code,
   Container,
   Flex,
   HStack,
-  IconButton,
-  LinkBox,
-  LinkOverlay,
+  Heading,
+  Link,
   Modal,
   ModalBody,
   ModalCloseButton,
   ModalContent,
-  ModalFooter,
   ModalHeader,
   ModalOverlay,
-  Stack,
   Text,
+  VStack,
+  useClipboard,
   useDisclosure,
+  useToast,
+  Tooltip,
 } from "@chakra-ui/react";
+
 import { useMemo, useState } from "react";
 import { Helmet } from "react-helmet";
-import { Link } from "react-location";
 import { Column } from "react-table";
 import { AdminLayout } from "../../../components/Layout";
+import { TabsStyledButton } from "../../../components/nav/Navbar";
 import { TableRenderer } from "../../../components/tables/TableRenderer";
 import {
-  adminDeleteProvidersetup,
-  useAdminListProviders,
-  useAdminListProvidersetups,
+  adminHealthcheckHandlers,
+  useAdminListHandlers,
+  useAdminListTargetGroups,
 } from "../../../utils/backend-client/admin/admin";
+import {
+  Diagnostic,
+  TargetGroup,
+  TargetGroupFrom,
+  TGHandler,
+} from "../../../utils/backend-client/types";
+import { usePaginatorApi } from "../../../utils/usePaginatorApi";
+import { HealthCheckIcon, RefreshIcon } from "../../../components/icons/Icons";
 
-import { Provider, ProviderSetup } from "../../../utils/backend-client/types";
-import { CommunityProvidersTabs } from "../providersv2";
+import axios from "axios";
 
 const AdminProvidersTable = () => {
-  const { data } = useAdminListProviders();
+  const paginator = usePaginatorApi<typeof useAdminListHandlers>({
+    swrHook: useAdminListHandlers,
+    hookProps: {},
+  });
 
-  const cols: Column<Provider>[] = useMemo(
+  const clippy = useClipboard("");
+
+  const diagnosticModal = useDisclosure();
+  const [diagnosticText, setDiagnosticText] = useState("");
+
+  const cols: Column<TGHandler>[] = useMemo(
     () => [
       {
         accessor: "id",
         Header: "ID",
       },
       {
-        accessor: "type",
-        Header: "Type",
+        accessor: "awsRegion",
+        Header: "Region",
+      },
+      {
+        accessor: "awsAccount",
+        Header: "Account",
+      },
+      {
+        accessor: "healthy",
+        Header: "Health",
+        Cell: ({ value }) => (
+          <Flex minW="75px" align="center">
+            <Circle
+              bg={value ? "actionSuccess.200" : "actionWarning.200"}
+              size="8px"
+              mr={2}
+            />
+            <Text as="span">{value ? "Healthy" : "Unhealthy"}</Text>
+          </Flex>
+        ),
+      },
+      {
+        accessor: "diagnostics",
+        Header: "Diagnostics",
+        Cell: ({ value }) => {
+          // Strip out the code from the diagnostics, it's currently an empty field
+          const strippedCode = JSON.stringify(
+            (value as Partial<Diagnostic>[]).map((v) => {
+              delete v["code"];
+              return v;
+            })
+          );
+
+          const maxDiagnosticChars = 200;
+          let expandCode = false;
+          if (strippedCode.length > maxDiagnosticChars) {
+            expandCode = true;
+          }
+
+          const handleClick = () => {
+            if (expandCode) {
+              diagnosticModal.onOpen();
+              setDiagnosticText(strippedCode);
+            }
+          };
+
+          return (
+            <Code
+              rounded="md"
+              fontSize="sm"
+              userSelect={expandCode ? "none" : "auto"}
+              p={2}
+              noOfLines={3}
+              onClick={handleClick}
+              position="relative"
+              _hover={{
+                "backgroundColor": expandCode ? "gray.600" : "gray.200",
+                "cursor": expandCode ? "pointer" : "default",
+                "#expandCode": {
+                  display: "block",
+                },
+              }}
+            >
+              {expandCode && (
+                <Text
+                  id="expandCode"
+                  display="none"
+                  position="absolute"
+                  left="50%"
+                  top="50%"
+                  transform="translate(-50%, -50%)"
+                  zIndex={2}
+                  size="md"
+                  color="gray.50"
+                >
+                  Expand code
+                </Text>
+              )}
+              {strippedCode}
+            </Code>
+          );
+        },
       },
     ],
     []
   );
 
-  return TableRenderer<Provider>({
+  return TableRenderer<TGHandler>({
     columns: cols,
-    data: data,
-    emptyText: "No providers have been set up yet.",
+    data: paginator?.data?.res,
+    emptyText: "No Handlers have been set up yet.",
     linkTo: false,
+    apiPaginator: paginator,
+    additionalChildren: (
+      <Modal isOpen={diagnosticModal.isOpen} onClose={diagnosticModal.onClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Diagnostics</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody pb={4}>
+            <Code rounded="md" minH="200px" fontSize="sm" p={2}>
+              {diagnosticText}
+            </Code>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+    ),
+  });
+};
+
+export const targetGroupFromToString = (from: TargetGroupFrom): string => {
+  return `${from.publisher}/${from.name}@${from.version}/${from.kind}`;
+};
+
+const cols: Column<TargetGroup>[] = [
+  {
+    accessor: "id",
+    Header: "ID",
+  },
+  {
+    accessor: "from",
+    Cell: (props) => <span>{targetGroupFromToString(props.value)}</span>,
+    Header: "From",
+  },
+];
+
+const AdminTargetGroupsTable = () => {
+  const paginator = usePaginatorApi<typeof useAdminListTargetGroups>({
+    swrHook: useAdminListTargetGroups,
+    hookProps: {},
+  });
+
+  return TableRenderer<TargetGroup>({
+    columns: cols,
+    data: paginator?.data?.targetGroups,
+    apiPaginator: paginator,
+    emptyText: "No Target Groups have been set up yet.",
+    linkTo: true,
   });
 };
 
 const Providers = () => {
-  const { data } = useAdminListProvidersetups();
+  const [loading, setLoading] = useState(false);
+  const toast = useToast();
+  const onClick = async () => {
+    setLoading(true);
 
-  const setups = data?.providerSetups ?? [];
-
+    await adminHealthcheckHandlers()
+      .then(() => {
+        toast({
+          title: "Health check run",
+          status: "success",
+          variant: "subtle",
+          duration: 2200,
+          isClosable: true,
+        });
+      })
+      .catch((err) => {
+        let description: string | undefined;
+        if (axios.isAxiosError(err)) {
+          // @ts-ignore
+          description = err?.response?.data.error;
+        }
+        toast({
+          title: "Error running health check",
+          description,
+          status: "error",
+          variant: "subtle",
+          duration: 2200,
+          isClosable: true,
+        });
+      });
+    setLoading(false);
+  };
   return (
     <AdminLayout>
       <Helmet>
@@ -76,138 +247,39 @@ const Providers = () => {
         minW={{ base: "100%", xl: "container.xl" }}
         overflowX="auto"
       >
-        {setups.length > 0 && (
-          <Stack p={1}>
-            {setups.map((s) => (
-              <ProviderSetupBanner setup={s} key={s.id} />
-            ))}
-          </Stack>
-        )}
-        <Flex justify="space-between" align="center">
-          <CommunityProvidersTabs />
-          <Button
-            my={5}
-            size="sm"
-            variant="ghost"
-            leftIcon={<SmallAddIcon />}
-            as={Link}
-            to="/admin/providers/setup"
-            id="new-provider-button"
-          >
-            New Access Provider
-          </Button>
+        {/* spacer of 32px to acccount for un-needed UI/CLS */}
+        <Flex justify="right" align="center">
+          <HStack spacing="1px">
+            <Button
+              isLoading={loading}
+              onClick={() => onClick()}
+              size="s"
+              padding="5px"
+              variant="ghost"
+              iconSpacing="0px"
+              leftIcon={<HealthCheckIcon boxSize="24px" />}
+              data-testid="create-access-rule-button"
+            ></Button>
+            <Tooltip
+              hasArrow
+              label="Calls all deployed Handlers to check health and validity"
+            >
+              <Text textStyle={"Body/Small"}>Run Health Check</Text>
+            </Tooltip>
+          </HStack>
         </Flex>
-        <AdminProvidersTable />
 
-        <HStack mt={2} spacing={1} w="100%" justify={"center"}>
-          <Text textStyle={"Body/ExtraSmall"}>
-            View the full configuration of each access provider in your{" "}
-          </Text>
-          <Code fontSize={"12px"}>deployment.yml</Code>
-          <Text textStyle={"Body/ExtraSmall"}>file.</Text>
-        </HStack>
+        <VStack pb={9} align={"left"}>
+          <Text textStyle="Heading/H4">Target Groups</Text>
+          <AdminTargetGroupsTable />
+        </VStack>
+
+        <VStack pb={9} align={"left"}>
+          <Text textStyle="Heading/H4">Handlers</Text>
+          <AdminProvidersTable />
+        </VStack>
       </Container>
     </AdminLayout>
-  );
-};
-
-interface ProviderSetupBannerProps {
-  setup: ProviderSetup;
-}
-
-const ProviderSetupBanner: React.FC<ProviderSetupBannerProps> = ({ setup }) => {
-  const stepsOverview = setup.steps ?? [];
-  const { data, mutate } = useAdminListProvidersetups();
-  const { onOpen, isOpen, onClose } = useDisclosure();
-  const [loading, setLoading] = useState(false);
-
-  const handleCancelSetup = async () => {
-    setLoading(true);
-    await adminDeleteProvidersetup(setup.id);
-    const oldSetups = data?.providerSetups ?? [];
-    void mutate({
-      providerSetups: [...oldSetups.filter((s) => s.id !== setup.id)],
-    });
-    setLoading(false);
-    onClose();
-  };
-
-  const completedSteps = stepsOverview.filter((s) => s.complete).length;
-
-  const completedPercentage =
-    stepsOverview.length ?? 0 > 0
-      ? (completedSteps / stepsOverview.length) * 100
-      : 0;
-
-  return (
-    <LinkBox
-      as={Flex}
-      position="relative"
-      justify="space-between"
-      bg="neutrals.100"
-      rounded="md"
-      p={8}
-      flexDirection={{ base: "column", md: "row" }}
-    >
-      <LinkOverlay as={Link} to={"/admin/providers/setup/" + setup.id}>
-        <Stack>
-          <Text textStyle={"Body/Medium"}>Continue setting up {setup.id}</Text>
-          <Text>
-            {setup.type}@{setup.version}
-          </Text>
-        </Stack>
-      </LinkOverlay>
-      <HStack spacing={3}>
-        <Text>
-          {completedSteps} of {setup.steps.length} steps complete
-        </Text>
-        <CircularProgress value={completedPercentage} color="#449157" />
-      </HStack>
-      <IconButton
-        position="absolute"
-        top={1}
-        right={1}
-        size="xs"
-        variant={"unstyled"}
-        onClick={(e) => {
-          e.stopPropagation();
-          onOpen();
-        }}
-        icon={<CloseIcon />}
-        aria-label="Cancel setup"
-      />
-      <Modal isOpen={isOpen} onClose={onClose}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Cancel setting up {setup.id}</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            Are you sure you want to stop setting up this provider? You'll lose
-            any configuration values that we've stored.
-          </ModalBody>
-
-          <ModalFooter>
-            <Button
-              variant={"solid"}
-              colorScheme="red"
-              rounded="full"
-              mr={3}
-              onClick={handleCancelSetup}
-              isLoading={loading}
-            >
-              Stop setup
-            </Button>
-            <Button
-              variant={"brandSecondary"}
-              onClick={onClose}
-              isDisabled={loading}
-            >
-              Go back
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-    </LinkBox>
   );
 };
 

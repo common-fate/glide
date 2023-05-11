@@ -11,8 +11,9 @@ export type AdminListRequestsStatus = typeof AdminListRequestsStatus[keyof typeo
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const AdminListRequestsStatus = {
-  APPROVED: 'APPROVED',
-  DECLINED: 'DECLINED',
   CANCELLED: 'CANCELLED',
   PENDING: 'PENDING',
+  COMPLETE: 'COMPLETE',
+  ACTIVE: 'ACTIVE',
+  REVOKED: 'REVOKED',
 } as const;

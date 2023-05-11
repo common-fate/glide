@@ -38,8 +38,8 @@ func (o Output) ToRenderFrontendConfig() RenderFrontendConfig {
 	}
 }
 
-// DeployFrontend uploads the frontend to S3 and invalidates CloudFront
-func (o Output) DeployFrontend() error {
+// WriteAWSExports writes aws exports files
+func (o Output) WriteAWSExports() error {
 	frontendConfig := o.ToRenderFrontendConfig()
 
 	// first, render the application config JSON so that it can be uploaded to S3
@@ -56,14 +56,17 @@ func (o Output) DeployFrontend() error {
 
 	zap.S().Infow("wrote production frontend config", "path", prodPath)
 
-	// also write the application config JSON to the NextJS output folder,
-	// in case the variables have changed since the last frontend build.
-	outPath := "web/dist/aws-exports.json"
-	err = os.WriteFile(outPath, []byte(awsExportsProd), 0666)
-	if err != nil {
-		return err
+	_, err = os.Stat("web/dist")
+	if err == nil {
+		// also write the application config JSON to the NextJS output folder,
+		// in case the variables have changed since the last frontend build.
+		outPath := "web/dist/aws-exports.json"
+		err = os.WriteFile(outPath, []byte(awsExportsProd), 0666)
+		if err != nil {
+			return err
+		}
+		zap.S().Infow("wrote production frontend config", "path", outPath)
 	}
-	zap.S().Infow("wrote production frontend config", "path", outPath)
 
 	// also render the local development config JSON
 	awsExportsDev, err := RenderLocalFrontendConfig(frontendConfig)
@@ -78,6 +81,15 @@ func (o Output) DeployFrontend() error {
 	}
 
 	zap.S().Infow("wrote development frontend config", "path", devPath)
+	return nil
+}
+
+// DeployFrontend uploads the frontend to S3 and invalidates CloudFront
+func (o Output) DeployFrontend() error {
+	err := o.WriteAWSExports()
+	if err != nil {
+		return err
+	}
 
 	zap.S().Infow("clearing old resources", "bucket", o.S3BucketName)
 	err = sh.Run("aws", "s3", "rm", fmt.Sprintf("s3://%s/", o.S3BucketName), "--recursive")

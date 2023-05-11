@@ -6,10 +6,11 @@
  * OpenAPI spec version: 1.0
  */
 import type { RequestStatus } from './requestStatus';
-import type { RequestTiming } from './requestTiming';
-import type { RequestEventFromGrantStatus } from './requestEventFromGrantStatus';
-import type { RequestEventToGrantStatus } from './requestEventToGrantStatus';
+import type { RequestAccessGroupTiming } from './requestAccessGroupTiming';
+import type { RequestAccessGroupTargetStatus } from './requestAccessGroupTargetStatus';
 import type { RequestEventRecordedEvent } from './requestEventRecordedEvent';
+import type { RequestAccessGroupTarget } from './requestAccessGroupTarget';
+import type { RequestAccessGroupStatus } from './requestAccessGroupStatus';
 
 export interface RequestEvent {
   id: string;
@@ -18,15 +19,16 @@ export interface RequestEvent {
   actor?: string;
   fromStatus?: RequestStatus;
   toStatus?: RequestStatus;
-  fromTiming?: RequestTiming;
-  toTiming?: RequestTiming;
-  /** The current state of the grant. */
-  fromGrantStatus?: RequestEventFromGrantStatus;
-  /** The current state of the grant. */
-  toGrantStatus?: RequestEventToGrantStatus;
+  fromTiming?: RequestAccessGroupTiming;
+  toTiming?: RequestAccessGroupTiming;
+  fromGrantStatus?: RequestAccessGroupTargetStatus;
+  toGrantStatus?: RequestAccessGroupTargetStatus;
   grantCreated?: boolean;
   requestCreated?: boolean;
   grantFailureReason?: string;
   /** An event which was recorded relating to the grant. */
   recordedEvent?: RequestEventRecordedEvent;
+  target?: RequestAccessGroupTarget;
+  fromGroupStatus?: RequestAccessGroupStatus;
+  toGroupStatus?: RequestAccessGroupStatus;
 }

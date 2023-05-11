@@ -28,10 +28,10 @@ func (g *GetRequestReviewer) BuildQuery() (*dynamodb.QueryInput, error) {
 	return &qi, nil
 }
 
-func (g *GetRequestReviewer) UnmarshalQueryOutput(out *dynamodb.QueryOutput) error {
+func (g *GetRequestReviewer) UnmarshalQueryOutput(out *dynamodb.QueryOutput) (*ddb.UnmarshalResult, error) {
 	if len(out.Items) != 1 {
-		return ddb.ErrNoItems
+		return nil, ddb.ErrNoItems
 	}
 
-	return attributevalue.UnmarshalMap(out.Items[0], &g.Result)
+	return &ddb.UnmarshalResult{}, attributevalue.UnmarshalMap(out.Items[0], &g.Result)
 }

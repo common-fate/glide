@@ -36,10 +36,11 @@ type User struct {
 	// internal id of the user
 	ID string `json:"id" dynamodbav:"id"`
 
-	FirstName string   `json:"firstName" dynamodbav:"firstName"`
-	LastName  string   `json:"lastName" dynamodbav:"lastName"`
-	Email     string   `json:"email" dynamodbav:"email"`
-	Groups    []string `json:"groups" dynamodbav:"groups"`
+	FirstName   string   `json:"firstName" dynamodbav:"firstName"`
+	LastName    string   `json:"lastName" dynamodbav:"lastName"`
+	Email       string   `json:"email" dynamodbav:"email"`
+	Groups      []string `json:"groups" dynamodbav:"groups"`
+	AccessRules []string `json:"accessRules" dynamodbav:"accessRules"`
 
 	Status types.IdpStatus `json:"status" dynamodbav:"status"`
 

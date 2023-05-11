@@ -4,28 +4,24 @@ import (
 	"context"
 
 	"github.com/benbjohnson/clock"
-	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
+	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/gevent"
-	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/storage"
-	"github.com/common-fate/common-fate/pkg/storage/dbupdate"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/iso8601"
-	openapi_types "github.com/deepmap/oapi-codegen/pkg/types"
 )
 
-//go:generate go run github.com/golang/mock/mockgen -destination=mocks/runtime.go -package=mocks . Runtime
+// //go:generate go run github.com/golang/mock/mockgen -destination=mocks/runtime.go -package=mocks . Runtime
 type Runtime interface {
-	// isForTargetGroup tells the runtime how to process the request
 	// grant is expected to be asyncronous
-	Grant(ctx context.Context, grant ahTypes.CreateGrant, isForTargetGroup bool) error
+	Grant(ctx context.Context, access_group access.GroupTarget) error
 	// isForTargetGroup tells the runtime how to process the request
 	// revoke is expected to be syncronous
-	Revoke(ctx context.Context, grantID string, isForTargetGroup bool) error
+	Revoke(ctx context.Context, grantID string) error
 }
 
-//go:generate go run github.com/golang/mock/mockgen -destination=mocks/eventputter.go -package=mocks . EventPutter
+// //go:generate go run github.com/golang/mock/mockgen -destination=mocks/eventputter.go -package=mocks . EventPutter
 type EventPutter interface {
 	Put(ctx context.Context, detail gevent.EventTyper) error
 }
@@ -36,133 +32,98 @@ type Service struct {
 	Eventbus EventPutter
 }
 
-func (s *Service) Grant(ctx context.Context, request access.Request, accessRule rule.AccessRule) (*access.Grant, error) {
-	// Contains logic for preparing a grant and emitting events
-	createGrant, err := s.prepareCreateGrantRequest(ctx, request, accessRule)
+func (s *Service) Grant(ctx context.Context, requestID string, groupID string) ([]access.GroupTarget, error) {
+	log := logger.Get(ctx).With("requestId", requestID, "groupId", groupID)
+	log.Info("beginning grant workflow for group")
+	q := storage.GetRequestGroupWithTargets{
+		RequestID: requestID,
+		GroupID:   groupID,
+	}
+	_, err := s.DB.Query(ctx, &q, ddb.ConsistentRead())
 	if err != nil {
 		return nil, err
 	}
-	err = s.Runtime.Grant(ctx, createGrant, accessRule.Target.IsForTargetGroup())
+	group := q.Result
+
+	start, end := group.Group.GetInterval(access.WithNow(s.Clk.Now()))
+
+	//update the group with the start and end time
+
+	group.Group.FinalTiming = &access.FinalTiming{
+		Start: start,
+		End:   end,
+	}
+	err = s.DB.Put(ctx, &group.Group)
 	if err != nil {
 		return nil, err
 	}
 
-	// @TODO because v1 access providers sends this event in the rest API method
-	// We have to skip sending here here unless it is for a target group
-	// in which case the event can be sent from here
-	// There is still some issues with a race condition here, for asap requests, the grant could start in step functions before this event it sent.
-	// or they could arrive at the same times, if instead this event is produced by the step functions or local mock workflow, then the race condition won't exist
-	// SHIFT THIS TO THE STEP FUNCTION
-	if accessRule.Target.IsForTargetGroup() {
-		err = s.Eventbus.Put(ctx, &gevent.GrantCreated{Grant: ahTypes.Grant{
-			ID:       createGrant.Id,
-			Provider: createGrant.Provider,
-			End:      createGrant.End,
-			Start:    createGrant.Start,
-			Status:   ahTypes.GrantStatusPENDING,
-			Subject:  createGrant.Subject,
-			With:     ahTypes.Grant_With(createGrant.With),
-		}})
+	log.Infow("found group and calculated timing", "group", group, "start", start, "end", end)
+	for i, target := range group.Targets {
+		target.Grant = &access.Grant{
+			Subject: group.Group.RequestedBy.Email,
+			Start:   start,
+			End:     end,
+			Status:  types.RequestAccessGroupTargetStatusAWAITINGSTART,
+		}
+		err := s.Runtime.Grant(ctx, target)
 		if err != nil {
-			return nil, err
+			//override the status here to error
+			target.Grant.Status = types.RequestAccessGroupTargetStatusERROR
+			evt := gevent.GrantFailed{
+				Grant:  target,
+				Reason: err.Error(),
+			}
+			err = s.Eventbus.Put(ctx, evt)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		group.Targets[i] = target
+
+	}
+	err = s.DB.PutBatch(ctx, group.DBItems()...)
+	if err != nil {
+		return nil, err
+	}
+	return group.Targets, nil
+}
+
+// // Revoke attepmts to syncronously revoke access to a request
+// // If it is successful, the request is updated in the database, and the updated request is returned from this method
+func (s *Service) Revoke(ctx context.Context, requestID string, groupID string, revokerID string, revokerEmail string) error {
+	q := storage.GetRequestGroupWithTargets{
+		RequestID: requestID,
+		GroupID:   groupID,
+	}
+	_, err := s.DB.Query(ctx, &q, ddb.ConsistentRead())
+	if err != nil {
+		return err
+	}
+	group := q.Result
+	for _, target := range group.Targets {
+
+		//Cannot request to revoke/cancel grant if it is not active or pending (state function has been created and executed)
+		canRevoke := target.Grant.Status == types.RequestAccessGroupTargetStatusACTIVE ||
+			target.Grant.Status == types.RequestAccessGroupTargetStatusAWAITINGSTART
+
+		if !canRevoke || target.Grant.End.Before(s.Clk.Now()) {
+			return ErrGrantInactive
+		}
+
+		err = s.Runtime.Revoke(ctx, target.ID)
+		if err != nil {
+			return err
+		}
+		//emit request group revoke event
+		err = s.Eventbus.Put(ctx, gevent.GrantRevoked{
+			Grant: target,
+		})
+		if err != nil {
+			return err
 		}
 	}
-	now := s.Clk.Now()
-	return &access.Grant{
-		Provider:  createGrant.Provider,
-		Subject:   string(createGrant.Subject),
-		Start:     createGrant.Start.Time,
-		End:       createGrant.End.Time,
-		Status:    ahTypes.GrantStatusPENDING,
-		With:      ahTypes.Grant_With(createGrant.With),
-		CreatedAt: now,
-		UpdatedAt: now,
-	}, nil
-}
 
-// Revoke attepmts to syncronously revoke access to a request
-// If it is successful, the request is updated in the database, and the updated request is returned from this method
-func (s *Service) Revoke(ctx context.Context, request access.Request, revokerID string, revokerEmail string) (*access.Request, error) {
-	if request.Grant == nil {
-		return nil, ErrNoGrant
-	}
-	//Cannot request to revoke/cancel grant if it is not active or pending (state function has been created and executed)
-	canRevoke := request.Grant.Status == ahTypes.GrantStatusACTIVE || request.Grant.Status == ahTypes.GrantStatusPENDING
-
-	if !canRevoke || request.Grant.End.Before(s.Clk.Now()) {
-		return nil, ErrGrantInactive
-	}
-
-	q := storage.GetAccessRuleVersion{
-		ID:        request.Rule,
-		VersionID: request.RuleVersion,
-	}
-
-	_, err := s.DB.Query(ctx, &q)
-	if err != nil {
-		return nil, err
-	}
-	err = s.Runtime.Revoke(ctx, request.ID, q.Result.Target.IsForTargetGroup())
-	if err != nil {
-		return nil, err
-	}
-
-	previousStatus := request.Grant.Status
-	request.Grant.Status = ahTypes.GrantStatusREVOKED
-	request.Grant.UpdatedAt = s.Clk.Now()
-	items, err := dbupdate.GetUpdateRequestItems(ctx, s.DB, request)
-	if err != nil {
-		return nil, err
-	}
-
-	//create a request event for audit loggging request change
-	requestEvent := access.NewGrantStatusChangeEvent(request.ID, request.Grant.UpdatedAt, &revokerID, previousStatus, request.Grant.Status)
-
-	items = append(items, &requestEvent)
-
-	err = s.DB.PutBatch(ctx, items...)
-	if err != nil {
-		return nil, err
-	}
-	// Emit an event for the grant revoke
-	// We have chosen to emit events from the Common Fate app for grant revocation rather than from the access handler because we are using a syncronous API.
-	// All effects from revoking will be implemented in this syncronous api rather than triggered from the events.
-	// So we update the grant status here and save the grant before emitting the event
-	err = s.Eventbus.Put(ctx, gevent.GrantRevoked{Grant: request.Grant.ToAHGrant(request.ID), Actor: revokerID, RevokerEmail: revokerEmail})
-	if err != nil {
-		return nil, err
-	}
-	return nil, nil
-}
-
-// prepareCreateGrantRequest prepares the data for requesting
-func (s *Service) prepareCreateGrantRequest(ctx context.Context, request access.Request, accessRule rule.AccessRule) (ahTypes.CreateGrant, error) {
-	q := &storage.GetUser{
-		ID: request.RequestedBy,
-	}
-	_, err := s.DB.Query(ctx, q)
-	if err != nil {
-		return ahTypes.CreateGrant{}, err
-	}
-
-	start, end := request.GetInterval(access.WithNow(s.Clk.Now()))
-	req := ahTypes.CreateGrant{
-		Id:       request.ID,
-		Provider: accessRule.Target.ProviderID,
-		With: ahTypes.CreateGrant_With{
-			AdditionalProperties: make(map[string]string),
-		},
-		Subject: openapi_types.Email(q.Result.Email),
-		Start:   iso8601.New(start),
-		End:     iso8601.New(end),
-	}
-
-	//todo: rework this to be used safely around the codebase
-	for k, v := range accessRule.Target.With {
-		req.With.AdditionalProperties[k] = v
-	}
-	for k, v := range request.SelectedWith {
-		req.With.AdditionalProperties[k] = v.Value
-	}
-	return req, nil
+	return nil
 }

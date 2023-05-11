@@ -14,7 +14,7 @@ type GetCachedTargetGroupResource struct {
 	TargetGroupID string
 	ResourceType  string
 	ResourceID    string
-	Result        *cache.TargateGroupResource
+	Result        *cache.TargetGroupResource
 }
 
 func (q *GetCachedTargetGroupResource) BuildQuery() (*dynamodb.QueryInput, error) {
@@ -28,11 +28,11 @@ func (q *GetCachedTargetGroupResource) BuildQuery() (*dynamodb.QueryInput, error
 	return &qi, nil
 }
 
-func (q *GetCachedTargetGroupResource) UnmarshalQueryOutput(out *dynamodb.QueryOutput) error {
+func (q *GetCachedTargetGroupResource) UnmarshalQueryOutput(out *dynamodb.QueryOutput) (*ddb.UnmarshalResult, error) {
 	if len(out.Items) == 0 {
-		return ddb.ErrNoItems
+		return nil, ddb.ErrNoItems
 	}
 
-	return attributevalue.UnmarshalMap(out.Items[0], &q.Result)
+	return &ddb.UnmarshalResult{}, attributevalue.UnmarshalMap(out.Items[0], &q.Result)
 
 }

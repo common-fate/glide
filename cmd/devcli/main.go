@@ -7,12 +7,12 @@ import (
 	"github.com/common-fate/common-fate/cmd/devcli/commands/cache"
 	"github.com/common-fate/common-fate/cmd/devcli/commands/db"
 	"github.com/common-fate/common-fate/cmd/devcli/commands/events"
-	"github.com/common-fate/common-fate/cmd/devcli/commands/grants"
 	"github.com/common-fate/common-fate/cmd/devcli/commands/groups"
-	registry "github.com/common-fate/common-fate/cmd/devcli/commands/provider-registry"
-	"github.com/common-fate/common-fate/cmd/devcli/commands/slack"
-
 	"github.com/common-fate/common-fate/cmd/devcli/commands/healthcheck"
+	registry "github.com/common-fate/common-fate/cmd/devcli/commands/provider-registry"
+	"github.com/common-fate/common-fate/cmd/devcli/commands/request"
+	"github.com/common-fate/common-fate/cmd/devcli/commands/slack"
+	"github.com/common-fate/common-fate/cmd/devcli/commands/targetgroup"
 	"github.com/fatih/color"
 	"github.com/urfave/cli/v2"
 	"go.uber.org/zap"
@@ -31,8 +31,9 @@ func main() {
 			&slack.SlackCommand,
 			&cache.CacheCommand,
 			&healthcheck.Command,
-			&grants.Command,
 			&registry.Command,
+			&targetgroup.Command,
+			&request.RequestCommand,
 		},
 	}
 

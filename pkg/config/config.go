@@ -14,20 +14,17 @@ type Config struct {
 	MockAccessHandler bool   `env:"COMMONFATE_MOCK_ACCESS_HANDLER,default=false"`
 	SentryDSN         string `env:"COMMONFATE_SENTRY_DSN"`
 	EventBusArn       string `env:"COMMONFATE_EVENT_BUS_ARN,required"`
-	EventBusSource    string `env:"COMMONFATE_EVENT_BUS_SOURCE,required"`
 	IdpProvider       string `env:"COMMONFATE_IDENTITY_PROVIDER,required"`
 	DeploymentSuffix  string `env:"COMMONFATE_DEPLOYMENT_SUFFIX"`
 	// This should be an instance of deploy.FeatureMap which is a specific json format for this
 	// Use deploy.UnmarshalFeatureMap to unmarshal this data into a FeatureMap
-	IdentitySettings              string `env:"COMMONFATE_IDENTITY_SETTINGS,default={}"`
-	PaginationKMSKeyARN           string `env:"COMMONFATE_PAGINATION_KMS_KEY_ARN,required"`
-	AccessHandlerExecutionRoleARN string `env:"COMMONFATE_ACCESS_HANDLER_EXECUTION_ROLE_ARN,required"`
-	RemoteConfigURL               string `env:"COMMONFATE_ACCESS_REMOTE_CONFIG_URL"`
-	RemoteConfigHeaders           string `env:"COMMONFATE_REMOTE_CONFIG_HEADERS"`
+	IdentitySettings    string `env:"COMMONFATE_IDENTITY_SETTINGS,default={}"`
+	PaginationKMSKeyARN string `env:"COMMONFATE_PAGINATION_KMS_KEY_ARN,required"`
+	RemoteConfigURL     string `env:"COMMONFATE_ACCESS_REMOTE_CONFIG_URL"`
+	RemoteConfigHeaders string `env:"COMMONFATE_REMOTE_CONFIG_HEADERS"`
 	// a regex string that is used to filter the identity groups that are returned from the IDP
 	IdentityGroupFilter string `env:"COMMONFATE_IDENTITY_GROUP_FILTER"`
 	NoAuthEmail         string `env:"NO_AUTH_EMAIL"`
-	StateMachineARN     string `env:"COMMONFATE_GRANTER_V2_STATE_MACHINE_ARN"`
 }
 
 type NotificationsConfig struct {
@@ -42,8 +39,10 @@ type NotificationsConfig struct {
 }
 
 type EventHandlerConfig struct {
-	LogLevel    string `env:"LOG_LEVEL,default=info"`
-	DynamoTable string `env:"COMMONFATE_TABLE_NAME,required"`
+	LogLevel        string `env:"LOG_LEVEL,default=info"`
+	DynamoTable     string `env:"COMMONFATE_TABLE_NAME,required"`
+	EventBusArn     string `env:"COMMONFATE_EVENT_BUS_ARN,required"`
+	StateMachineARN string `env:"COMMONFATE_GRANTER_V2_STATE_MACHINE_ARN"`
 }
 
 type SyncConfig struct {
@@ -92,8 +91,7 @@ type ProviderDeploymentCLI struct {
 }
 
 type TargetGroupGranterConfig struct {
-	LogLevel       string `env:"LOG_LEVEL,default=info"`
-	EventBusArn    string `env:"COMMONFATE_EVENT_BUS_ARN"`
-	EventBusSource string `env:"COMMONFATE_EVENT_BUS_SOURCE"`
-	DynamoTable    string `env:"COMMONFATE_TABLE_NAME,required"`
+	LogLevel    string `env:"LOG_LEVEL,default=info"`
+	EventBusArn string `env:"COMMONFATE_EVENT_BUS_ARN"`
+	DynamoTable string `env:"COMMONFATE_TABLE_NAME,required"`
 }

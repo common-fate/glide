@@ -9,15 +9,14 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import { CfnWebACLAssociation } from "aws-cdk-lib/aws-wafv2";
 import { Construct } from "constructs";
 import * as path from "path";
-import { AccessHandler } from "./access-handler";
 import { WebUserPool } from "./app-user-pool";
 import { CacheSync } from "./cache-sync";
-import { EventHandler } from "./event-handler";
 import { Governance } from "./governance";
 import { IdpSync } from "./idp-sync";
 import { Notifiers } from "./notifiers";
 import { HealthChecker } from "./healthchecker";
 import { TargetGroupGranter } from "./targetgroup-granter";
+import { EventHandler } from "./event-handler";
 import {
   grantAssumeHandlerRole,
   grantAssumeIdentitySyncRole,
@@ -27,12 +26,10 @@ interface Props {
   appName: string;
   userPool: WebUserPool;
   frontendUrl: string;
-  accessHandler: AccessHandler;
   governanceHandler: Governance;
   eventBusSourceName: string;
   eventBus: EventBus;
   adminGroupId: string;
-  providerConfig: string;
   notificationsConfiguration: string;
   identityProviderSyncConfiguration: string;
   deploymentSuffix: string;
@@ -58,8 +55,8 @@ export class AppBackend extends Construct {
   private _dynamoTable: dynamodb.Table;
   private _lambda: lambda.Function;
   private _apigateway: apigateway.LambdaRestApi;
-  private _notifiers: Notifiers;
   private _eventHandler: EventHandler;
+  private _notifiers: Notifiers;
   private _idpSync: IdpSync;
   private _cacheSync: CacheSync;
   private _healthChecker: HealthChecker;
@@ -81,6 +78,7 @@ export class AppBackend extends Construct {
       code: lambda.Code.fromAsset(
         path.join(__dirname, "..", "..", "..", "..", "bin", "webhook.zip")
       ),
+
       timeout: Duration.seconds(20),
       runtime: lambda.Runtime.GO_1_X,
       handler: "webhook",
@@ -124,18 +122,13 @@ export class AppBackend extends Construct {
         COMMONFATE_IDENTITY_PROVIDER: props.userPool.getIdpType(),
         COMMONFATE_ADMIN_GROUP: props.adminGroupId,
         COMMONFATE_MOCK_ACCESS_HANDLER: "false",
-        COMMONFATE_ACCESS_HANDLER_URL: props.accessHandler.getApiUrl(),
-        COMMONFATE_PROVIDER_CONFIG: props.providerConfig,
         // COMMONFATE_SENTRY_DSN: can be added here
         COMMONFATE_EVENT_BUS_ARN: props.eventBus.eventBusArn,
         COMMONFATE_EVENT_BUS_SOURCE: props.eventBusSourceName,
         COMMONFATE_IDENTITY_SETTINGS: props.identityProviderSyncConfiguration,
         COMMONFATE_PAGINATION_KMS_KEY_ARN: this._KMSkey.keyArn,
-        COMMONFATE_ACCESS_HANDLER_EXECUTION_ROLE_ARN:
-          props.accessHandler.getAccessHandlerExecutionRoleArn(),
+
         COMMONFATE_DEPLOYMENT_SUFFIX: props.deploymentSuffix,
-        COMMONFATE_GRANTER_V2_STATE_MACHINE_ARN:
-          props.targetGroupGranter.getStateMachineARN(),
         COMMONFATE_ACCESS_REMOTE_CONFIG_URL: props.remoteConfigUrl,
         COMMONFATE_REMOTE_CONFIG_HEADERS: props.remoteConfigHeaders,
         CF_ANALYTICS_DISABLED: props.analyticsDisabled,
@@ -144,6 +137,7 @@ export class AppBackend extends Construct {
         CF_ANALYTICS_DEPLOYMENT_STAGE: props.analyticsDeploymentStage,
         COMMONFATE_IDENTITY_GROUP_FILTER: props.identityGroupFilter,
       },
+      memorySize: 1024,
       runtime: lambda.Runtime.GO_1_X,
       handler: "commonfate",
     });
@@ -192,19 +186,6 @@ export class AppBackend extends Construct {
       })
     );
 
-    this._lambda.addToRolePolicy(
-      new PolicyStatement({
-        actions: [
-          "states:StopExecution",
-          "states:StartExecution",
-          "states:DescribeExecution",
-          "states:GetExecutionHistory",
-          "states:StopExecution",
-        ],
-        // @TODO this should be specific to the v2 granter step function
-        resources: ["*"],
-      })
-    );
     grantAssumeIdentitySyncRole(this._lambda);
     grantAssumeHandlerRole(this._lambda);
     const api = this._apigateway.root.addResource("api");
@@ -283,19 +264,13 @@ export class AppBackend extends Construct {
 
     this._dynamoTable.grantReadWriteData(this._lambda);
 
-    // Grant the Common Fate app access to invoke the access handler api
-    this._lambda.addToRolePolicy(
-      new PolicyStatement({
-        resources: [props.accessHandler.getApiGateway().arnForExecuteApi()],
-        actions: ["execute-api:Invoke"],
-      })
-    );
     props.eventBus.grantPutEventsTo(this._lambda);
     props.apiGatewayWafAclArn && this.wafAssociation(props.apiGatewayWafAclArn);
     this._eventHandler = new EventHandler(this, "EventHandler", {
       dynamoTable: this._dynamoTable,
       eventBus: props.eventBus,
       eventBusSourceName: props.eventBusSourceName,
+      targetGroupGranter: props.targetGroupGranter,
     });
     this._notifiers = new Notifiers(this, "Notifiers", {
       dynamoTable: this._dynamoTable,
@@ -324,7 +299,6 @@ export class AppBackend extends Construct {
     });
     this._cacheSync = new CacheSync(this, "CacheSync", {
       dynamoTable: this._dynamoTable,
-      accessHandler: props.accessHandler,
       shouldRunAsCron: props.shouldRunCronHealthCheckCacheSync,
       identityGroupFilter: props.identityGroupFilter,
     });

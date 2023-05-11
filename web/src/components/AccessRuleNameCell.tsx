@@ -1,9 +1,9 @@
 import { Box, BoxProps, Flex, HStack, Text } from "@chakra-ui/react";
 import React from "react";
 import { Link } from "react-location";
-import { useAdminGetAccessRule } from "../utils/backend-client/admin/admin";
-import { useUserGetAccessRule } from "../utils/backend-client/end-user/end-user";
+
 import { ProviderIcon } from "./icons/providerIcon";
+import { useAdminGetAccessRule } from "../utils/backend-client/admin/admin";
 
 type Props = {
   reason?: string;
@@ -17,9 +17,7 @@ export const RuleNameCell: React.FC<Props> = ({
   adminRoute,
   ...rest
 }) => {
-  const { data } = adminRoute
-    ? useUserGetAccessRule(accessRuleId)
-    : useAdminGetAccessRule(accessRuleId);
+  const { data } = useAdminGetAccessRule(accessRuleId);
 
   // For now we're disabling linking/click-through
   const isAdmin = false; // window.location.pathname.includes("admin");
@@ -36,7 +34,6 @@ export const RuleNameCell: React.FC<Props> = ({
         {...rest}
       >
         <HStack>
-          <ProviderIcon shortType={data?.target.provider.type} />
           <Text
             _groupHover={{
               textDecor: isAdmin ? "underline" : undefined,

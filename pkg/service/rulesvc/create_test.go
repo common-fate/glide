@@ -2,50 +2,55 @@ package rulesvc
 
 import (
 	"context"
-	"net/http"
+	"errors"
 	"testing"
 
 	"github.com/benbjohnson/clock"
-	"github.com/common-fate/apikit/apio"
-	ssov2 "github.com/common-fate/common-fate/accesshandler/pkg/providers/aws/sso-v2"
-	"github.com/common-fate/common-fate/accesshandler/pkg/providers/testvault"
-	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
-	"github.com/common-fate/common-fate/accesshandler/pkg/types/ahmocks"
-	"github.com/common-fate/common-fate/pkg/cache"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/service/rulesvc/mocks"
 	"github.com/common-fate/common-fate/pkg/storage"
+	"github.com/common-fate/common-fate/pkg/target"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/ddb/ddbmock"
+	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 	"github.com/golang/mock/gomock"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestCreateAccessRule(t *testing.T) {
 	type testcase struct {
-		name                 string
-		givenUserID          string
-		give                 types.CreateAccessRuleRequest
-		wantErr              error
-		withProviderResponse ahTypes.Provider
-		want                 *rule.AccessRule
+		name               string
+		givenUserID        string
+		give               types.CreateAccessRuleRequest
+		wantErr            error
+		want               *rule.AccessRule
+		wantTargetGroup    target.Group
+		wantTargetGroupErr error
 	}
 
-	in := types.CreateAccessRuleRequest{}
+	in := types.CreateAccessRuleRequest{
+		Approval:        types.AccessRuleApproverConfig{},
+		Description:     "test",
+		Name:            "test",
+		Groups:          []string{"group_a"},
+		TimeConstraints: types.AccessRuleTimeConstraints{MaxDurationSeconds: 3600},
+
+		Targets: []types.CreateAccessRuleTarget{
+			{
+				TargetGroupId:         "test",
+				FieldFilterExpessions: make(map[string]interface{}),
+			},
+		},
+	}
 
 	ruleID := "override"
-	versionID := "overrideVersion"
 	userID := "user1"
 	clk := clock.NewMock()
 	now := clk.Now()
 
 	mockRule := rule.AccessRule{
-		ID:      ruleID,
-		Version: versionID,
-		// Approval:    rule.Approval{Users: *in.Approval.Users, Groups: *in.Approval.Groups},
-		Status:      rule.ACTIVE,
+		ID:          ruleID,
 		Description: in.Description,
 		Name:        in.Name,
 		Groups:      in.Groups,
@@ -55,21 +60,30 @@ func TestCreateAccessRule(t *testing.T) {
 			UpdatedAt: now,
 			UpdatedBy: userID,
 		},
-		Target: rule.Target{
-			ProviderID:               in.Target.ProviderId,
-			BuiltInProviderType:      "okta",
-			With:                     make(map[string]string),
-			WithSelectable:           make(map[string][]string),
-			WithArgumentGroupOptions: make(map[string]map[string][]string),
+		Targets: []rule.Target{
+			{
+				TargetGroup: target.Group{
+					ID: "123",
+					From: target.From{
+						Name:      "test",
+						Publisher: "commonfate",
+						Kind:      "Account",
+						Version:   "v1.1.1",
+					},
+					Schema:    providerregistrysdk.Target{},
+					Icon:      "",
+					CreatedAt: now,
+					UpdatedAt: now,
+				},
+				FieldFilterExpessions: map[string]rule.FieldFilterExpessions{},
+			},
 		},
+
 		TimeConstraints: in.TimeConstraints,
-		Current:         true,
 	}
-	cacheArgOptionsResponse := []cache.ProviderOption{}
-	cacheArgGroupOptionsResponse := []cache.ProviderArgGroupOption{}
 
 	mockRuleLongerThan6months := in
-	mockRuleLongerThan6months.TimeConstraints = types.TimeConstraints{MaxDurationSeconds: 26*7*24*3600 + 1}
+	mockRuleLongerThan6months.TimeConstraints = types.AccessRuleTimeConstraints{MaxDurationSeconds: 26*7*24*3600 + 1}
 
 	/**
 	There are two test cases here:
@@ -81,20 +95,44 @@ func TestCreateAccessRule(t *testing.T) {
 			givenUserID: userID,
 			give:        in,
 			want:        &mockRule,
-			withProviderResponse: ahTypes.Provider{
-				Id:   in.Target.ProviderId,
-				Type: "okta",
+			wantTargetGroup: target.Group{
+				ID: "123",
+				From: target.From{
+					Name:      "test",
+					Publisher: "commonfate",
+					Kind:      "Account",
+					Version:   "v1.1.1",
+				},
+				Schema:    providerregistrysdk.Target{},
+				Icon:      "",
+				CreatedAt: now,
+				UpdatedAt: now,
 			},
 		},
 		{
-			name:        "max duration seconds > 6 months",
+			name:        "max duration longer than 6 months",
 			givenUserID: userID,
 			give:        mockRuleLongerThan6months,
-			withProviderResponse: ahTypes.Provider{
-				Id:   in.Target.ProviderId,
-				Type: "okta",
+			wantErr:     errors.New("access rule cannot be longer than 6 months"),
+			wantTargetGroup: target.Group{
+				ID: "123",
+				From: target.From{
+					Name:      "test",
+					Publisher: "commonfate",
+					Kind:      "Account",
+					Version:   "v1.1.1",
+				},
+				Schema:    providerregistrysdk.Target{},
+				Icon:      "",
+				CreatedAt: now,
+				UpdatedAt: now,
 			},
-			wantErr: apio.NewRequestError(errors.New("access rule cannot be longer than 6 months"), http.StatusBadRequest),
+		},
+		{
+			name:               "target group not found errors gracefully",
+			givenUserID:        userID,
+			give:               in,
+			wantTargetGroupErr: ddb.ErrNoItems,
 		},
 	}
 
@@ -107,20 +145,18 @@ func TestCreateAccessRule(t *testing.T) {
 
 			defer ctrl.Finish()
 
-			dbc.MockQueryWithErr(&storage.GetTargetGroup{ID: in.Target.ProviderId}, ddb.ErrNoItems)
+			dbc.MockQueryWithErr(&storage.GetTargetGroup{Result: &tc.wantTargetGroup}, tc.wantTargetGroupErr)
 
-			m := ahmocks.NewMockClientWithResponsesInterface(ctrl)
-			m.EXPECT().GetProviderWithResponse(gomock.Any(), gomock.Eq(tc.give.Target.ProviderId)).Return(&ahTypes.GetProviderResponse{HTTPResponse: &http.Response{StatusCode: 200}, JSON200: &tc.withProviderResponse}, nil)
-			m.EXPECT().GetProviderArgsWithResponse(gomock.Any(), gomock.Eq(tc.give.Target.ProviderId)).Return(&ahTypes.GetProviderArgsResponse{HTTPResponse: &http.Response{StatusCode: 200}, JSON200: &ahTypes.ArgSchema{}}, nil)
+			mockCache := mocks.NewMockCacheService(ctrl)
+			if tc.wantTargetGroupErr == nil && tc.wantErr == nil {
+				mockCache.EXPECT().RefreshCachedTargets(gomock.Any()).Return(nil)
 
-			cm := mocks.NewMockCacheService(ctrl)
-			cm.EXPECT().RefreshCachedProviderArgOptions(gomock.Any(), gomock.Eq(tc.give.Target.ProviderId), gomock.Any()).AnyTimes().Return(false, cacheArgOptionsResponse, cacheArgGroupOptionsResponse, nil)
+			}
 
 			s := Service{
-				Clock:    clk,
-				DB:       dbc,
-				AHClient: m,
-				Cache:    cm,
+				Clock: clk,
+				DB:    dbc,
+				Cache: mockCache,
 			}
 
 			got, err := s.CreateAccessRule(context.Background(), tc.givenUserID, tc.give)
@@ -128,7 +164,11 @@ func TestCreateAccessRule(t *testing.T) {
 			// This is the only thing from service layer that we can't mock yet, hence the override
 			if err == nil {
 				got.ID = ruleID
-				got.Version = versionID
+			}
+
+			if tc.wantTargetGroupErr != nil {
+				assert.Equal(t, tc.wantTargetGroupErr.Error(), err.Error())
+				return
 			}
 
 			if err != nil {
@@ -144,220 +184,88 @@ func TestCreateAccessRule(t *testing.T) {
 func TestProcessTarget(t *testing.T) {
 	type testcase struct {
 		name                     string
-		give                     types.CreateAccessRuleTarget
+		give                     []types.CreateAccessRuleTarget
 		wantErr                  error
-		withProviderResponse     ahTypes.GetProviderResponse
-		withProviderArgsResponse ahTypes.GetProviderArgsResponse
-		dontExpectCacheCall      bool
-		want                     rule.Target
+		want                     []rule.Target
+		wantTargetGroupLookup    *target.Group
+		wantTargetGroupLookupErr error
 	}
 
-	cacheArgOptionsResponse := []cache.ProviderOption{{Provider: "abcd", Arg: "accountId", Label: "", Value: "account1"}, {Provider: "abcd", Arg: "accountId", Label: "", Value: "account2"}, {Provider: "abcd", Arg: "permissionSetArn", Label: "", Value: "abcdefg"}}
-	cacheArgGroupOptionsResponse := []cache.ProviderArgGroupOption{{Provider: "abcd", Arg: "accountId", Group: "organizationalUnit", Label: "", Value: "orgunit1"}, {Provider: "abcd", Arg: "accountId", Group: "organizationalUnit", Label: "", Value: "orgunit2"}}
-	ssov2Schema := (&ssov2.Provider{}).ArgSchema().ToAPI()
-	testVaultSchema := (&testvault.Provider{}).ArgSchema().ToAPI()
+	tg1 := target.Group{
+		ID: "123",
+		From: target.From{
+			Publisher: "test",
+			Name:      "test",
+			Version:   "test",
+			Kind:      "test",
+		},
+		Schema: providerregistrysdk.Target{},
+	}
 
 	testcases := []testcase{
 		{
-			name: "ok testvault with input element",
-			give: types.CreateAccessRuleTarget{
-				ProviderId: "abcd",
-				With: types.CreateAccessRuleTarget_With{
-					AdditionalProperties: map[string]types.CreateAccessRuleTargetDetailArguments{
-						"vault": {
-							Groupings: types.CreateAccessRuleTargetDetailArguments_Groupings{
-								AdditionalProperties: map[string][]string{},
-							},
-							Values: []string{"example-vault"},
-						},
-					},
+			name: "ok ",
+			give: []types.CreateAccessRuleTarget{
+				{
+					TargetGroupId:         "123",
+					FieldFilterExpessions: make(map[string]interface{}),
 				},
 			},
-			want: rule.Target{
-				ProviderID:               "abcd",
-				BuiltInProviderType:      "testvault",
-				With:                     map[string]string{"vault": "example-vault"},
-				WithSelectable:           map[string][]string{},
-				WithArgumentGroupOptions: map[string]map[string][]string{},
-			},
-			withProviderResponse: ahTypes.GetProviderResponse{
-				HTTPResponse: &http.Response{
-					StatusCode: http.StatusOK,
+			wantTargetGroupLookup: &tg1,
+			want: []rule.Target{
+				{
+					TargetGroup:           tg1,
+					FieldFilterExpessions: map[string]rule.FieldFilterExpessions{},
 				},
-				JSON200: &ahTypes.Provider{
-					Id:   "abcd",
-					Type: "testvault",
-				},
-			},
-			withProviderArgsResponse: ahTypes.GetProviderArgsResponse{
-				HTTPResponse: &http.Response{
-					StatusCode: http.StatusOK,
-				},
-				JSON200: &testVaultSchema,
-			},
-			dontExpectCacheCall: true,
-		},
-		{
-			name: "ok single value for field is stored in target.With, all other fields on target are empty",
-			give: types.CreateAccessRuleTarget{
-				ProviderId: "abcd",
-				With: types.CreateAccessRuleTarget_With{
-					AdditionalProperties: map[string]types.CreateAccessRuleTargetDetailArguments{
-						"accountId": {
-							Groupings: types.CreateAccessRuleTargetDetailArguments_Groupings{
-								AdditionalProperties: map[string][]string{},
-							},
-							Values: []string{"account1"},
-						},
-						"permissionSetArn": {
-							Groupings: types.CreateAccessRuleTargetDetailArguments_Groupings{
-								AdditionalProperties: map[string][]string{},
-							},
-							Values: []string{"abcdefg"},
-						},
-					},
-				},
-			},
-			want: rule.Target{
-				ProviderID:               "abcd",
-				BuiltInProviderType:      "awssso",
-				With:                     map[string]string{"accountId": "account1", "permissionSetArn": "abcdefg"},
-				WithSelectable:           map[string][]string{},
-				WithArgumentGroupOptions: map[string]map[string][]string{},
-			},
-			withProviderResponse: ahTypes.GetProviderResponse{
-				HTTPResponse: &http.Response{
-					StatusCode: http.StatusOK,
-				},
-				JSON200: &ahTypes.Provider{
-					Id:   "abcd",
-					Type: "awssso",
-				},
-			},
-			withProviderArgsResponse: ahTypes.GetProviderArgsResponse{
-				HTTPResponse: &http.Response{
-					StatusCode: http.StatusOK,
-				},
-				JSON200: &ssov2Schema,
 			},
 		},
 		{
-			name: "ok single value for field is stored in target.WithSelectable, all other fields on target are empty",
-			give: types.CreateAccessRuleTarget{
-				ProviderId: "abcd",
-				With: types.CreateAccessRuleTarget_With{
-					AdditionalProperties: map[string]types.CreateAccessRuleTargetDetailArguments{
-						"accountId": {
-							Groupings: types.CreateAccessRuleTargetDetailArguments_Groupings{
-								AdditionalProperties: map[string][]string{},
-							},
-							Values: []string{"account1", "account2"},
-						},
-						"permissionSetArn": {
-							Groupings: types.CreateAccessRuleTargetDetailArguments_Groupings{
-								AdditionalProperties: map[string][]string{},
-							},
-							Values: []string{"abcdefg"},
-						},
-					},
+			name: "duplicate target group fails ",
+			give: []types.CreateAccessRuleTarget{
+				{
+					TargetGroupId:         "123",
+					FieldFilterExpessions: make(map[string]interface{}),
+				},
+				{
+					TargetGroupId:         "123",
+					FieldFilterExpessions: make(map[string]interface{}),
 				},
 			},
-			want: rule.Target{
-				ProviderID:               "abcd",
-				BuiltInProviderType:      "awssso",
-				With:                     map[string]string{"permissionSetArn": "abcdefg"},
-				WithSelectable:           map[string][]string{"accountId": {"account1", "account2"}},
-				WithArgumentGroupOptions: map[string]map[string][]string{},
-			},
-			withProviderResponse: ahTypes.GetProviderResponse{
-				HTTPResponse: &http.Response{
-					StatusCode: http.StatusOK,
-				},
-				JSON200: &ahTypes.Provider{
-					Id:   "abcd",
-					Type: "awssso",
-				},
-			},
-			withProviderArgsResponse: ahTypes.GetProviderArgsResponse{
-				HTTPResponse: &http.Response{
-					StatusCode: http.StatusOK,
-				},
-				JSON200: &ssov2Schema,
-			},
+			wantTargetGroupLookup: &tg1,
+			want:                  nil,
+			wantErr:               errors.New("duplicate target in access rule"),
 		},
 		{
-			name: "ok group is provided for one of teh arguments",
-			give: types.CreateAccessRuleTarget{
-				ProviderId: "abcd",
-				With: types.CreateAccessRuleTarget_With{
-					AdditionalProperties: map[string]types.CreateAccessRuleTargetDetailArguments{
-						"accountId": {
-							Groupings: types.CreateAccessRuleTargetDetailArguments_Groupings{
-								AdditionalProperties: map[string][]string{"organizationalUnit": {"orgunit1", "orgunit2"}},
-							},
-							Values: []string{"account1", "account2"},
-						},
-						"permissionSetArn": {
-							Groupings: types.CreateAccessRuleTargetDetailArguments_Groupings{
-								AdditionalProperties: map[string][]string{},
-							},
-							Values: []string{"abcdefg"},
-						},
-					},
+			name: "target group not found",
+			give: []types.CreateAccessRuleTarget{
+				{
+					TargetGroupId:         "123",
+					FieldFilterExpessions: make(map[string]interface{}),
 				},
 			},
-			want: rule.Target{
-				ProviderID:               "abcd",
-				BuiltInProviderType:      "awssso",
-				With:                     map[string]string{"permissionSetArn": "abcdefg"},
-				WithSelectable:           map[string][]string{"accountId": {"account1", "account2"}},
-				WithArgumentGroupOptions: map[string]map[string][]string{"accountId": {"organizationalUnit": {"orgunit1", "orgunit2"}}},
-			},
-			withProviderResponse: ahTypes.GetProviderResponse{
-				HTTPResponse: &http.Response{
-					StatusCode: http.StatusOK,
-				},
-				JSON200: &ahTypes.Provider{
-					Id:   "abcd",
-					Type: "awssso",
-				},
-			},
-			withProviderArgsResponse: ahTypes.GetProviderArgsResponse{
-				HTTPResponse: &http.Response{
-					StatusCode: http.StatusOK,
-				},
-				JSON200: &ssov2Schema,
-			},
+			wantTargetGroupLookup:    nil,
+			want:                     nil,
+			wantTargetGroupLookupErr: ddb.ErrNoItems,
+			wantErr:                  ddb.ErrNoItems,
 		},
 	}
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			dbc := ddbmock.Client{
-				PutErr: tc.wantErr,
-			}
+			dbc := ddbmock.New(t)
+
+			dbc.MockQueryWithErr(&storage.GetTargetGroup{Result: tc.wantTargetGroupLookup}, tc.wantTargetGroupLookupErr)
 
 			clk := clock.NewMock()
 			ctrl := gomock.NewController(t)
 
 			defer ctrl.Finish()
 
-			m := ahmocks.NewMockClientWithResponsesInterface(ctrl)
-
-			m.EXPECT().GetProviderWithResponse(gomock.Any(), gomock.Eq(tc.give.ProviderId)).Return(&tc.withProviderResponse, nil)
-			m.EXPECT().GetProviderArgsWithResponse(gomock.Any(), gomock.Eq(tc.give.ProviderId)).Return(&tc.withProviderArgsResponse, nil)
-
-			cm := mocks.NewMockCacheService(ctrl)
-			if !tc.dontExpectCacheCall {
-				cm.EXPECT().RefreshCachedProviderArgOptions(gomock.Any(), gomock.Eq(tc.give.ProviderId), gomock.Any()).AnyTimes().Return(false, cacheArgOptionsResponse, cacheArgGroupOptionsResponse, nil)
-			}
 			s := Service{
-				Clock:    clk,
-				DB:       &dbc,
-				AHClient: m,
-				Cache:    cm,
+				Clock: clk,
+				DB:    dbc,
 			}
-			got, err := s.ProcessTarget(context.Background(), tc.give, false)
+			got, err := s.ProcessTargets(context.Background(), tc.give)
 			if tc.wantErr == nil {
 				assert.NoError(t, err)
 			} else {

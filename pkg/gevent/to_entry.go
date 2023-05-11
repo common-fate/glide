@@ -18,10 +18,21 @@ func ToEntry(e EventTyper, eventBusName string) (types.PutEventsRequestEntry, er
 	if err != nil {
 		return types.PutEventsRequestEntry{}, err
 	}
+	var dd map[string]interface{}
+	err = json.Unmarshal(d, &dd)
+	if err != nil {
+		return types.PutEventsRequestEntry{}, err
+	}
+	// Add the detailType key to the data so it can be used for complex filtering
+	dd["detailType"] = e.EventType()
+	ddbytes, err := json.Marshal(dd)
+	if err != nil {
+		return types.PutEventsRequestEntry{}, err
+	}
 
 	entry := types.PutEventsRequestEntry{
 		EventBusName: &eventBusName,
-		Detail:       aws.String(string(d)),
+		Detail:       aws.String(string(ddbytes)),
 		DetailType:   aws.String(e.EventType()),
 		Source:       aws.String("commonfate.io/granted"),
 	}

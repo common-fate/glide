@@ -12,7 +12,6 @@ import (
 	"github.com/common-fate/common-fate/cmd/gdeploy/commands/identity"
 	"github.com/common-fate/common-fate/cmd/gdeploy/commands/logs"
 	"github.com/common-fate/common-fate/cmd/gdeploy/commands/notifications"
-	"github.com/common-fate/common-fate/cmd/gdeploy/commands/provider"
 	"github.com/common-fate/common-fate/cmd/gdeploy/commands/release"
 	"github.com/common-fate/common-fate/cmd/gdeploy/commands/restore"
 	mw "github.com/common-fate/common-fate/cmd/gdeploy/middleware"
@@ -55,7 +54,6 @@ func main() {
 			mw.WithBeforeFuncs(&identity.Command, mw.RequireDeploymentConfig(), mw.VerifyGDeployCompatibility(), mw.RequireAWSCredentials()),
 			mw.WithBeforeFuncs(&backup.Command, mw.RequireDeploymentConfig(), mw.PreventDevUsage(), mw.VerifyGDeployCompatibility(), mw.RequireAWSCredentials()),
 			mw.WithBeforeFuncs(&restore.Command, mw.RequireDeploymentConfig(), mw.PreventDevUsage(), mw.VerifyGDeployCompatibility(), mw.RequireAWSCredentials()),
-			mw.WithBeforeFuncs(&provider.Command, mw.RequireDeploymentConfig(), mw.VerifyGDeployCompatibility(), mw.RequireAWSCredentials()),
 			mw.WithBeforeFuncs(&notifications.Command, mw.RequireDeploymentConfig(), mw.VerifyGDeployCompatibility(), mw.RequireAWSCredentials()),
 			mw.WithBeforeFuncs(&dashboard.Command, mw.RequireDeploymentConfig(), mw.VerifyGDeployCompatibility(), mw.RequireAWSCredentials()),
 			mw.WithBeforeFuncs(&cache.Command, mw.RequireDeploymentConfig(), mw.RequireAWSCredentials()),

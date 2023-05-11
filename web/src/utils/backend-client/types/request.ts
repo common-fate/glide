@@ -5,24 +5,19 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
+import type { RequestPurpose } from './requestPurpose';
+import type { RequestAccessGroup } from './requestAccessGroup';
+import type { RequestRequestedBy } from './requestRequestedBy';
 import type { RequestStatus } from './requestStatus';
-import type { RequestTiming } from './requestTiming';
-import type { Grant } from './grant';
-import type { ApprovalMethod } from './approvalMethod';
 
 /**
  * A request to access something made by an end user in Common Fate.
  */
 export interface Request {
   id: string;
-  requestor: string;
-  status: RequestStatus;
-  reason?: string;
-  timing: RequestTiming;
+  purpose: RequestPurpose;
+  accessGroups: RequestAccessGroup[];
+  requestedBy: RequestRequestedBy;
   requestedAt: string;
-  accessRuleId: string;
-  accessRuleVersion: string;
-  updatedAt: string;
-  grant?: Grant;
-  approvalMethod?: ApprovalMethod;
+  status: RequestStatus;
 }

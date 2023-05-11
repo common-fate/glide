@@ -2,19 +2,17 @@ import { ArrowBackIcon } from "@chakra-ui/icons";
 import {
   Box,
   Center,
-  IconButton,
-  Text,
   Container,
+  IconButton,
   Skeleton,
-  useToast,
+  Text,
   VStack,
 } from "@chakra-ui/react";
-import { Link } from "react-location";
+import { Helmet } from "react-helmet";
+import { Link, useMatch } from "react-location";
 import UpdateAccessRuleForm from "../../../components/forms/access-rule/UpdateForm";
 import { AdminLayout } from "../../../components/Layout";
-import { useMatch } from "react-location";
 import { useAdminGetAccessRule } from "../../../utils/backend-client/admin/admin";
-import { Helmet } from "react-helmet";
 
 const Index = () => {
   const {
@@ -41,7 +39,7 @@ const Index = () => {
           />
 
           <Text as="h4" textStyle="Heading/H4">
-            {data?.status === "ACTIVE" ? "Edit" : "View"} Access Rule
+            Edit Access Rule
           </Text>
         </Center>
         <Box mb={24}>
@@ -57,13 +55,7 @@ const Index = () => {
             </Container>
           )}
 
-          {!data?.isCurrent ||
-            (data.status === "ARCHIVED" && (
-              <UpdateAccessRuleForm data={data} readOnly={true} />
-            ))}
-          {data?.isCurrent && data?.status === "ACTIVE" && (
-            <UpdateAccessRuleForm data={data} />
-          )}
+          {data && <UpdateAccessRuleForm data={data} />}
         </Box>
       </AdminLayout>
     </>

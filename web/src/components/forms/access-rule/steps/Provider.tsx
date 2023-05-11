@@ -1,135 +1,55 @@
+import { DeleteIcon } from "@chakra-ui/icons";
 import {
+  Box,
   FormControl,
-  FormErrorMessage,
   FormLabel,
   IconButton,
-  IconButtonProps,
-  Spinner,
   Text,
-  Tooltip,
+  VStack,
 } from "@chakra-ui/react";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Controller, useFormContext } from "react-hook-form";
-import { ArgumentRuleFormElement } from "../../../../utils/backend-client/types/accesshandler-openapi.yml";
-import {
-  adminListProviderArgOptions,
-  useAdminGetProvider,
-  useAdminGetProviderArgs,
-  useAdminListProviderArgOptions,
-} from "../../../../utils/backend-client/admin/admin";
+import { useAdminListTargetGroups } from "../../../../utils/backend-client/admin/admin";
+import { CreateAccessRuleTargetFieldFilterExpessions } from "../../../../utils/backend-client/types";
+import { TargetGroupRadioSelector } from "../components/TargetGroupRadio";
 
-import { RefreshIcon } from "../../../icons/Icons";
-import ProviderSetupNotice from "../../../ProviderSetupNotice";
-import ProviderArgumentField from "../components/ProviderArgumentField";
-import { ProviderPreview } from "../components/ProviderPreview";
-import { ProviderRadioSelector } from "../components/ProviderRadio";
-import { AccessRuleFormData, AccessRuleFormDataTarget } from "../CreateForm";
+import { AccessRuleFormData } from "../CreateForm";
 import { FormStep } from "./FormStep";
-import { Provider } from "src/utils/backend-client/types";
 
-interface PreviewProps {
-  target: AccessRuleFormDataTarget;
-  provider?: Provider;
-}
-
-const Preview = (props: PreviewProps) => {
-  if (!props.provider) return null;
-
-  return <ProviderPreview provider={props.provider} />;
-};
-
-export const ProviderStep: React.FC = () => {
+export const TargetStep: React.FC = () => {
   const methods = useFormContext<AccessRuleFormData>();
-  const target = methods.watch("target");
-
-  const { data: provider, isValidating: ivp } = useAdminGetProvider(
-    target?.providerId
-  );
-  const { data: providerArgs, isValidating: ivpa } = useAdminGetProviderArgs(
-    target?.providerId ?? ""
-  );
-
-  const isFieldLoading = (!provider && ivp) || (!providerArgs && ivpa);
-
+  const targets = methods.watch("targets");
+  const isFieldLoading = false; //(!provider && ivp) || (!providerArgs && ivpa);
   return (
     <FormStep
-      heading="Provider"
+      heading="Target"
       subHeading="The permissions that the rule gives access to"
-      fields={["target", "target.providerId"]}
-      preview={<Preview target={target} provider={provider} />}
+      fields={["targets", "target.providerId"]}
+      // preview={<Preview target={target} provider={provider} />}
       isFieldLoading={isFieldLoading}
     >
       <>
-        <FormControl isInvalid={!!methods.formState.errors.target?.providerId}>
+        <FormControl isInvalid={false}>
           <FormLabel htmlFor="target.providerId">
-            <Text textStyle={"Body/Medium"}>Provider</Text>
+            <Text textStyle={"Body/Medium"}>Target</Text>
           </FormLabel>
-          <ProviderSetupNotice />
           <Controller
             control={methods.control}
-            rules={{ required: true }}
-            name={"target.providerId"}
-            render={({ field: { ref, onChange, ...rest } }) => (
-              <ProviderRadioSelector
-                onChange={async (t) => {
-                  onChange(t);
-                  await methods.trigger("target.providerId");
-                }}
-                {...rest}
-              />
-            )}
+            name={"targets"}
+            render={({ field: { ref, onChange, value, ...rest } }) => {
+              return (
+                // The implemenbtation here is currently a reduced scope where only one target group can be selected for an access rule, and there are no resource filtering options
+                <TargetGroupRadioSelector
+                  value={value.length > 0 ? value[0].targetGroupId : undefined}
+                  onChange={(targetGroupId: string) => {
+                    onChange([{ targetGroupId, fieldFilterExpessions: {} }]);
+                  }}
+                />
+              );
+            }}
           />
-
-          <FormErrorMessage>Provider is required</FormErrorMessage>
         </FormControl>
-        {providerArgs &&
-          target?.providerId &&
-          Object.values(providerArgs).map((v) => (
-            <ProviderArgumentField
-              argument={v}
-              providerId={target?.providerId}
-            />
-          ))}
       </>
     </FormStep>
-  );
-};
-
-type RefreshButtonProps = {
-  providerId: string;
-  argId: string;
-} & Omit<IconButtonProps, "aria-label">;
-
-export const RefreshButton: React.FC<RefreshButtonProps> = ({
-  argId,
-  providerId,
-  ...props
-}) => {
-  const [loading, setLoading] = useState(false);
-  const { data, mutate, isValidating } = useAdminListProviderArgOptions(
-    providerId,
-    argId
-  );
-  const onClick = async () => {
-    setLoading(true);
-    await mutate(
-      adminListProviderArgOptions(providerId, argId, {
-        refresh: true,
-      })
-    );
-    setLoading(false);
-  };
-
-  return (
-    <Tooltip>
-      <IconButton
-        {...props}
-        onClick={onClick}
-        isLoading={(!data && isValidating) || loading}
-        icon={<RefreshIcon boxSize="24px" />}
-        aria-label="Refresh"
-        variant={"ghost"}
-      />
-    </Tooltip>
   );
 };

@@ -8,7 +8,6 @@ import (
 	context "context"
 	reflect "reflect"
 
-	cache "github.com/common-fate/common-fate/pkg/cache"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -35,36 +34,16 @@ func (m *MockCacheService) EXPECT() *MockCacheServiceMockRecorder {
 	return m.recorder
 }
 
-// LoadCachedProviderArgOptions mocks base method.
-func (m *MockCacheService) LoadCachedProviderArgOptions(arg0 context.Context, arg1, arg2 string) (bool, []cache.ProviderOption, []cache.ProviderArgGroupOption, error) {
+// RefreshCachedTargets mocks base method.
+func (m *MockCacheService) RefreshCachedTargets(arg0 context.Context) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LoadCachedProviderArgOptions", arg0, arg1, arg2)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].([]cache.ProviderOption)
-	ret2, _ := ret[2].([]cache.ProviderArgGroupOption)
-	ret3, _ := ret[3].(error)
-	return ret0, ret1, ret2, ret3
+	ret := m.ctrl.Call(m, "RefreshCachedTargets", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
-// LoadCachedProviderArgOptions indicates an expected call of LoadCachedProviderArgOptions.
-func (mr *MockCacheServiceMockRecorder) LoadCachedProviderArgOptions(arg0, arg1, arg2 interface{}) *gomock.Call {
+// RefreshCachedTargets indicates an expected call of RefreshCachedTargets.
+func (mr *MockCacheServiceMockRecorder) RefreshCachedTargets(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadCachedProviderArgOptions", reflect.TypeOf((*MockCacheService)(nil).LoadCachedProviderArgOptions), arg0, arg1, arg2)
-}
-
-// RefreshCachedProviderArgOptions mocks base method.
-func (m *MockCacheService) RefreshCachedProviderArgOptions(arg0 context.Context, arg1, arg2 string) (bool, []cache.ProviderOption, []cache.ProviderArgGroupOption, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RefreshCachedProviderArgOptions", arg0, arg1, arg2)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].([]cache.ProviderOption)
-	ret2, _ := ret[2].([]cache.ProviderArgGroupOption)
-	ret3, _ := ret[3].(error)
-	return ret0, ret1, ret2, ret3
-}
-
-// RefreshCachedProviderArgOptions indicates an expected call of RefreshCachedProviderArgOptions.
-func (mr *MockCacheServiceMockRecorder) RefreshCachedProviderArgOptions(arg0, arg1, arg2 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RefreshCachedProviderArgOptions", reflect.TypeOf((*MockCacheService)(nil).RefreshCachedProviderArgOptions), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RefreshCachedTargets", reflect.TypeOf((*MockCacheService)(nil).RefreshCachedTargets), arg0)
 }

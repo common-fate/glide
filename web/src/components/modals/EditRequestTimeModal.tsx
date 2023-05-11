@@ -4,6 +4,7 @@ import {
   FormControl,
   FormHelperText,
   FormLabel,
+  HStack,
   Input,
   Modal,
   ModalBody,
@@ -15,26 +16,49 @@ import {
   ModalProps,
   Stack,
   Text,
+  useRadioGroup,
+  UseRadioGroupProps,
 } from "@chakra-ui/react";
 import { format } from "date-fns";
 import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { When, WhenRadioGroup } from "../../pages/access/request/[id]";
-import { RequestDetail } from "../../utils/backend-client/types";
-import { RequestTiming } from "../../utils/backend-client/types/requestTiming";
+
+import {
+  Request,
+  RequestAccessGroup,
+  RequestAccessGroupTiming,
+} from "../../utils/backend-client/types";
+
 import { durationString } from "../../utils/durationString";
+import { CFRadioBox } from "../CFRadioBox";
 import { Days, DurationInput, Hours, Minutes, Weeks } from "../DurationInput";
+export type When = "asap" | "scheduled";
+export const WhenRadioGroup: React.FC<UseRadioGroupProps> = (props) => {
+  const { getRootProps, getRadioProps } = useRadioGroup(props);
+  const group = getRootProps();
+
+  return (
+    <HStack {...group}>
+      <CFRadioBox {...getRadioProps({ value: "asap" })}>
+        <Text textStyle="Body/Medium">ASAP</Text>
+      </CFRadioBox>
+      <CFRadioBox {...getRadioProps({ value: "scheduled" })}>
+        <Text textStyle="Body/Medium">Scheduled</Text>
+      </CFRadioBox>
+    </HStack>
+  );
+};
 type Props = {
-  request: RequestDetail;
-  handleSubmit: (timing: RequestTiming) => void;
+  accessGroup: RequestAccessGroup;
+  handleSubmit: (timing: RequestAccessGroupTiming) => void;
 } & Omit<ModalProps, "children">;
 
 interface ApproveRequestFormData {
-  timing: RequestTiming;
+  timing: RequestAccessGroupTiming;
   when: When;
 }
 
-const EditRequestTimeModal = ({ request, ...props }: Props) => {
+const EditRequestTimeModal = ({ accessGroup, ...props }: Props) => {
   const [readableDuration, setReadableDuration] = useState<string>("1 hour");
   const methods = useForm<ApproveRequestFormData>();
   const when = methods.watch("when");
@@ -48,14 +72,14 @@ const EditRequestTimeModal = ({ request, ...props }: Props) => {
   useEffect(() => {
     const data: ApproveRequestFormData = {
       timing: {
-        durationSeconds: request.timing.durationSeconds,
-        startTime: request.timing.startTime,
+        durationSeconds: accessGroup.requestedTiming.durationSeconds,
+        startTime: accessGroup.requestedTiming.startTime,
       },
-      when: request.timing.startTime ? "scheduled" : "asap",
+      when: accessGroup.requestedTiming.startTime ? "scheduled" : "asap",
     };
 
-    if (request.timing.startTime) {
-      const d = new Date(Date.parse(request.timing.startTime));
+    if (accessGroup.requestedTiming.startTime) {
+      const d = new Date(Date.parse(accessGroup.requestedTiming.startTime));
       // This native datetime input needs a specific format as shown here, we take input in local time and it is converted to UTC for the api call
       data.timing.startTime = format(d, "yyyy-MM-dd'T'HH:mm");
     }
@@ -76,7 +100,7 @@ const EditRequestTimeModal = ({ request, ...props }: Props) => {
   };
 
   const maxDurationSeconds =
-    request.accessRule.timeConstraints.maxDurationSeconds;
+    accessGroup.accessRule.timeConstraints.maxDurationSeconds;
   return (
     <Modal {...props} size={maxDurationSeconds >= 3600 * 24 ? "xl" : "md"}>
       <form onSubmit={methods.handleSubmit(handleSubmit)}>
@@ -104,7 +128,9 @@ const EditRequestTimeModal = ({ request, ...props }: Props) => {
                         {...rest}
                         max={maxDurationSeconds}
                         min={60}
-                        defaultValue={request.timing.durationSeconds}
+                        defaultValue={
+                          accessGroup.requestedTiming.durationSeconds
+                        }
                         hideUnusedElements
                       >
                         <Weeks />

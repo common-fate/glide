@@ -80,9 +80,12 @@ func TestGetApprovers(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			db := ddbmock.New(t)
 			db.MockQuery(&storage.GetGroup{Result: tc.mockGetGroup})
+			s := Service{
 
+				DB: db,
+			}
 			ctx := context.Background()
-			got, err := GetApprovers(ctx, db, tc.giveRule)
+			got, err := s.GetApprovers(ctx, tc.giveRule)
 			if err != nil {
 				t.Fatal(err)
 			}

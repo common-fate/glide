@@ -9,7 +9,6 @@ import (
 	reflect "reflect"
 
 	rule "github.com/common-fate/common-fate/pkg/rule"
-	types "github.com/common-fate/common-fate/pkg/types"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -36,17 +35,17 @@ func (m *MockAccessRuleService) EXPECT() *MockAccessRuleServiceMockRecorder {
 	return m.recorder
 }
 
-// RequestArguments mocks base method.
-func (m *MockAccessRuleService) RequestArguments(arg0 context.Context, arg1 rule.Target) (map[string]types.RequestArgument, error) {
+// GetApprovers mocks base method.
+func (m *MockAccessRuleService) GetApprovers(arg0 context.Context, arg1 rule.AccessRule) ([]string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RequestArguments", arg0, arg1)
-	ret0, _ := ret[0].(map[string]types.RequestArgument)
+	ret := m.ctrl.Call(m, "GetApprovers", arg0, arg1)
+	ret0, _ := ret[0].([]string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// RequestArguments indicates an expected call of RequestArguments.
-func (mr *MockAccessRuleServiceMockRecorder) RequestArguments(arg0, arg1 interface{}) *gomock.Call {
+// GetApprovers indicates an expected call of GetApprovers.
+func (mr *MockAccessRuleServiceMockRecorder) GetApprovers(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RequestArguments", reflect.TypeOf((*MockAccessRuleService)(nil).RequestArguments), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetApprovers", reflect.TypeOf((*MockAccessRuleService)(nil).GetApprovers), arg0, arg1)
 }
