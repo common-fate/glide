@@ -432,8 +432,8 @@ func TestUserGetRequest(t *testing.T) {
 func TestUserListRequests(t *testing.T) {
 
 	type testcase struct {
-		name           string
-		giveStatus     *string
+		name string
+		// giveStatus     *string
 		giveFilter     *string
 		mockDBQuery    ddb.QueryBuilder
 		mockDBQueryErr error
