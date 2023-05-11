@@ -34,6 +34,7 @@ export const RequestsFilterMenu: React.FC<{
             switch (typeof e) {
               case "string":
                 onChange(e as RequestStatus);
+                break;
               default:
                 onChange(undefined);
             }

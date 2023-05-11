@@ -529,6 +529,8 @@ export const ApproveRejectDuration = ({
               // @TODO: add in admin approval API methods
               userReviewRequest(group.requestId, group.id, {
                 decision: "APPROVED",
+              }).catch((e) => {
+                console.log(e);
               });
             }}
           >
@@ -541,6 +543,8 @@ export const ApproveRejectDuration = ({
               // @TODO: add in admin approval API methods
               userReviewRequest(group.requestId, group.id, {
                 decision: "DECLINED",
+              }).catch((e) => {
+                console.log(e);
               });
             }}
           >
