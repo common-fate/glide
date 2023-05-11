@@ -62,14 +62,6 @@ func BuildRequestReviewMessage(o RequestMessageOpts) (summary string, msg slack.
 			summary = fmt.Sprintf("New request for %s from %s", access_group.Group.AccessRuleSnapshot.Name, req.Request.RequestedBy.Email)
 		}
 
-		// This can be deprecated bc ASAP now == no reviewers (and this is a reviewer message)
-		// when := "ASAP"
-		// 🚨🚨🚨 How is ASAP determined post-refactor? 🚨🚨🚨
-		// if access_group.TimeConstraints.StartTime != nil {
-		// 	t := access_group.TimeConstraints.StartTime
-		// 	when = types.ExpiryString(*t)
-		// }
-
 		requestDetails := []*slack.TextBlockObject{
 			{
 				Type: "mrkdwn",
@@ -169,7 +161,7 @@ func BuildRequestReviewMessage(o RequestMessageOpts) (summary string, msg slack.
 }
 
 type RequestDetailMessageOpts struct {
-	Request access.RequestWithGroupsWithTargets
+	Request access.GroupWithTargets
 	// the message that renders in the header of the slack message
 	HeadingMessage string
 }
@@ -207,34 +199,6 @@ func BuildRequestDetailMessage(o RequestDetailMessageOpts) (summary string, msg 
 		We had this but we probably want to leveraage FinalTiming if possibel to reduce if/else logic
 
 		*/
-
-		// has start time...
-		// if access_group.Group.RequestedTiming.StartTime != nil {
-		// 	// has override..
-		// 	if access_group.Group.OverrideTiming.StartTime != nil {
-		// 		// has override duration
-		// 		if access_group.Group.OverrideTiming.Duration != nil {
-		// 			expires = access_group.Group.OverrideTiming.StartTime.Add(*access_group.Group.OverrideTiming.Duration)
-		// 		} else {
-		// 			expires = access_group.Group.OverrideTiming.StartTime.Add(access_group.Group.OverrideTiming.Duration)
-		// 		}
-		// 	} else {
-		// 		// has override duration
-		// 		expires = access_group.Group.RequestedTiming.StartTime.Add(access_group.Group.RequestedTiming.Duration)
-		// 	}
-		// } else {
-		// 	expires = time.Now().Add(access_group.Group.RequestedTiming.Duration)
-		// }
-
-		// var expires time.Time
-
-		// if access_group.Group.OverrideTiming != nil {
-		// 	expires = access_group.Group.OverrideTiming.StartTime.Add(access_group.Group.OverrideTiming.Duration)
-		// } else {
-		// 	expires = access_group.Group.RequestedTiming.StartTime.Add(access_group.Group.RequestedTiming.Duration)
-		// }
-
-		// clock := clock.New().Now()
 
 		// when := types.ExpiryString(expires)
 		start, end := access_group.Group.GetInterval(access.WithNow(clock.New().Now()))

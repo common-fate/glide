@@ -22,8 +22,11 @@ func (n *EventHandler) HandleAccessGroupEvents(ctx context.Context, log *zap.Sug
 	case gevent.AccessGroupReviewedType:
 		return n.handleReviewEvent(ctx, event.Detail)
 	case gevent.AccessGroupApprovedType:
+		// do a message for approved
+		// do a message or auto-approved (aka this event type will be triggered as well; dual purpose)
 		return n.handleAccessGroupApprovedEvent(ctx, event.Detail)
 	case gevent.AccessGroupDeclinedType:
+		// do a message for declined
 		return n.handleAccessGroupDeclinedDeclinedEvent(ctx, event.Detail)
 	}
 	return nil
