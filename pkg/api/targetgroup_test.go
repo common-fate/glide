@@ -150,7 +150,7 @@ func TestListTargetGroup(t *testing.T) {
 				},
 			},
 
-			want: `{"targetGroups":[{"icon":"test","id":"tg1","targetDeployments":[{"Diagnostics":null,"Id":"reg1","Priority":0,"Valid":false}],"targetSchema":{"From":"test","Schema":{}}},{"icon":"test","id":"tg2","targetDeployments":[{"Diagnostics":null,"Id":"reg1","Priority":0,"Valid":false}],"targetSchema":{"From":"test","Schema":{}}}]}`,
+			want: `{"targetGroups":[{"createdAt":"0001-01-01T00:00:00Z","from":{"kind":"Kind","name":"test","publisher":"common-fate","version":"v1"},"icon":"test","id":"tg1","schema":{},"updatedAt":"0001-01-01T00:00:00Z"},{"createdAt":"0001-01-01T00:00:00Z","from":{"kind":"Kind","name":"second","publisher":"common-fate","version":"v2"},"icon":"test","id":"tg2","schema":{},"updatedAt":"0001-01-01T00:00:00Z"}]}`,
 		},
 		{
 			name:         "no target groups returns an empty list not an error",
@@ -214,7 +214,7 @@ func TestGetTargetGroup(t *testing.T) {
 			name:                       "ok",
 			wantCode:                   http.StatusOK,
 			mockGetTargetGroupResponse: target.Group{ID: "123"},
-			want:                       `{"icon":"","id":"123","targetDeployments":null,"targetSchema":{"From":"","Schema":{}}}`,
+			want:                       `{"createdAt":"0001-01-01T00:00:00Z","from":{"kind":"","name":"","publisher":"","version":""},"icon":"","id":"123","schema":{},"updatedAt":"0001-01-01T00:00:00Z"}`,
 		},
 		{
 			name:                  "group not found",
