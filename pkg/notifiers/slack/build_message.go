@@ -176,82 +176,81 @@ type RequestDetailMessageOpts struct {
 func BuildRequestDetailMessage(o RequestDetailMessageOpts) (summary string, msg slack.Message) {
 
 	req := o.Request
+	access_group := req.Group
 
-	for _, access_group := range req.Groups {
-		summary = fmt.Sprintf("Request detail for %s", access_group.Group.AccessRuleSnapshot.Name)
-		/**
-		var expires time.Time
-		// has start time...
-		if access_group.Group.RequestedTiming.StartTime != nil {
-			// has override..
-			if access_group.Group.OverrideTiming.StartTime != nil {
-				// has override duration
-				if access_group.Group.OverrideTiming.Duration != nil {
-					expires = access_group.Group.OverrideTiming.StartTime.Add(*access_group.Group.OverrideTiming.Duration)
-				} else {
-					expires = access_group.Group.OverrideTiming.StartTime.Add(access_group.Group.OverrideTiming.Duration)
-				}
+	summary = fmt.Sprintf("Request detail for %s", access_group.Group.AccessRuleSnapshot.Name)
+	/**
+	var expires time.Time
+	// has start time...
+	if access_group.Group.RequestedTiming.StartTime != nil {
+		// has override..
+		if access_group.Group.OverrideTiming.StartTime != nil {
+			// has override duration
+			if access_group.Group.OverrideTiming.Duration != nil {
+				expires = access_group.Group.OverrideTiming.StartTime.Add(*access_group.Group.OverrideTiming.Duration)
 			} else {
-				// has override duration
-				expires = access_group.Group.RequestedTiming.StartTime.Add(access_group.Group.RequestedTiming.Duration)
+				expires = access_group.Group.OverrideTiming.StartTime.Add(access_group.Group.OverrideTiming.Duration)
 			}
 		} else {
-			expires = time.Now().Add(access_group.TimeConstraints.Duration)
+			// has override duration
+			expires = access_group.Group.RequestedTiming.StartTime.Add(access_group.Group.RequestedTiming.Duration)
 		}
-
-
-		...
-
-		We had this but we probably want to leveraage FinalTiming if possibel to reduce if/else logic
-
-		*/
-
-		// when := types.ExpiryString(expires)
-		start, end := access_group.Group.GetInterval(access.WithNow(clock.New().Now()))
-
-		duration := end.Sub(start) // if this is off by a couple seconds it could make the duration values inconsistent
-
-		requestDetails := []*slack.TextBlockObject{
-
-			{
-				Type: "mrkdwn",
-				Text: fmt.Sprintf("*Duration:*\n%s", duration),
-			},
-			{
-				Type: "mrkdwn",
-				Text: fmt.Sprintf("*Expires:*\n%s", end),
-			},
-		}
-
-		// for _, v := range access_group. {
-		// 	requestDetails = append(requestDetails, &slack.TextBlockObject{
-		// 		Type: "mrkdwn",
-		// 		Text: fmt.Sprintf("*%s:*\n%s", v.Title, v.Label),
-		// 	})
-		// }
-
-		// Only show the Request reason if it is not empty
-		if req.Request.Purpose.Reason != nil && len(*req.Request.Purpose.Reason) > 0 {
-			requestDetails = append(requestDetails, &slack.TextBlockObject{
-				Type: "mrkdwn",
-				Text: fmt.Sprintf("*Request Reason:*\n%s", *req.Request.Purpose.Reason),
-			})
-		}
-
-		msg = slack.NewBlockMessage(
-			slack.SectionBlock{
-				Type: slack.MBTSection,
-				Text: &slack.TextBlockObject{
-					Type: slack.MarkdownType,
-					Text: o.HeadingMessage,
-				},
-			},
-			slack.SectionBlock{
-				Type:   slack.MBTSection,
-				Fields: requestDetails,
-			},
-		)
+	} else {
+		expires = time.Now().Add(access_group.TimeConstraints.Duration)
 	}
+
+
+	...
+
+	We had this but we probably want to leveraage FinalTiming if possibel to reduce if/else logic
+
+	*/
+
+	// when := types.ExpiryString(expires)
+	start, end := access_group.GetInterval(access.WithNow(clock.New().Now()))
+
+	duration := end.Sub(start) // if this is off by a couple seconds it could make the duration values inconsistent
+
+	requestDetails := []*slack.TextBlockObject{
+
+		{
+			Type: "mrkdwn",
+			Text: fmt.Sprintf("*Duration:*\n%s", duration),
+		},
+		{
+			Type: "mrkdwn",
+			Text: fmt.Sprintf("*Expires:*\n%s", end),
+		},
+	}
+
+	// for _, v := range access_group. {
+	// 	requestDetails = append(requestDetails, &slack.TextBlockObject{
+	// 		Type: "mrkdwn",
+	// 		Text: fmt.Sprintf("*%s:*\n%s", v.Title, v.Label),
+	// 	})
+	// }
+
+	// Only show the Request reason if it is not empty
+	if req.Request.Purpose.Reason != nil && len(*req.Request.Purpose.Reason) > 0 {
+		requestDetails = append(requestDetails, &slack.TextBlockObject{
+			Type: "mrkdwn",
+			Text: fmt.Sprintf("*Request Reason:*\n%s", *req.Request.Purpose.Reason),
+		})
+	}
+
+	msg = slack.NewBlockMessage(
+		slack.SectionBlock{
+			Type: slack.MBTSection,
+			Text: &slack.TextBlockObject{
+				Type: slack.MarkdownType,
+				Text: o.HeadingMessage,
+			},
+		},
+		slack.SectionBlock{
+			Type:   slack.MBTSection,
+			Fields: requestDetails,
+		},
+	)
 
 	return summary, msg
 }

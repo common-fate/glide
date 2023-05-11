@@ -63,7 +63,7 @@ func (n *SlackNotifier) HandleAccessGroupEvent(ctx context.Context, log *zap.Sug
 	return nil
 }
 
-// sendAccessGroupDetailsMessage sends a message to the user who requested access with details about the request. Sent only on access create/approved
+// sendAccessGroupDetailsMessage sends a message to the Requestor with details about the request. Sent only on AccessGroupDeclinedType, AccessGroupApprovedType
 func (n *SlackNotifier) sendAccessGroupDetailsMessage(ctx context.Context, log *zap.SugaredLogger, accessGroup access.GroupWithTargets, headingMsg string, summary string) {
 
 	approvalRequired := false // TODO
