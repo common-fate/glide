@@ -82,10 +82,9 @@ export const accessRuleFormDataToApi = (
         });
       }
     });
-  }
 
-  // mutate the targets field with updated structure.
-  ruleData.targets = Array.from(targets.values());
+    ruleData.targets = Array.from(targets.values());
+  }
 
   // only apply these fields if approval is enabled
   if (approval.required) {
