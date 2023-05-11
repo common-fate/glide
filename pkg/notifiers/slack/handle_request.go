@@ -16,16 +16,6 @@ import (
 	"go.uber.org/zap"
 )
 
-// 🚨🚨🚨🚨🚨 We could use a generic fn like this to help reduce re-used code, however it may not support access.RequestRevokeInitiated which has a Revoker field. 🚨🚨🚨🚨🚨
-// func unmarshallReq(event events.CloudWatchEvent) (error, access.RequestWithGroupsWithTargets) {
-// 	var requestEvent gevent.RequestCreated
-// 	err := json.Unmarshal(event.Detail, &requestEvent)
-// 	if err != nil {
-// 		return err, access.RequestWithGroupsWithTargets{}
-// 	}
-// 	return nil, requestEvent.Request
-// }
-
 func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.SugaredLogger, event events.CloudWatchEvent) error {
 
 	var HAS_SLACK_CLIENT = n.directMessageClient != nil
@@ -45,6 +35,8 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 
 		// REVIEWER LOGIC: for each access group run notification logic
 		for _, group := range req.Groups {
+
+			// group.Group == `access.Group`
 
 			// 🚨🚨🚨 I don't think we actually need any additional request type handling here,
 			// bc the request should only be in PendingApproval state when requested.... 🚨🚨🚨
@@ -71,7 +63,8 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 
 				if HAS_SLACK_WEBHOOKS {
 					reviewerSummary, reviewerMsg := BuildRequestReviewMessage(RequestMessageOpts{
-						Request:          req,
+						RequestReason:    *req.Request.Purpose.Reason,
+						Group:            group.Group,
 						RequestorSlackID: slackUserID,
 						ReviewURLs:       reviewURL,
 						IsWebhook:        true,
@@ -94,7 +87,8 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 				if HAS_SLACK_CLIENT {
 
 					reviewerSummary, reviewerMsg := BuildRequestReviewMessage(RequestMessageOpts{
-						Request:          req,
+						RequestReason:    *req.Request.Purpose.Reason,
+						Group:            group.Group,
 						RequestorSlackID: slackUserID,
 						ReviewURLs:       reviewURL,
 						IsWebhook:        false,
@@ -227,179 +221,19 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 	return nil
 }
 
-// func (n *SlackNotifier) SendUpdatesForRequest(ctx context.Context, log *zap.SugaredLogger, request requests.Requestv2, requestEvent gevent.RequestEventPayload, rule rule.AccessRule, requestingUser *identity.User) {
-// 	// Loop over the request reviewers
-// 	reviewers := storage.ListRequestReviewers{RequestID: request.ID}
-// 	_, err := n.DB.Query(ctx, &reviewers)
-// 	if err != nil && err != ddb.ErrNoItems {
-// 		log.Errorw("failed to fetch reviewers for request", zap.Error(err))
-// 		return
-// 	}
-// 	reqReviewer := storage.GetUser{ID: requestEvent.ReviewerID}
-// 	_, err = n.DB.Query(ctx, &reqReviewer)
-// 	if err != nil {
-// 		log.Errorw("failed to fetch reviewer for request which wasn't cancelled", zap.Error(err))
-// 		return
-// 	}
-// 	reviewURL, err := notifiers.ReviewURL(n.FrontendURL, request.ID)
-// 	if err != nil {
-// 		log.Errorw("building review URL", zap.Error(err))
-// 		return
-// 	}
-// 	// requestArguments, err := n.RenderRequestArguments(ctx, log, request, rule)
-// 	// if err != nil {
-// 	// 	log.Errorw("failed to generate request arguments, skipping including them in the slack message", "error", err)
-// 	// }
-// 	log.Infow("messaging reviewers", "reviewers", reviewers.Result)
-// 	//access groups for a request
-
-// 	accessGroups := storage.ListAccessGroups{RequestID: request.ID}
-
-// 	_, err = n.DB.Query(ctx, &accessGroups)
-
-// 	if err != nil {
-// 		log.Errorw("failed to find access groups", "error", err)
-// 	}
-// 	if n.directMessageClient != nil {
-// 		// get the requestor's Slack user ID if it exists to render it nicely in the message to approvers.
-// 		var slackUserID string
-// 		requestor, err := n.directMessageClient.client.GetUserByEmailContext(ctx, requestingUser.Email)
-// 		if err != nil {
-// 			// log this instead of returning
-// 			log.Errorw("failed to get slack user id, defaulting to email", "user", requestingUser.Email, zap.Error(err))
-// 		}
-// 		if requestor != nil {
-// 			slackUserID = requestor.ID
-// 		}
-
-// 		_, msg := BuildRequestReviewMessage(RequestMessageOpts{
-// 			Request: request,
-// 			// RequestArguments: requestArguments,
-// 			RequestorSlackID: slackUserID,
-// 			RequestorEmail:   requestingUser.Email,
-// 			ReviewURLs:       reviewURL,
-// 			WasReviewed:      true,
-// 			RequestReviewer:  reqReviewer.Result,
-// 			IsWebhook:        false,
-// 			AccessGroups:     accessGroups.Result,
-// 		})
-// 		for _, usr := range reviewers.Result {
-// 			err = n.UpdateMessageBlockForReviewer(ctx, usr, msg)
-// 			if err != nil {
-// 				log.Errorw("failed to update slack message", "user", usr, zap.Error(err))
-// 			}
-// 		}
-// 	}
-
-// 	// log for testing purposes
-// 	if len(n.webhooks) > 0 {
-// 		log.Infow("webhooks found", "webhooks", n.webhooks)
-// 	}
-// 	// this does not include the slackUserID because we don't have access to look it up
-// 	summary, msg := BuildRequestReviewMessage(RequestMessageOpts{
-// 		Request: request,
-// 		// RequestArguments: requestArguments,
-// 		RequestorEmail:  requestingUser.Email,
-// 		ReviewURLs:      reviewURL,
-// 		WasReviewed:     true,
-// 		RequestReviewer: reqReviewer.Result,
-// 		IsWebhook:       true,
-// 		AccessGroups:    accessGroups.Result,
-// 	})
-// 	for _, webhook := range n.webhooks {
-// 		err = webhook.SendWebhookMessage(ctx, msg.Blocks, summary)
-// 		if err != nil {
-// 			log.Errorw("failed to send review message to incomingWebhook channel", "error", err)
-// 		}
-// 	}
-// }
-
-// This method maps request arguments in a deprecated way.
-// it should be replaced eventually with a cache lookup for the options available for the access rule
-// func (n *SlackNotifier) RenderRequestArguments(ctx context.Context, log *zap.SugaredLogger, request requests.Requestv2, rule rule.AccessRule) ([]types.With, error) {
-// 	// Consider adding a fallback if the cache lookup fails
-
-// 	var labelArr []types.With
-// 	Lookup the provider, ignore errors
-// 	if provider is not found, fallback to using the argument key as the title
-// 	TODO: FIX THIS FOR TARGET GROUP PROVIDERS
-// 	_, provider, _ := providerregistry.Registry().GetLatestByShortType(rule.Target.BuiltInProviderType)
-// 	for k, v := range request.SelectedWith {
-// 		with := types.With{
-// 			Label: v.Label,
-// 			Value: v.Value,
-// 			Title: k,
-// 		}
-// 		// attempt to get the title for the argument from the provider arg schema
-// 		if provider != nil {
-// 			if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
-// 				t, ok := s.ArgSchema()[k]
-// 				if ok {
-// 					with.Title = t.Title
-// 				}
-// 			}
-// 		}
-// 		labelArr = append(labelArr, with)
-// 	}
-
-// 	for k, v := range rule.Target.With {
-// 		// only include the with values if it does not have any groups selected,
-// 		// if it does have groups selected, it means that it was a selectable field
-// 		// so this check avoids duplicate/inaccurate values in the slack message
-// 		if _, ok := rule.Target.WithArgumentGroupOptions[k]; !ok {
-// 			with := types.With{
-// 				Value: v,
-// 				Title: k,
-// 				Label: v,
-// 			}
-// 			// attempt to get the title for the argument from the provider arg schema
-// 			if provider != nil {
-// 				if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
-// 					t, ok := s.ArgSchema()[k]
-// 					if ok {
-// 						with.Title = t.Title
-// 					}
-// 				}
-// 			}
-// 			for _, ao := range pq.Result {
-// 				// if a value is found, set it to true with a label
-// 				if ao.Arg == k && ao.Value == v {
-// 					with.Label = ao.Label
-// 					break
-// 				}
-// 			}
-// 			labelArr = append(labelArr, with)
-// 		}
-// 	}
-
-// 	// now sort labelArr by Title
-// 	sort.Slice(labelArr, func(i, j int) bool {
-// 		return labelArr[i].Title < labelArr[j].Title
-// 	})
-// 	return labelArr, nil
-// }
-
 // sendRequestDetailsMessage sends a message to the user who requested access with details about the request. Sent only on access create/approved
-func (n *SlackNotifier) sendRequestDetailsMessage(ctx context.Context, log *zap.SugaredLogger, accessGroup access.GroupWithTargets, headingMsg string, summary string) {
-	// requestArguments, err := n.RenderRequestArguments(ctx, log, request, requestedRule)
-	// if err != nil {
-	// 	log.Errorw("failed to generate request arguments, skipping including them in the slack message", "error", err)
-	// }
-
-	// var slackUserID string
-	// slackRequestor, err := n.directMessageClient.client.GetUserByEmailContext(ctx, "jordi@commonfate.io")
-	// requestor, err := n.directMessageClient.client.GetUserByEmailContext(ctx, accessGroup.Group.RequestedBy.Email)
+func (n *SlackNotifier) sendRequestDetailsMessage(ctx context.Context, log *zap.SugaredLogger, request access.RequestWithGroupsWithTargets, headingMsg string, summary string) {
 
 	approvalRequired := false // TODO
 
-	requestor := accessGroup.Group.RequestedBy
+	requestor := request.Group.RequestedBy
 
 	// 🚨🚨 `requestedRule.Name` references to -> a count of the Resource Gropus that the user is requesting access to
 
 	if n.directMessageClient != nil || len(n.webhooks) > 0 {
 		if n.directMessageClient != nil {
 			_, msg := BuildRequestDetailMessage(RequestDetailMessageOpts{
-				Request:        accessGroup,
+				Request:        request,
 				HeadingMessage: headingMsg,
 			})
 
@@ -417,7 +251,7 @@ func (n *SlackNotifier) sendRequestDetailsMessage(ctx context.Context, log *zap.
 				// summary = fmt.Sprintf("%s's request to access %s has been automatically approved.", requestingUser.Email, requestedRule.Name)
 			}
 			_, msg := BuildRequestDetailMessage(RequestDetailMessageOpts{
-				Request: accessGroup,
+				Request: request,
 				// RequestArguments: requestArguments,
 				HeadingMessage: headingMsg,
 			})
