@@ -156,7 +156,7 @@ func TestGroupTargets(t *testing.T) {
 			got, _ := s.GroupTargets(context.Background(), tt.targets)
 
 			//override ids
-			for i, _ := range tt.AccessGroups {
+			for i := range tt.AccessGroups {
 				tt.AccessGroups[i].ID = got[i].ID
 			}
 

@@ -109,7 +109,7 @@ func (s *Service) GroupTargets(ctx context.Context, targets []cache.Target) ([]a
 	for _, target := range targets {
 
 		bestAccessRule := rule.AccessRule{}
-		for id, _ := range target.AccessRules {
+		for id := range target.AccessRules {
 			ar := storage.GetAccessRule{ID: id}
 			_, err := s.DB.Query(ctx, &ar)
 			if err != nil {
