@@ -29,9 +29,14 @@ func (s *Service) UpdateUserAccessRules(ctx context.Context, users map[string]id
 			group := groups[g]
 
 			for _, u := range group.Users {
-				user := users[u]
-				user.AccessRules = append(user.AccessRules, ar.ID)
-				users[u] = user
+				user := storage.GetUser{ID: u}
+				_, err := s.DB.Query(ctx, &user)
+				if err != nil {
+					return nil, err
+				}
+				u := user.Result
+				u.AccessRules = append(u.AccessRules, ar.ID)
+				users[u.Email] = *u
 			}
 		}
 	}

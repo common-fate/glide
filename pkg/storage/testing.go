@@ -8,7 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/common-fate/ddb"
 	"github.com/joho/godotenv"
 )
@@ -47,39 +46,39 @@ func (i *item) DDBKeys() (ddb.Keys, error) {
 	}, nil
 }
 
-type listAll struct {
-	PK     string
-	Result []item `ddb:"result"`
-}
+// type listAll struct {
+// 	PK     string
+// 	Result []item `ddb:"result"`
+// }
 
-func (l *listAll) BuildQuery() (*dynamodb.QueryInput, error) {
-	qi := dynamodb.QueryInput{
-		KeyConditionExpression: aws.String("PK = :pk"),
-		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk": &types.AttributeValueMemberS{Value: l.PK},
-		},
-	}
-	return &qi, nil
-}
+// func (l *listAll) BuildQuery() (*dynamodb.QueryInput, error) {
+// 	qi := dynamodb.QueryInput{
+// 		KeyConditionExpression: aws.String("PK = :pk"),
+// 		ExpressionAttributeValues: map[string]types.AttributeValue{
+// 			":pk": &types.AttributeValueMemberS{Value: l.PK},
+// 		},
+// 	}
+// 	return &qi, nil
+// }
 
-// deletePartition deletes all items for a given partition key
-func (t *testClient) deletePartition(pk string) error {
-	q := listAll{
-		PK: pk,
-	}
+// // deletePartition deletes all items for a given partition key
+// func (t *testClient) deletePartition(pk string) error {
+// 	q := listAll{
+// 		PK: pk,
+// 	}
 
-	ctx := context.Background()
-	err := t.db.All(ctx, &q)
-	if err != nil {
-		return err
-	}
-	var items []ddb.Keyer
-	for i := range q.Result {
-		items = append(items, &q.Result[i])
-	}
+// 	ctx := context.Background()
+// 	err := t.db.All(ctx, &q)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	var items []ddb.Keyer
+// 	for i := range q.Result {
+// 		items = append(items, &q.Result[i])
+// 	}
 
-	return t.db.DeleteBatch(ctx, items...)
-}
+// 	return t.db.DeleteBatch(ctx, items...)
+// }
 
 // deleteAll scans dynamo then deletes all items found
 func (t *testClient) deleteAll() error {

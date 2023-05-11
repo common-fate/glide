@@ -41,7 +41,7 @@ func TestToEntry(t *testing.T) {
 			want: types.PutEventsRequestEntry{
 				Source:       aws.String("commonfate.io/granted"),
 				EventBusName: aws.String("testbus"),
-				Detail:       aws.String(`{"data":"testing"}`),
+				Detail:       aws.String(`{"data":"testing","detailType":"event.test"}`),
 				DetailType:   aws.String("event.test"),
 			},
 		},
@@ -51,7 +51,7 @@ func TestToEntry(t *testing.T) {
 			want: types.PutEventsRequestEntry{
 				Source:       aws.String("commonfate.io/granted"),
 				EventBusName: aws.String("testbus"),
-				Detail:       aws.String(`{}`),
+				Detail:       aws.String(`{"detailType":"event.emptybody"}`),
 				DetailType:   aws.String("event.emptybody"),
 			},
 		},

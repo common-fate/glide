@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/storage"
@@ -47,9 +48,13 @@ func (n *EventHandler) handleRequestCreated(ctx context.Context, detail json.Raw
 			if err != nil {
 				return err
 			}
-			err = n.Eventbus.Put(ctx, gevent.AccessGroupApproved{
-				AccessGroup:    group,
-				ApprovalMethod: types.AUTOMATIC,
+			err = n.Eventbus.Put(ctx, gevent.AccessGroupReviewed{
+
+				AccessGroup: group,
+				Review: types.ReviewRequest{
+					Decision: types.ReviewDecisionAPPROVED,
+					Comment:  aws.String("Automatic Approval"),
+				},
 			})
 			if err != nil {
 				return err
@@ -101,11 +106,11 @@ func (n *EventHandler) handleRequestCancelInitiated(ctx context.Context, detail 
 	if err != nil {
 		return err
 	}
-	items := []ddb.Keyer{}
 
 	//handle changing status's of request, and targets
-	requestEvent.Request.Request.RequestStatus = types.CANCELLED
-	items = append(items, &requestEvent.Request.Request)
+	requestEvent.Request.UpdateStatus(types.CANCELLED)
+
+	items := requestEvent.Request.DBItems()
 
 	for _, group := range requestEvent.Request.Groups {
 		for _, target := range group.Targets {
@@ -179,10 +184,11 @@ func (n *EventHandler) handleRequestStatusChange(ctx context.Context, requestId 
 				return err
 			}
 			oldStatus := request.Result.Request.RequestStatus
-			request.Result.Request.RequestStatus = types.REVOKED
+			request.Result.UpdateStatus(types.REVOKED)
 			newStatus := request.Result.Request.RequestStatus
 
-			err = n.DB.Put(ctx, &request.Result.Request)
+			items := request.Result.DBItems()
+			err = n.DB.PutBatch(ctx, items...)
 			if err != nil {
 				return err
 			}
@@ -200,10 +206,12 @@ func (n *EventHandler) handleRequestStatusChange(ctx context.Context, requestId 
 	allExpired := true
 	for _, group := range request.Result.Groups {
 		for _, target := range group.Targets {
-			if target.Grant.Status != types.RequestAccessGroupTargetStatusEXPIRED &&
-				target.Grant.Status != types.RequestAccessGroupTargetStatusERROR {
-				allExpired = false
-				break
+			if target.Grant != nil {
+				if target.Grant.Status != types.RequestAccessGroupTargetStatusEXPIRED &&
+					target.Grant.Status != types.RequestAccessGroupTargetStatusERROR {
+					allExpired = false
+					break
+				}
 			}
 
 		}
@@ -217,10 +225,12 @@ func (n *EventHandler) handleRequestStatusChange(ctx context.Context, requestId 
 			return err
 		}
 		oldStatus := request.Result.Request.RequestStatus
-		request.Result.Request.RequestStatus = types.COMPLETE
+		request.Result.UpdateStatus(types.COMPLETE)
 
 		newStatus := request.Result.Request.RequestStatus
-		err = n.DB.Put(ctx, &request.Result.Request)
+
+		items := request.Result.DBItems()
+		err = n.DB.PutBatch(ctx, items...)
 		if err != nil {
 			return err
 		}

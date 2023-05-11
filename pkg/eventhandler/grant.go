@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
@@ -33,6 +35,25 @@ func (n *EventHandler) handleGrantActivated(ctx context.Context, detail json.Raw
 		return err
 	}
 
+	grant := grantEvent.Grant
+
+	oldStatus := grant.Grant.Status
+
+	grant.Grant.Status = types.RequestAccessGroupTargetStatusACTIVE
+
+	newStatus := grant.Grant.Status
+
+	reqEvent := access.NewTargetStatusChangeEvent(grantEvent.Grant.RequestID, grantEvent.Grant.CreatedAt, aws.String(""), oldStatus, newStatus, grant)
+
+	err = n.DB.Put(ctx, &reqEvent)
+	if err != nil {
+		return err
+	}
+
+	err = n.DB.Put(ctx, &grant)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -45,7 +66,18 @@ func (n *EventHandler) handleGrantExpired(ctx context.Context, detail json.RawMe
 
 	grant := grantEvent.Grant
 
+	oldStatus := grant.Grant.Status
+
 	grant.Grant.Status = types.RequestAccessGroupTargetStatusEXPIRED
+
+	newStatus := grant.Grant.Status
+
+	reqEvent := access.NewTargetStatusChangeEvent(grantEvent.Grant.RequestID, grantEvent.Grant.CreatedAt, aws.String(""), oldStatus, newStatus, grant)
+
+	err = n.DB.Put(ctx, &reqEvent)
+	if err != nil {
+		return err
+	}
 
 	err = n.DB.Put(ctx, &grant)
 	if err != nil {
@@ -75,8 +107,22 @@ func (n *EventHandler) handleGrantFailed(ctx context.Context, detail json.RawMes
 
 	grant := grantEvent.Grant
 
+	if grant.Grant == nil {
+		grant.Grant = &access.Grant{
+			Status: types.RequestAccessGroupTargetStatusAWAITINGSTART,
+		}
+	}
+
+	var oldStatus = grant.Grant.Status
 	grant.Grant.Status = types.RequestAccessGroupTargetStatusERROR
 
+	newStatus := grant.Grant.Status
+	reqEvent := access.NewGrantFailedEvent(grantEvent.Grant.RequestID, grantEvent.Grant.CreatedAt, oldStatus, newStatus, grantEvent.Reason)
+
+	err = n.DB.Put(ctx, &reqEvent)
+	if err != nil {
+		return err
+	}
 	err = n.DB.Put(ctx, &grant)
 	if err != nil {
 		return err
@@ -106,8 +152,18 @@ func (n *EventHandler) handleGrantRevoked(ctx context.Context, detail json.RawMe
 
 	grant := grantEvent.Grant
 
+	oldStatus := grant.Grant.Status
+
 	grant.Grant.Status = types.RequestAccessGroupTargetStatusREVOKED
 
+	newStatus := grant.Grant.Status
+
+	reqEvent := access.NewTargetStatusChangeEvent(grantEvent.Grant.RequestID, grantEvent.Grant.CreatedAt, aws.String(""), oldStatus, newStatus, grant)
+
+	err = n.DB.Put(ctx, &reqEvent)
+	if err != nil {
+		return err
+	}
 	err = n.DB.Put(ctx, &grant)
 	if err != nil {
 		return err

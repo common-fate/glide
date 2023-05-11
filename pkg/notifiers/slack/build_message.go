@@ -1,216 +1,287 @@
 package slacknotifier
 
-// // titleCase turns STRING into String
-// func titleCase(s string) string {
-// 	if s == "" {
-// 		return ""
-// 	}
+import (
+	"fmt"
+	"strings"
+	"time"
 
-// 	lower := strings.ToLower(s)
-// 	cap := strings.ToUpper(string(lower[0])) + lower[1:]
-// 	return cap
-// }
+	"github.com/benbjohnson/clock"
+	"github.com/common-fate/common-fate/pkg/access"
+	"github.com/common-fate/common-fate/pkg/identity"
+	"github.com/common-fate/common-fate/pkg/notifiers"
+	"github.com/common-fate/common-fate/pkg/types"
+	"github.com/slack-go/slack"
+)
 
-// type RequestMessageOpts struct {
-// 	Request      requests.Requestv2
-// 	AccessGroups []access.Group
-// 	// RequestArguments []types.With
+// titleCase turns STRING into String
+func titleCase(s string) string {
+	if s == "" {
+		return ""
+	}
 
-// 	ReviewURLs notifiers.ReviewURLs
-// 	// optional field that will replace the default requestor email with a slack @mention
-// 	RequestorSlackID string
-// 	RequestorEmail   string
-// 	WasReviewed      bool
-// 	RequestReviewer  *identity.User
-// 	IsWebhook        bool
-// }
+	lower := strings.ToLower(s)
+	cap := strings.ToUpper(string(lower[0])) + lower[1:]
+	return cap
+}
 
-// /**
-//  * BuildRequestReviewMessage builds a slack message for a request review based on the contextual RequestMessageOpts
-//  */
-// func BuildRequestReviewMessage(o RequestMessageOpts) (summary string, msg slack.Message) {
+type RequestMessageOpts struct {
+	Request access.RequestWithGroupsWithTargets
+	// AccessGroups []access.Group
+	// RequestArguments []types.With
 
-// 	for _, access_group := range o.AccessGroups {
-// 		requestor := o.RequestorEmail
-// 		if o.RequestorSlackID != "" {
-// 			requestor = fmt.Sprintf("<@%s>", o.RequestorSlackID)
-// 		}
+	ReviewURLs notifiers.ReviewURLs
+	// optional field that will replace the default requestor email with a slack @mention
+	RequestorSlackID string
+	RequestorEmail   string
+	WasReviewed      bool
+	RequestReviewer  *identity.User
+	IsWebhook        bool
+}
 
-// 		status := titleCase(string(access_group.Status))
-// 		statusLower := strings.ToLower(status)
+/*
+*
+BuildRequestReviewMessage builds a slack message for a request review based on the contextual RequestMessageOpts
+*/
+func BuildRequestReviewMessage(o RequestMessageOpts) (summary string, msg slack.Message) {
 
-// 		if o.IsWebhook && o.WasReviewed && access_group.Status != types.RequestStatusPENDING {
-// 			summary = fmt.Sprintf("%s %s %s's request", o.RequestReviewer.Email, statusLower, o.RequestorEmail)
-// 		} else {
-// 			summary = fmt.Sprintf("New request for %s from %s", access_group.AccessRule.Name, o.RequestorEmail)
-// 		}
+	req := o.Request
 
-// 		when := "ASAP"
-// 		if access_group.TimeConstraints.StartTime != nil {
-// 			t := access_group.TimeConstraints.StartTime
-// 			when = types.ExpiryString(*t)
-// 		}
+	for _, access_group := range req.Groups {
 
-// 		requestDetails := []*slack.TextBlockObject{
-// 			{
-// 				Type: "mrkdwn",
-// 				Text: fmt.Sprintf("*When:*\n%s", when),
-// 			},
-// 			{
-// 				Type: "mrkdwn",
-// 				Text: fmt.Sprintf("*Duration:*\n%s", access_group.TimeConstraints.Duration),
-// 			},
-// 			{
-// 				Type: "mrkdwn",
-// 				Text: fmt.Sprintf("*Status:*\n%s", status),
-// 			},
-// 		}
+		requestor := req.Request.RequestedBy.Email
+		if o.RequestorSlackID != "" {
+			requestor = fmt.Sprintf("<@%s>", o.RequestorSlackID)
+		}
 
-// 		// for _, v := range o.RequestArguments {
-// 		// 	requestDetails = append(requestDetails, &slack.TextBlockObject{
-// 		// 		Type: "mrkdwn",
-// 		// 		Text: fmt.Sprintf("*%s:*\n%s", v.Title, v.Label),
-// 		// 	})
-// 		// }
+		status := titleCase(string(access_group.Group.Status))
+		statusLower := strings.ToLower(status)
 
-// 		// Only show the Request reason if it is not empty
-// 		if o.Request.Context.Reason != nil && len(*o.Request.Context.Reason) > 0 {
-// 			requestDetails = append(requestDetails, &slack.TextBlockObject{
-// 				Type: "mrkdwn",
-// 				Text: fmt.Sprintf("*Request Reason:*\n%s", *o.Request.Context.Reason),
-// 			})
-// 		}
+		if o.IsWebhook && o.WasReviewed && access_group.Group.Status != types.RequestAccessGroupStatusPENDINGAPPROVAL {
+			summary = fmt.Sprintf("%s %s %s's request", o.RequestReviewer.Email, statusLower, req.Request.RequestedBy.Email)
+		} else {
+			summary = fmt.Sprintf("New request for %s from %s", access_group.Group.AccessRuleSnapshot.Name, req.Request.RequestedBy.Email)
+		}
 
-// 		var richTextSummary string
+		// This can be deprecated bc ASAP now == no reviewers (and this is a reviewer message)
+		// when := "ASAP"
+		// 🚨🚨🚨 How is ASAP determined post-refactor? 🚨🚨🚨
+		// if access_group.TimeConstraints.StartTime != nil {
+		// 	t := access_group.TimeConstraints.StartTime
+		// 	when = types.ExpiryString(*t)
+		// }
 
-// 		if o.IsWebhook && o.WasReviewed && access_group.Status != types.RequestStatusPENDING {
-// 			richTextSummary = fmt.Sprintf("*%s %s %s's request*", o.RequestReviewer.Email, statusLower, o.RequestorEmail)
-// 		} else {
-// 			richTextSummary = fmt.Sprintf("*<%s|New request for %s> from %s*", o.ReviewURLs.Review, access_group.AccessRule.Name, requestor)
-// 		}
+		requestDetails := []*slack.TextBlockObject{
+			{
+				Type: "mrkdwn",
+				Text: fmt.Sprintf("*When:*\n%s", access_group.Group.RequestedTiming.StartTime),
+			},
+			{
+				Type: "mrkdwn",
+				Text: fmt.Sprintf("*Duration:*\n%s", access_group.Group.RequestedTiming.Duration),
+			},
+			{
+				Type: "mrkdwn",
+				Text: fmt.Sprintf("*Status:*\n%s", status),
+			},
+		}
 
-// 		msg = slack.NewBlockMessage(
-// 			slack.SectionBlock{
-// 				Type: slack.MBTSection,
-// 				Text: &slack.TextBlockObject{
-// 					Type: slack.MarkdownType,
-// 					Text: richTextSummary,
-// 				},
-// 			},
-// 			slack.SectionBlock{
-// 				Type:   slack.MBTSection,
-// 				Fields: requestDetails,
-// 			},
-// 		)
+		// for _, v := range o.RequestArguments {
+		// 	requestDetails = append(requestDetails, &slack.TextBlockObject{
+		// 		Type: "mrkdwn",
+		// 		Text: fmt.Sprintf("*%s:*\n%s", v.Title, v.Label),
+		// 	})
+		// }
 
-// 		if o.WasReviewed || access_group.Status == requests.CANCELLED {
-// 			t := time.Now()
-// 			when := types.ExpiryString(t)
+		// Only show the Request reason if it is not empty
 
-// 			text := fmt.Sprintf("*Reviewed by* %s at %s", o.RequestReviewer.Email, when)
+		if req.Request.Purpose.Reason != nil && len(*req.Request.Purpose.Reason) > 0 {
+			requestDetails = append(requestDetails, &slack.TextBlockObject{
+				Type: "mrkdwn",
+				Text: fmt.Sprintf("*Request Reason:*\n%s", *req.Request.Purpose.Reason),
+			})
+		}
 
-// 			if access_group.Status == requests.CANCELLED {
-// 				text = fmt.Sprintf("*Cancelled by* %s at %s", o.RequestorEmail, when)
-// 			}
+		var richTextSummary string
 
-// 			reviewContextBlock := slack.NewContextBlock("", slack.TextBlockObject{
-// 				Type: slack.MarkdownType,
-// 				Text: text,
-// 			})
+		if o.IsWebhook && o.WasReviewed && access_group.Group.Status != types.RequestAccessGroupStatusPENDINGAPPROVAL {
+			richTextSummary = fmt.Sprintf("*%s %s %s's request*", o.RequestReviewer.Email, statusLower, req.Request.RequestedBy.Email)
+		} else {
+			richTextSummary = fmt.Sprintf("*<%s|New request for %s> from %s*", o.ReviewURLs.Review, access_group.Group.AccessRuleSnapshot.Name, requestor)
+		}
 
-// 			msg.Blocks.BlockSet = append(msg.Blocks.BlockSet, reviewContextBlock)
-// 		}
+		msg = slack.NewBlockMessage(
+			slack.SectionBlock{
+				Type: slack.MBTSection,
+				Text: &slack.TextBlockObject{
+					Type: slack.MarkdownType,
+					Text: richTextSummary,
+				},
+			},
+			slack.SectionBlock{
+				Type:   slack.MBTSection,
+				Fields: requestDetails,
+			},
+		)
 
-// 		// If the request has just been sent (PENDING), then append Action Blocks
-// 		if access_group.Status == types.RequestStatusPENDING {
-// 			msg.Blocks.BlockSet = append(msg.Blocks.BlockSet, slack.NewActionBlock("review_actions",
-// 				slack.ButtonBlockElement{
-// 					Type:     slack.METButton,
-// 					Text:     &slack.TextBlockObject{Type: slack.PlainTextType, Text: "Approve"},
-// 					Style:    slack.StylePrimary,
-// 					ActionID: "approve",
-// 					Value:    "approve",
-// 					URL:      o.ReviewURLs.Approve,
-// 				},
-// 				slack.ButtonBlockElement{
-// 					Type:     slack.METButton,
-// 					Text:     &slack.TextBlockObject{Type: slack.PlainTextType, Text: "Close Request"},
-// 					Style:    slack.StyleDanger,
-// 					ActionID: "deny",
-// 					Value:    "deny",
-// 					URL:      o.ReviewURLs.Deny,
-// 				},
-// 			))
+		if o.WasReviewed || access_group.Group.Status == types.RequestAccessGroupStatusDECLINED {
+			t := time.Now()
+			when := types.ExpiryString(t)
 
-// 		}
-// 	}
+			text := fmt.Sprintf("*Reviewed by* %s at %s", o.RequestReviewer.Email, when)
 
-// 	return summary, msg
-// }
+			if access_group.Group.Status == types.RequestAccessGroupStatusDECLINED {
+				text = fmt.Sprintf("*Cancelled by* %s at %s", req.Request.RequestedBy.Email, when)
+			}
 
-// type RequestDetailMessageOpts struct {
-// 	AccessGroups []access.Group
-// 	// Request      requests.Requestv2
-// 	// the message that renders in the header of the slack message
-// 	HeadingMessage string
-// }
+			reviewContextBlock := slack.NewContextBlock("", slack.TextBlockObject{
+				Type: slack.MarkdownType,
+				Text: text,
+			})
 
-// // Builds a contextual request detail message, with an optional HeadingMessage to be rendered in the header, this is fired after a request has been reviewed
-// func BuildRequestDetailMessage(o RequestDetailMessageOpts) (summary string, msg slack.Message) {
+			msg.Blocks.BlockSet = append(msg.Blocks.BlockSet, reviewContextBlock)
+		}
 
-// 	for _, access_group := range o.AccessGroups {
-// 		summary = fmt.Sprintf("Request detail for %s", access_group.AccessRule.Name)
+		// If the request has just been sent (PENDING), then append Action Blocks
+		if access_group.Group.Status == types.RequestAccessGroupStatusPENDINGAPPROVAL {
+			msg.Blocks.BlockSet = append(msg.Blocks.BlockSet, slack.NewActionBlock("review_actions",
+				slack.ButtonBlockElement{
+					Type:     slack.METButton,
+					Text:     &slack.TextBlockObject{Type: slack.PlainTextType, Text: "Approve"},
+					Style:    slack.StylePrimary,
+					ActionID: "approve",
+					Value:    "approve",
+					URL:      o.ReviewURLs.Approve,
+				},
+				slack.ButtonBlockElement{
+					Type:     slack.METButton,
+					Text:     &slack.TextBlockObject{Type: slack.PlainTextType, Text: "Close Request"},
+					Style:    slack.StyleDanger,
+					ActionID: "deny",
+					Value:    "deny",
+					URL:      o.ReviewURLs.Deny,
+				},
+			))
 
-// 		var expires time.Time
-// 		if access_group.TimeConstraints.StartTime != nil {
-// 			expires = access_group.TimeConstraints.StartTime.Add(access_group.TimeConstraints.Duration)
-// 		} else {
-// 			expires = time.Now().Add(access_group.TimeConstraints.Duration)
-// 		}
+		}
+	}
 
-// 		when := types.ExpiryString(expires)
+	return summary, msg
+}
 
-// 		requestDetails := []*slack.TextBlockObject{
+type RequestDetailMessageOpts struct {
+	Request access.RequestWithGroupsWithTargets
+	// the message that renders in the header of the slack message
+	HeadingMessage string
+}
 
-// 			{
-// 				Type: "mrkdwn",
-// 				Text: fmt.Sprintf("*Duration:*\n%s", access_group.TimeConstraints.Duration),
-// 			},
-// 			{
-// 				Type: "mrkdwn",
-// 				Text: fmt.Sprintf("*Expires:*\n%s", when),
-// 			},
-// 		}
+// Builds a contextual request detail message, with an optional HeadingMessage to be rendered in the header, this is fired after a request has been reviewed
+func BuildRequestDetailMessage(o RequestDetailMessageOpts) (summary string, msg slack.Message) {
 
-// 		// for _, v := range access_group. {
-// 		// 	requestDetails = append(requestDetails, &slack.TextBlockObject{
-// 		// 		Type: "mrkdwn",
-// 		// 		Text: fmt.Sprintf("*%s:*\n%s", v.Title, v.Label),
-// 		// 	})
-// 		// }
+	req := o.Request
 
-// 		// Only show the Request reason if it is not empty
-// 		if o.Request.Context.Reason != nil && len(*o.Request.Context.Reason) > 0 {
-// 			requestDetails = append(requestDetails, &slack.TextBlockObject{
-// 				Type: "mrkdwn",
-// 				Text: fmt.Sprintf("*Request Reason:*\n%s", *o.Request.Context.Reason),
-// 			})
-// 		}
+	for _, access_group := range req.Groups {
+		summary = fmt.Sprintf("Request detail for %s", access_group.Group.AccessRuleSnapshot.Name)
+		/**
+		var expires time.Time
+		// has start time...
+		if access_group.Group.RequestedTiming.StartTime != nil {
+			// has override..
+			if access_group.Group.OverrideTiming.StartTime != nil {
+				// has override duration
+				if access_group.Group.OverrideTiming.Duration != nil {
+					expires = access_group.Group.OverrideTiming.StartTime.Add(*access_group.Group.OverrideTiming.Duration)
+				} else {
+					expires = access_group.Group.OverrideTiming.StartTime.Add(access_group.Group.OverrideTiming.Duration)
+				}
+			} else {
+				// has override duration
+				expires = access_group.Group.RequestedTiming.StartTime.Add(access_group.Group.RequestedTiming.Duration)
+			}
+		} else {
+			expires = time.Now().Add(access_group.TimeConstraints.Duration)
+		}
 
-// 		msg = slack.NewBlockMessage(
-// 			slack.SectionBlock{
-// 				Type: slack.MBTSection,
-// 				Text: &slack.TextBlockObject{
-// 					Type: slack.MarkdownType,
-// 					Text: o.HeadingMessage,
-// 				},
-// 			},
-// 			slack.SectionBlock{
-// 				Type:   slack.MBTSection,
-// 				Fields: requestDetails,
-// 			},
-// 		)
-// 	}
 
-// 	return summary, msg
-// }
+		...
+
+		We had this but we probably want to leveraage FinalTiming if possibel to reduce if/else logic
+
+		*/
+
+		// has start time...
+		// if access_group.Group.RequestedTiming.StartTime != nil {
+		// 	// has override..
+		// 	if access_group.Group.OverrideTiming.StartTime != nil {
+		// 		// has override duration
+		// 		if access_group.Group.OverrideTiming.Duration != nil {
+		// 			expires = access_group.Group.OverrideTiming.StartTime.Add(*access_group.Group.OverrideTiming.Duration)
+		// 		} else {
+		// 			expires = access_group.Group.OverrideTiming.StartTime.Add(access_group.Group.OverrideTiming.Duration)
+		// 		}
+		// 	} else {
+		// 		// has override duration
+		// 		expires = access_group.Group.RequestedTiming.StartTime.Add(access_group.Group.RequestedTiming.Duration)
+		// 	}
+		// } else {
+		// 	expires = time.Now().Add(access_group.Group.RequestedTiming.Duration)
+		// }
+
+		// var expires time.Time
+
+		// if access_group.Group.OverrideTiming != nil {
+		// 	expires = access_group.Group.OverrideTiming.StartTime.Add(access_group.Group.OverrideTiming.Duration)
+		// } else {
+		// 	expires = access_group.Group.RequestedTiming.StartTime.Add(access_group.Group.RequestedTiming.Duration)
+		// }
+
+		// clock := clock.New().Now()
+
+		// when := types.ExpiryString(expires)
+		start, end := access_group.Group.GetInterval(access.WithNow(clock.New().Now()))
+
+		duration := end.Sub(start) // if this is off by a couple seconds it could make the duration values inconsistent
+
+		requestDetails := []*slack.TextBlockObject{
+
+			{
+				Type: "mrkdwn",
+				Text: fmt.Sprintf("*Duration:*\n%s", duration),
+			},
+			{
+				Type: "mrkdwn",
+				Text: fmt.Sprintf("*Expires:*\n%s", end),
+			},
+		}
+
+		// for _, v := range access_group. {
+		// 	requestDetails = append(requestDetails, &slack.TextBlockObject{
+		// 		Type: "mrkdwn",
+		// 		Text: fmt.Sprintf("*%s:*\n%s", v.Title, v.Label),
+		// 	})
+		// }
+
+		// Only show the Request reason if it is not empty
+		if req.Request.Purpose.Reason != nil && len(*req.Request.Purpose.Reason) > 0 {
+			requestDetails = append(requestDetails, &slack.TextBlockObject{
+				Type: "mrkdwn",
+				Text: fmt.Sprintf("*Request Reason:*\n%s", *req.Request.Purpose.Reason),
+			})
+		}
+
+		msg = slack.NewBlockMessage(
+			slack.SectionBlock{
+				Type: slack.MBTSection,
+				Text: &slack.TextBlockObject{
+					Type: slack.MarkdownType,
+					Text: o.HeadingMessage,
+				},
+			},
+			slack.SectionBlock{
+				Type:   slack.MBTSection,
+				Fields: requestDetails,
+			},
+		)
+	}
+
+	return summary, msg
+}

@@ -26,7 +26,9 @@ func TestGroupTargets(t *testing.T) {
 			Kind:      "kind1",
 		},
 		AccessRules: map[string]cache.AccessRule{
-			"rule1": {},
+			"rule1": {
+				MatchedTargetGroups: []string{"aws"},
+			},
 		},
 		IDPGroupsWithAccess: map[string]struct{}{
 			"group1": {},
@@ -55,7 +57,9 @@ func TestGroupTargets(t *testing.T) {
 			Kind:      "kind1",
 		},
 		AccessRules: map[string]cache.AccessRule{
-			"rule2": {},
+			"rule2": {
+				MatchedTargetGroups: []string{"test"},
+			},
 		},
 		IDPGroupsWithAccess: map[string]struct{}{
 			"group1": {},
@@ -91,16 +95,20 @@ func TestGroupTargets(t *testing.T) {
 			targets: []cache.Target{target1, target2},
 			AccessGroups: []access.PreflightAccessGroup{
 				{
-					Targets: []access.PreflightAccessGroupTarget{{Target: target1}},
+					Targets: []access.PreflightAccessGroupTarget{{Target: target1, TargetGroupID: "aws"}},
 					TimeConstraints: types.AccessRuleTimeConstraints{
 						MaxDurationSeconds: 3600,
 					},
+					AccessRule:       "rule1",
+					RequiresApproval: true,
 				},
 				{
-					Targets: []access.PreflightAccessGroupTarget{{Target: target2}},
+					Targets: []access.PreflightAccessGroupTarget{{Target: target2, TargetGroupID: "test"}},
 					TimeConstraints: types.AccessRuleTimeConstraints{
 						MaxDurationSeconds: 3600,
 					},
+					AccessRule:       "rule2",
+					RequiresApproval: true,
 				},
 			},
 			mockGetAccessRule1: rule.AccessRule{

@@ -6,6 +6,7 @@ import (
 
 	"github.com/benbjohnson/clock"
 	"github.com/common-fate/common-fate/pkg/rule"
+	"github.com/common-fate/common-fate/pkg/service/rulesvc/mocks"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/target"
 	"github.com/common-fate/common-fate/pkg/types"
@@ -181,9 +182,15 @@ func TestUpdateAccessRule(t *testing.T) {
 
 			dbc.MockQueryWithErr(&storage.GetTargetGroup{Result: &tc.wantTargetGroup}, tc.wantTargetGroupErr)
 
+			mockCache := mocks.NewMockCacheService(ctrl)
+			if tc.wantTargetGroupErr == nil && tc.wantErr == nil {
+				mockCache.EXPECT().RefreshCachedTargets(gomock.Any()).Return(nil)
+
+			}
 			s := Service{
 				Clock: clk,
 				DB:    dbc,
+				Cache: mockCache,
 			}
 
 			got, err := s.UpdateRule(context.Background(), &UpdateOpts{

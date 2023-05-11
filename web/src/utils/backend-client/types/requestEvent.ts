@@ -9,6 +9,8 @@ import type { RequestStatus } from './requestStatus';
 import type { RequestAccessGroupTiming } from './requestAccessGroupTiming';
 import type { RequestAccessGroupTargetStatus } from './requestAccessGroupTargetStatus';
 import type { RequestEventRecordedEvent } from './requestEventRecordedEvent';
+import type { RequestAccessGroupTarget } from './requestAccessGroupTarget';
+import type { RequestAccessGroupStatus } from './requestAccessGroupStatus';
 
 export interface RequestEvent {
   id: string;
@@ -26,4 +28,7 @@ export interface RequestEvent {
   grantFailureReason?: string;
   /** An event which was recorded relating to the grant. */
   recordedEvent?: RequestEventRecordedEvent;
+  target?: RequestAccessGroupTarget;
+  fromGroupStatus?: RequestAccessGroupStatus;
+  toGroupStatus?: RequestAccessGroupStatus;
 }

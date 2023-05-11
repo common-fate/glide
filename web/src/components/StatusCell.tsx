@@ -1,4 +1,5 @@
 import {
+  Center,
   Circle,
   Flex,
   FlexProps,
@@ -12,17 +13,17 @@ import {
   RequestAccessGroupTargetStatus,
   RequestStatus,
 } from "../utils/backend-client/types";
-interface Props extends FlexProps {
+interface Props<T> extends FlexProps {
   replaceValue?: string;
-  value?: string;
-  success?: string | string[];
-  danger?: string | string[];
-  warning?: string | string[];
-  info?: string | string[];
+  value?: T;
+  success?: T | T[];
+  danger?: T | T[];
+  warning?: T | T[];
+  info?: T | T[];
 }
 // StatusCell displays a status icon and can be configured to map success,warning or danger to some strings
 // this will match the value to the configured color groups
-export const StatusCell: React.FC<Props> = ({
+export const StatusCell = <T,>({
   replaceValue,
   value,
   success,
@@ -30,7 +31,7 @@ export const StatusCell: React.FC<Props> = ({
   warning,
   info,
   ...rest
-}) => {
+}: Props<T>) => {
   // We may want to handle loading/null states separately, for now this is to serve as a skeleton component
   if (!value)
     return (
@@ -43,17 +44,25 @@ export const StatusCell: React.FC<Props> = ({
   // default color is warning
   let statusColor = "actionWarning.200";
 
+  // Pulsing status added to match Figma Designs
+  // https://www.figma.com/file/ziXjEufb8v3FVDZQo55ZK2/CF-UI-Designs?type=design&node-id=3149%3A18483&t=bfWcublL9Zq6bwPX-1
+  let statusColorforPulse = "actionSuccess.100";
+
   if (Array.isArray(success) ? success.includes(value) : success === value) {
     statusColor = "actionSuccess.200";
+    statusColorforPulse = "actionSuccess.100";
   }
   if (Array.isArray(danger) ? danger.includes(value) : danger === value) {
     statusColor = "actionDanger.200";
+    statusColorforPulse = "actionDanger.100";
   }
   if (Array.isArray(warning) ? warning.includes(value) : warning === value) {
     statusColor = "actionWarning.200";
+    statusColorforPulse = "actionWarning.100";
   }
   if (Array.isArray(info) ? info.includes(value) : info === value) {
     statusColor = "actionInfo.200";
+    statusColorforPulse = "actionInfo.100";
   }
 
   //Dont pulse status for warning and error status's
@@ -73,9 +82,37 @@ export const StatusCell: React.FC<Props> = ({
       </Flex>
     );
   }
+
   return (
     <Flex minW="75px" align="center" {...rest}>
-      <SkeletonCircle endColor={statusColor} size="8px" mr={2} />{" "}
+      <Center
+        sx={{
+          "@keyframes pulse": {
+            "0%": {
+              outlineColor: statusColorforPulse,
+              transform: "scale(1)",
+            },
+            "50%": {
+              outlineColor: "transparent",
+              transform: "scale(0.95)",
+            },
+            "100%": {
+              outlineColor: statusColorforPulse,
+              transform: "scale(1)",
+            },
+          },
+        }}
+      >
+        <Circle
+          bg={statusColor}
+          size="8px"
+          mr={2}
+          animation="pulse 2s infinite"
+          outline="4px solid transparent"
+          // border on outside
+        />{" "}
+        {/* <SkeletonCircle endColor={statusColor} size="8px" mr={2} />{" "} */}
+      </Center>
       <Text as="span" css={{ ":first-letter": { textTransform: "uppercase" } }}>
         {replaceValue ? replaceValue : value.toLowerCase()}
       </Text>

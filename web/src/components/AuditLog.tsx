@@ -350,8 +350,27 @@ export const AuditLog: React.FC<{ request?: Request }> = ({ request }) => {
             arrLength={l}
             header={
               <Text>
-                {`Grant status changed from ${e.fromGrantStatus?.toLowerCase()} to
+                {`Grant ${
+                  e.target?.fields[0]?.valueLabel
+                    ? e.target?.fields[0]?.valueLabel.toLowerCase()
+                    : ""
+                } status changed from ${e.fromGrantStatus?.toLowerCase()} to
               ${e.toGrantStatus?.toLowerCase()}`}
+              </Text>
+            }
+            index={i}
+            key={i}
+            timestamp={new Date(e.createdAt)}
+          />
+        );
+      } else if (e.fromGroupStatus) {
+        items.push(
+          <CFTimelineRow
+            arrLength={l}
+            header={
+              <Text>
+                {`Group status changed from ${e.fromGroupStatus?.toLowerCase()} to
+              ${e.toGroupStatus?.toLowerCase()}`}
               </Text>
             }
             index={i}
@@ -461,6 +480,7 @@ export const AuditLog: React.FC<{ request?: Request }> = ({ request }) => {
     });
     return items;
   }, [data]);
+
   if (!request || data === undefined) {
     return (
       <VStack flex={1} align="left">
