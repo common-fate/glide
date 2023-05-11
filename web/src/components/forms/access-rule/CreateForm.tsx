@@ -4,7 +4,12 @@ import { FormProvider, useForm } from "react-hook-form";
 import { useNavigate } from "react-location";
 import { adminCreateAccessRule } from "../../../utils/backend-client/admin/admin";
 
-import { CreateAccessRuleRequestBody } from "../../../utils/backend-client/types";
+import {
+  CreateAccessRuleRequestBody,
+  CreateAccessRuleTarget,
+  Operation,
+  ResourceFilterOperationTypeEnum,
+} from "../../../utils/backend-client/types";
 import { ApprovalStep } from "./steps/Approval";
 import { GeneralStep } from "./steps/General";
 import { TargetStep } from "./steps/Provider";
@@ -21,9 +26,7 @@ interface TargetGroupFilterOperation {
 }
 
 type TargetGroups = {
-  [key: string]: {
-    [key: string]: TargetGroupFilterOperation;
-  };
+  [key: string]: Record<string, TargetGroupFilterOperation>;
 };
 
 export interface AccessRuleFormData extends CreateAccessRuleRequestBody {
@@ -34,25 +37,55 @@ export interface AccessRuleFormData extends CreateAccessRuleRequestBody {
 export const accessRuleFormDataToApi = (
   formData: AccessRuleFormData
 ): CreateAccessRuleRequestBody => {
-  const { approval, ...d } = formData;
+  const { approval, targetgroups, ...d } = formData;
 
   const ruleData: CreateAccessRuleRequestBody = {
     approval: { users: [], groups: [] },
     ...d,
   };
 
-  // TODO:
-  // for (const target of d.targets) {
-  //   const targetgroupFields = formData.targetgroups[target.targetGroupId];
+  const targets: Map<string, CreateAccessRuleTarget> = new Map();
 
-  //   Object.keys(targetgroupFields).map((field) => {
-  //     const resourceFilter = createResourceFilter(targetgroupFields[field]);
+  if (targetgroups) {
+    Object.entries(targetgroups).map(([k, v]) => {
+      let selectedTarget = d.targets.find((t) => t.targetGroupId === k);
 
-  //     if (resourceFilter) {
-  //       target.fieldFilterExpessions[field] = resourceFilter;
-  //     }
-  //   });
-  // }
+      if (selectedTarget) {
+        Object.entries(v).map(([k, v]) => {
+          if (selectedTarget) {
+            if (v.value == "" && v.values.length === 0) {
+              selectedTarget.fieldFilterExpessions[k] = [];
+            } else {
+              const filterOperation: Operation = {
+                operationType:
+                  v.operationType as ResourceFilterOperationTypeEnum,
+                attribute: v.attribute,
+                ...(v.value != ""
+                  ? {
+                      value: v.value,
+                    }
+                  : null),
+                ...(v.values.length !== 0
+                  ? {
+                      values: v.values,
+                    }
+                  : null),
+              };
+
+              // NOTE: once multi-operations feature is supported. we need to update this
+              // to add operations value as well.
+              selectedTarget.fieldFilterExpessions[k] = [filterOperation];
+            }
+
+            targets.set(selectedTarget.targetGroupId, selectedTarget);
+          }
+        });
+      }
+    });
+  }
+
+  // mutate the targets field with updated structure.
+  ruleData.targets = Array.from(targets.values());
 
   // only apply these fields if approval is enabled
   if (approval.required) {

@@ -1,17 +1,11 @@
 import { CheckCircleIcon } from "@chakra-ui/icons";
 import {
   Box,
-  HStack,
   RadioProps,
   Spinner,
-  Text,
-  Tooltip,
-  useRadio,
   useRadioGroup,
   UseRadioGroupProps,
   VStack,
-  Wrap,
-  WrapItem,
 } from "@chakra-ui/react";
 import React, { useState } from "react";
 
@@ -25,66 +19,48 @@ import { useFormContext } from "react-hook-form";
 import { AccessRuleFormData } from "../CreateForm";
 import { useAdminListTargetGroups } from "../../../../utils/backend-client/admin/admin";
 import { TargetGroupField } from "./TargetGroupField";
+import ReactSelect from "react-select";
 
 interface TargetGroupRadioProps extends RadioProps {
-  targetGroup: TargetGroup;
+  targetGroups: TargetGroup[];
 }
-const TargetGroupRadio: React.FC<TargetGroupRadioProps> = (props) => {
-  const { getInputProps, getCheckboxProps } = useRadio(props);
-  const { targetGroup } = props;
 
-  const input = getInputProps();
-  const checkbox = getCheckboxProps();
+const TargetGroupDropdown: React.FC<TargetGroupRadioProps> = (props) => {
+  const { targetGroups } = props;
+
+  const [selectedTargetgroup, setSelectedTargetgroup] = useState<TargetGroup>();
+
+  const createOptions = () => {
+    return targetGroups.map((t) => ({
+      value: t.id,
+      label: t.id,
+    }));
+  };
 
   return (
     <VStack>
       <Box as="label">
-        <input {...input} />
-        <Box
-          {...checkbox}
-          bg="white"
-          cursor="pointer"
-          borderWidth="1px"
-          borderRadius="md"
-          m="1px"
-          _checked={{
-            m: "0px",
-            borderColor: "brandBlue.300",
-            borderWidth: "2px",
+        <ReactSelect
+          styles={{
+            control: (provided, state) => ({
+              ...provided,
+              width: 420,
+            }),
           }}
-          _hover={{
-            boxShadow: `0px 0px 0px 1px #2e7fff`,
+          options={createOptions()}
+          onChange={(val) => {
+            setSelectedTargetgroup(
+              targetGroups.find((t) => t.id === val?.value)
+            );
           }}
-          px={6}
-          py={5}
-          position="relative"
-          data-testid={"targetGroup-selector-" + props.targetGroup.id}
-        >
-          {/* @ts-ignore */}
-          {checkbox?.["data-checked"] !== undefined && (
-            <CheckCircleIcon
-              position="absolute"
-              top={2}
-              right={2}
-              h="12px"
-              w="12px"
-              color={"brandBlue.300"}
-            />
-          )}
-          <HStack>
-            <ProviderIcon shortType={props.targetGroup.icon as ShortTypes} />
-            <Text textStyle={"Body/Medium"} color={"neutrals.800"}>
-              {props.targetGroup.id}
-            </Text>
-          </HStack>
-        </Box>
+        />
       </Box>
       <Box>
-        {!!targetGroup?.schema &&
-          Object.values(targetGroup.schema).map((schema) => {
+        {!!selectedTargetgroup?.schema &&
+          Object.values(selectedTargetgroup.schema).map((schema) => {
             return (
               <TargetGroupField
-                targetGroup={targetGroup}
+                targetGroup={selectedTargetgroup}
                 fieldSchema={schema}
               />
             );
@@ -104,16 +80,5 @@ export const TargetGroupRadioSelector: React.FC<UseRadioGroupProps> = (
     return <Spinner />;
   }
 
-  return (
-    <Wrap {...group}>
-      {data?.targetGroups.map((p) => {
-        const radio = getRadioProps({ value: p.id });
-        return (
-          <WrapItem key={p.id}>
-            <TargetGroupRadio targetGroup={p} {...radio} />
-          </WrapItem>
-        );
-      })}
-    </Wrap>
-  );
+  return <TargetGroupDropdown targetGroups={data.targetGroups} />;
 };

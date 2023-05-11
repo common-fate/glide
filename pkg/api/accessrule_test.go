@@ -14,6 +14,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/service/rulesvc"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/target"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/ddb/ddbmock"
 	"github.com/golang/mock/gomock"
@@ -53,7 +54,7 @@ func TestAdminCreateAccessRule(t *testing.T) {
 								Kind:      "Account",
 							},
 						},
-						FieldFilterExpessions: map[string]rule.FieldFilterExpessions{},
+						FieldFilterExpessions: map[string][]types.Operation{},
 					},
 				},
 				Priority: 4,
@@ -150,7 +151,7 @@ func TestAdminUpdateAccessRule(t *testing.T) {
 								Kind:      "Account",
 							},
 						},
-						FieldFilterExpessions: map[string]rule.FieldFilterExpessions{},
+						FieldFilterExpessions: map[string][]types.Operation{},
 					},
 				},
 				Priority: 4,
@@ -253,7 +254,7 @@ func TestAdminListAccessRules(t *testing.T) {
 								CreatedAt: now,
 								UpdatedAt: now,
 							},
-							FieldFilterExpessions: map[string]rule.FieldFilterExpessions{},
+							FieldFilterExpessions: map[string][]types.Operation{},
 						},
 					},
 				},
@@ -284,7 +285,7 @@ func TestAdminListAccessRules(t *testing.T) {
 								CreatedAt: now,
 								UpdatedAt: now,
 							},
-							FieldFilterExpessions: map[string]rule.FieldFilterExpessions{},
+							FieldFilterExpessions: map[string][]types.Operation{},
 						},
 					},
 				},

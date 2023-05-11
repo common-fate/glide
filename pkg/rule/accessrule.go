@@ -51,10 +51,9 @@ func (a *Approval) IsRequired() bool {
 	return len(a.Users) > 0 || len(a.Groups) > 0
 }
 
-type FieldFilterExpessions struct{}
 type Target struct {
-	TargetGroup           target.Group                     `json:"targetGroup" dynamodbav:"targetGroup"`
-	FieldFilterExpessions map[string]FieldFilterExpessions `json:"fieldFilterExpessions" dynamodbav:"fieldFilterExpessions"`
+	TargetGroup           target.Group                    `json:"targetGroup" dynamodbav:"targetGroup"`
+	FieldFilterExpessions map[string]types.ResourceFilter `json:"fieldFilterExpessions" dynamodbav:"fieldFilterExpessions"`
 }
 
 // // ised for admin apis, this contains the access rule target in a format for updating the access rule provider target

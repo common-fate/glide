@@ -38,8 +38,10 @@ func TestUpdateAccessRule(t *testing.T) {
 
 		Targets: []types.CreateAccessRuleTarget{
 			{
-				TargetGroupId:         "test",
-				FieldFilterExpessions: make(map[string]interface{}),
+				TargetGroupId: "test",
+				FieldFilterExpessions: types.CreateAccessRuleTarget_FieldFilterExpessions{
+					AdditionalProperties: nil,
+				},
 			},
 		},
 	}
@@ -76,7 +78,7 @@ func TestUpdateAccessRule(t *testing.T) {
 					CreatedAt: now,
 					UpdatedAt: now,
 				},
-				FieldFilterExpessions: map[string]rule.FieldFilterExpessions{},
+				FieldFilterExpessions: map[string][]types.Operation{},
 			},
 		},
 
@@ -92,8 +94,10 @@ func TestUpdateAccessRule(t *testing.T) {
 
 		Targets: []types.CreateAccessRuleTarget{
 			{
-				TargetGroupId:         "test",
-				FieldFilterExpessions: make(map[string]interface{}),
+				TargetGroupId: "test",
+				FieldFilterExpessions: types.CreateAccessRuleTarget_FieldFilterExpessions{
+					AdditionalProperties: nil,
+				},
 			},
 		},
 	}
@@ -130,7 +134,7 @@ func TestUpdateAccessRule(t *testing.T) {
 					CreatedAt: now,
 					UpdatedAt: now,
 				},
-				FieldFilterExpessions: map[string]rule.FieldFilterExpessions{},
+				FieldFilterExpessions: map[string][]types.Operation{},
 			},
 		},
 	}
