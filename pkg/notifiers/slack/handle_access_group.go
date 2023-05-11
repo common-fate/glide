@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/gevent"
+	"github.com/common-fate/common-fate/pkg/notifiers"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"go.uber.org/zap"
 )
@@ -34,7 +35,8 @@ func (n *SlackNotifier) HandleAccessGroupEvent(ctx context.Context, log *zap.Sug
 		n.sendAccessGroupDetailsMessage(ctx, log, accessGroup, msg, fallback)
 
 		// REVIWER Message Update:
-		// n.SendUpdatesForRequest(ctx, log, request, requestEvent, requestedRule, requestingUserQuery.Result)
+		// REVIWER Message Update:
+		n.sendAccessGroupUpdates(ctx, log, accessGroup)
 
 	case gevent.AccessGroupDeclinedType:
 
@@ -128,6 +130,7 @@ func (n *SlackNotifier) sendAccessGroupUpdates(ctx context.Context, log *zap.Sug
 
 	if HAS_SLACK_CLIENT {
 
+		// Loop over the request reviewers...
 		for _, reviewer := range accessGroup.Group.RequestReviewers {
 
 			reqReviewer := storage.GetRequestReviewer{
@@ -137,23 +140,27 @@ func (n *SlackNotifier) sendAccessGroupUpdates(ctx context.Context, log *zap.Sug
 			_, err := n.DB.Query(ctx, &reqReviewer)
 			if err != nil {
 				log.Errorw("failed to get request reviewer", "error", err)
+				continue
+			}
+
+			reviewURL, err := notifiers.ReviewURL(n.FrontendURL, request.ID)
+			if err != nil {
+				log.Errorw("building review URL", zap.Error(err))
 				return
 			}
 
-			// reqReviewer.Result.
-			// storage.GetRequestGroupTarget
+			reviewerUserObj := storage.GetUser{ID: reviewer}
+			_, err = n.DB.Query(ctx, &reviewerUserObj)
+			if err != nil {
+				log.Errorw("failed to get reviewer user", "error", err)
+				continue
+			}
 
-			// TODO: wondering if we can access request here since it will be needed to construct review messages
-			// accessGroup.Group.RequestedBy
-
-			// summ, slackMsg := BuildRequestReviewMessage(RequestMessageOpts{
-			// 	Group: accessGroup.Group,
-			// })
-
-			// 🚨🚨🚨🚨 TODO: now fire this off 🚨🚨🚨🚨
+			// 🚨🚨 TODO: may need to pass in reqReviewer.Result.Notifications.SlackMessageID
 
 			summary, slackMsg := BuildRequestReviewMessage(RequestMessageOpts{
-				Group: accessGroup.Group,
+				Group:      accessGroup.Group,
+				ReviewURLs: reviewURL,
 			})
 
 			_, err = SendMessageBlocks(ctx, n.directMessageClient.client, requestor.Email, slackMsg, summary)

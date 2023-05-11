@@ -7,6 +7,7 @@ import (
 
 	"github.com/benbjohnson/clock"
 	"github.com/common-fate/common-fate/pkg/access"
+	"github.com/common-fate/common-fate/pkg/identity"
 	"github.com/common-fate/common-fate/pkg/notifiers"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/slack-go/slack"
@@ -33,6 +34,7 @@ type RequestMessageOpts struct {
 	// optional field that will replace the default requestor email with a slack @mention
 	RequestorSlackID string
 	RequestorEmail   string
+	RequestReviewer  *identity.User
 	WasReviewed      bool
 	IsWebhook        bool
 }
