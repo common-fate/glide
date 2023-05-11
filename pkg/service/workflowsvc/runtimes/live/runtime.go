@@ -10,11 +10,11 @@ import (
 	aws_config "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
 
-	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/cfaws"
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/handler"
 	"github.com/common-fate/common-fate/pkg/service/requestroutersvc"
+	"github.com/common-fate/common-fate/pkg/service/workflowsvc"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/targetgroupgranter"
 	"github.com/common-fate/ddb"
@@ -28,7 +28,7 @@ type Runtime struct {
 	RequestRouter   *requestroutersvc.Service
 }
 
-func (r *Runtime) Grant(ctx context.Context, grant access.GroupTarget) error {
+func (r *Runtime) Grant(ctx context.Context, grant workflowsvc.WorkflowGroupTarget) error {
 
 	cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 	if err != nil {
@@ -55,6 +55,7 @@ func (r *Runtime) Grant(ctx context.Context, grant access.GroupTarget) error {
 
 }
 func (r *Runtime) Revoke(ctx context.Context, grantID string) error {
+
 	// we can grab all this from the execution input for the step function we will use this as the source of truth
 	c, err := aws_config.LoadDefaultConfig(ctx)
 	if err != nil {

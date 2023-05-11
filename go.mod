@@ -149,6 +149,7 @@ require (
 	github.com/common-fate/analytics-go v0.2.0
 	github.com/common-fate/clio v1.1.0
 	github.com/common-fate/ddb v0.15.1-0.20230424033643-2558c36a3a5e
+	github.com/common-fate/iso8601 v1.1.0
 	github.com/common-fate/provider-registry-sdk-go v0.17.1
 	github.com/fatih/color v1.13.0
 	github.com/go-chi/cors v1.2.1

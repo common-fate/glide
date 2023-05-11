@@ -31,6 +31,29 @@ type GroupTarget struct {
 	RequestReviewers []string `json:"requestReviewers" dynamodbav:"requestReviewers, set"`
 }
 
+// func (g *GroupTarget) ToDBType() workflowsvc.WorkflowGroupTarget {
+// 	return workflowsvc.WorkflowGroupTarget{
+// 		ID:            g.ID,
+// 		GroupID:       g.GroupID,
+// 		RequestID:     g.RequestID,
+// 		RequestStatus: g.RequestStatus,
+// 		RequestedBy:   g.RequestedBy,
+// 		TargetCacheID: g.TargetCacheID,
+// 		TargetGroupID: g.TargetGroupID,
+// 		TargetKind:    g.TargetKind,
+// 		Fields:        g.Fields,
+// 		Grant: &workflowsvc.WorkflowGrant{
+// 			Subject: g.Grant.Subject,
+// 			Start:   g.Grant.Start,
+// 			End:     g.Grant.Start,
+// 			Status:  g.Grant.Status,
+// 		},
+// 		CreatedAt:        g.CreatedAt,
+// 		UpdatedAt:        g.UpdatedAt,
+// 		RequestReviewers: g.RequestReviewers,
+// 	}
+// }
+
 func (g *GroupTarget) FieldsToMap() map[string]string {
 	args := make(map[string]string)
 	for _, field := range g.Fields {

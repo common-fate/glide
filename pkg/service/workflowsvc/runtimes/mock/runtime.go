@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/handler"
 	"github.com/common-fate/common-fate/pkg/service/requestroutersvc"
+	"github.com/common-fate/common-fate/pkg/service/workflowsvc"
 	"github.com/common-fate/common-fate/pkg/service/workflowsvc/runtimes/local"
 	"github.com/common-fate/common-fate/pkg/targetgroupgranter"
 	"github.com/common-fate/ddb"
@@ -51,7 +51,7 @@ func NewRuntime(db ddb.Storage, eventBus EventPutter, router *requestroutersvc.S
 	}, router)}
 }
 
-func (r *Runtime) Grant(ctx context.Context, grant access.GroupTarget) error {
+func (r *Runtime) Grant(ctx context.Context, grant workflowsvc.WorkflowGroupTarget) error {
 	return r.runtime.Grant(ctx, grant)
 }
 

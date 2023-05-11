@@ -9,6 +9,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/handler"
 	"github.com/common-fate/common-fate/pkg/service/requestroutersvc"
+	"github.com/common-fate/common-fate/pkg/service/workflowsvc"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/targetgroupgranter"
 	"github.com/common-fate/ddb"
@@ -42,7 +43,7 @@ func NewRuntime(db ddb.Storage, granter GrantHandler, router *requestroutersvc.S
 	}
 }
 
-func (r *Runtime) Grant(ctx context.Context, grant access.GroupTarget) error {
+func (r *Runtime) Grant(ctx context.Context, grant workflowsvc.WorkflowGroupTarget) error {
 	log := logger.Get(ctx)
 
 	// create a channel to communicate with the goroutine
@@ -51,7 +52,7 @@ func (r *Runtime) Grant(ctx context.Context, grant access.GroupTarget) error {
 	// lock the grantsDoneChans map while adding the new channel
 	r.grantsRevokeChansM.Lock()
 	r.grantsRevokeChans[grant.ID] = grantWorkflow{
-		grant:  grant,
+		grant:  grant.ToDBType(),
 		revoke: revokeChan,
 		state:  stateChan,
 	}
@@ -66,7 +67,7 @@ func (r *Runtime) Grant(ctx context.Context, grant access.GroupTarget) error {
 	go func() {
 		// wait for start
 		if grant.Grant.Start.After(time.Now()) {
-			time.Sleep(time.Until(grant.Grant.Start))
+			time.Sleep(time.Until(grant.Grant.Start.Time))
 		}
 
 		state, err := r.Granter.HandleRequest(ctx, targetgroupgranter.InputEvent{
@@ -83,7 +84,7 @@ func (r *Runtime) Grant(ctx context.Context, grant access.GroupTarget) error {
 
 		// wait for end or cancellation
 		select {
-		case <-time.After(time.Until(grant.Grant.End)):
+		case <-time.After(time.Until(grant.Grant.End.Time)):
 			// grant ended, deactivate it
 			state, err = r.Granter.HandleRequest(ctx, targetgroupgranter.InputEvent{
 				Action:                   targetgroupgranter.DEACTIVATE,
