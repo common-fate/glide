@@ -20,17 +20,17 @@ type testOptions struct {
 	IsAdmin     bool
 }
 
-// func withRequestUser(user identity.User) func(*testOptions) {
-// 	return func(to *testOptions) {
-// 		to.RequestUser = user
-// 	}
-// }
+func WithRequestUser(user identity.User) func(*testOptions) {
+	return func(to *testOptions) {
+		to.RequestUser = user
+	}
+}
 
-// func withIsAdmin(isAdmin bool) func(*testOptions) {
-// 	return func(to *testOptions) {
-// 		to.IsAdmin = isAdmin
-// 	}
-// }
+func WithIsAdmin(isAdmin bool) func(*testOptions) {
+	return func(to *testOptions) {
+		to.IsAdmin = isAdmin
+	}
+}
 
 // newTestServer creates a configured API server for use in Go tests.
 // The default time of the server is 1st Jan 2022, 10:00am UTC.

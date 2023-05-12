@@ -10,7 +10,7 @@ import (
 )
 
 // Review a request
-// (POST /api/v1/access-group/{id}/review)
+// (POST /api/v1/requests/{requestId}/review/{groupId})
 func (a *API) UserReviewRequest(w http.ResponseWriter, r *http.Request, requestId string, groupId string) {
 	ctx := r.Context()
 	var reviewRequest types.ReviewRequest
@@ -24,7 +24,7 @@ func (a *API) UserReviewRequest(w http.ResponseWriter, r *http.Request, requestI
 
 	err = a.Access.Review(ctx, *user, isAdmin, requestId, groupId, reviewRequest)
 	if err == accesssvc.ErrAccesGroupNotFoundOrNoAccessToReview {
-		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusNotFound))
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusUnauthorized))
 		return
 	}
 	if err == accesssvc.ErrAccessGroupAlreadyReviewed {
@@ -36,7 +36,7 @@ func (a *API) UserReviewRequest(w http.ResponseWriter, r *http.Request, requestI
 		return
 	}
 	if err != nil {
-		apio.Error(ctx, w, err)
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusInternalServerError))
 		return
 	}
 	apio.JSON(ctx, w, nil, http.StatusNoContent)

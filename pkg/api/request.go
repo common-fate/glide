@@ -172,6 +172,7 @@ func (a *API) UserPostRequests(w http.ResponseWriter, r *http.Request) {
 	apio.JSON(ctx, w, result.ToAPI(), http.StatusOK)
 }
 
+// (POST /api/v1/requests/{requestid}/revoke)
 func (a *API) UserRevokeRequest(w http.ResponseWriter, r *http.Request, requestID string) {
 	ctx := r.Context()
 	isAdmin := auth.IsAdmin(ctx)
@@ -189,7 +190,7 @@ func (a *API) UserRevokeRequest(w http.ResponseWriter, r *http.Request, requestI
 		return
 	}
 	// user can revoke their own request and admins can revoke any request
-	if q.Result.Request.RequestedBy.Email == u.ID || isAdmin {
+	if q.Result.Request.RequestedBy.Email == u.Email || isAdmin {
 		req = *q.Result
 	} else { // reviewers can revoke reviewable requests
 		p := storage.GetRequestReviewer{RequestID: requestID, ReviewerID: u.Email}
@@ -207,6 +208,7 @@ func (a *API) UserRevokeRequest(w http.ResponseWriter, r *http.Request, requestI
 		apio.Error(ctx, w, err)
 		return
 	}
+
 	apio.JSON(ctx, w, result.ToAPI(), http.StatusOK)
 }
 

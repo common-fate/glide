@@ -13,6 +13,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/api/mocks"
 	"github.com/common-fate/common-fate/pkg/cache"
+	"github.com/common-fate/common-fate/pkg/identity"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/service/accesssvc"
 	"github.com/common-fate/common-fate/pkg/storage"
@@ -31,7 +32,7 @@ var r = access.RequestWithGroupsWithTargets{
 		RequestStatus:    "ACTIVE",
 		GroupTargetCount: 4,
 		RequestedBy: access.RequestedBy{
-			Email:     "",
+			Email:     "user1@gmail.com",
 			FirstName: "",
 			ID:        "",
 			LastName:  "",
@@ -69,10 +70,10 @@ var r = access.RequestWithGroupsWithTargets{
 				},
 
 				RequestedBy: access.RequestedBy{
-					Email:     "",
-					FirstName: "",
-					ID:        "",
-					LastName:  "",
+					Email:     "abc@gmail.com",
+					FirstName: "abc",
+					ID:        "123",
+					LastName:  "xyz",
 				},
 			},
 			Targets: []access.GroupTarget{
@@ -82,10 +83,10 @@ var r = access.RequestWithGroupsWithTargets{
 					RequestID:     "req_123",
 					RequestStatus: "ACTIVE",
 					RequestedBy: access.RequestedBy{
-						Email:     "",
-						FirstName: "",
-						ID:        "",
-						LastName:  "",
+						Email:     "abc@gmail.com",
+						FirstName: "abc",
+						ID:        "123",
+						LastName:  "xyz",
 					},
 					TargetCacheID: "",
 					TargetGroupID: "aws",
@@ -211,7 +212,7 @@ func TestUserCreateRequest(t *testing.T) {
   "reason": "Sample reason"
 }`,
 			wantCode:  http.StatusOK,
-			wantBody:  `{"accessGroups":[{"accessRule":{"timeConstraints":{"maxDurationSeconds":0}},"createdAt":"0001-01-01T00:00:00Z","id":"group1","requestId":"req_123","requestStatus":"ACTIVE","requestedBy":{"email":"","firstName":"","id":"","lastName":""},"requestedTiming":{"durationSeconds":0},"status":"APPROVED","targets":[{"accessGroupId":"group1","fields":[{"fieldTitle":"","id":"123","value":"","valueLabel":""}],"id":"xyz","requestId":"req_123","requestedBy":{"email":"","firstName":"","id":"","lastName":""},"status":"ACTIVE","targetGroupId":"aws","targetKind":{"icon":"","kind":"","name":"","publisher":""}}],"updatedAt":"0001-01-01T00:00:00Z"},{"accessRule":{"timeConstraints":{"maxDurationSeconds":0}},"createdAt":"0001-01-01T00:00:00Z","id":"group2","requestId":"123","requestStatus":"ACTIVE","requestedBy":{"email":"","firstName":"","id":"","lastName":""},"requestedTiming":{"durationSeconds":0},"status":"APPROVED","targets":[{"accessGroupId":"group2","fields":[{"fieldTitle":"","id":"123","value":"","valueLabel":""}],"id":"xyz","requestId":"req_123","requestedBy":{"email":"","firstName":"","id":"","lastName":""},"status":"ACTIVE","targetGroupId":"aws","targetKind":{"icon":"","kind":"","name":"","publisher":""}}],"updatedAt":"0001-01-01T00:00:00Z"}],"id":"req_123","purpose":{"reason":"sample reason"},"requestedAt":"0001-01-01T00:00:00Z","requestedBy":{"email":"","firstName":"","id":"","lastName":""},"status":"ACTIVE"}`,
+			wantBody:  `{"accessGroups":[{"accessRule":{"timeConstraints":{"maxDurationSeconds":0}},"createdAt":"0001-01-01T00:00:00Z","id":"group1","requestId":"req_123","requestStatus":"ACTIVE","requestedBy":{"email":"abc@gmail.com","firstName":"abc","id":"123","lastName":"xyz"},"requestedTiming":{"durationSeconds":0},"status":"APPROVED","targets":[{"accessGroupId":"group1","fields":[{"fieldTitle":"","id":"123","value":"","valueLabel":""}],"id":"xyz","requestId":"req_123","requestedBy":{"email":"abc@gmail.com","firstName":"abc","id":"123","lastName":"xyz"},"status":"ACTIVE","targetGroupId":"aws","targetKind":{"icon":"","kind":"","name":"","publisher":""}}],"updatedAt":"0001-01-01T00:00:00Z"},{"accessRule":{"timeConstraints":{"maxDurationSeconds":0}},"createdAt":"0001-01-01T00:00:00Z","id":"group2","requestId":"123","requestStatus":"ACTIVE","requestedBy":{"email":"","firstName":"","id":"","lastName":""},"requestedTiming":{"durationSeconds":0},"status":"APPROVED","targets":[{"accessGroupId":"group2","fields":[{"fieldTitle":"","id":"123","value":"","valueLabel":""}],"id":"xyz","requestId":"req_123","requestedBy":{"email":"","firstName":"","id":"","lastName":""},"status":"ACTIVE","targetGroupId":"aws","targetKind":{"icon":"","kind":"","name":"","publisher":""}}],"updatedAt":"0001-01-01T00:00:00Z"}],"id":"req_123","purpose":{"reason":"sample reason"},"requestedAt":"0001-01-01T00:00:00Z","requestedBy":{"email":"user1@gmail.com","firstName":"","id":"","lastName":""},"status":"ACTIVE"}`,
 			createRes: r,
 		},
 
@@ -432,8 +433,7 @@ func TestUserGetRequest(t *testing.T) {
 func TestUserListRequests(t *testing.T) {
 
 	type testcase struct {
-		name string
-		// giveStatus     *string
+		name           string
 		giveFilter     *string
 		mockDBQuery    ddb.QueryBuilder
 		mockDBQueryErr error
@@ -452,95 +452,33 @@ func TestUserListRequests(t *testing.T) {
 				Request: r.Request,
 				Groups:  r.Groups,
 			}}},
-
 			wantBody: `{"next":null,"requests":[{"accessGroups":[{"accessRule":{"timeConstraints":{"maxDurationSeconds":0}},"createdAt":"0001-01-01T00:00:00Z","id":"group1","requestId":"req_123","requestStatus":"ACTIVE","requestedBy":{"email":"","firstName":"","id":"","lastName":""},"requestedTiming":{"durationSeconds":0},"status":"APPROVED","targets":[{"accessGroupId":"group1","fields":[{"fieldTitle":"","id":"123","value":"","valueLabel":""}],"id":"xyz","requestId":"req_123","requestedBy":{"email":"","firstName":"","id":"","lastName":""},"status":"ACTIVE","targetGroupId":"aws","targetKind":{"icon":"","kind":"","name":"","publisher":""}}],"updatedAt":"0001-01-01T00:00:00Z"},{"accessRule":{"timeConstraints":{"maxDurationSeconds":0}},"createdAt":"0001-01-01T00:00:00Z","id":"group2","requestId":"123","requestStatus":"ACTIVE","requestedBy":{"email":"","firstName":"","id":"","lastName":""},"requestedTiming":{"durationSeconds":0},"status":"APPROVED","targets":[{"accessGroupId":"group2","fields":[{"fieldTitle":"","id":"123","value":"","valueLabel":""}],"id":"xyz","requestId":"req_123","requestedBy":{"email":"","firstName":"","id":"","lastName":""},"status":"ACTIVE","targetGroupId":"aws","targetKind":{"icon":"","kind":"","name":"","publisher":""}}],"updatedAt":"0001-01-01T00:00:00Z"}],"id":"req_123","purpose":{"reason":"sample reason"},"requestedAt":"0001-01-01T00:00:00Z","requestedBy":{"email":"","firstName":"","id":"","lastName":""},"status":"ACTIVE"}]}`,
 		},
-		// {
-		// 	name:       "ok requestor with status",
-		// 	wantCode:   http.StatusOK,
-		// 	giveStatus: &approved,
-		// 	mockDBQuery: &storage.ListRequestsForUserAndStatus{Result: []requests.Requestv2{{
-		// 		ID:          "req_123",
-		// 		Status:      access.APPROVED,
-		// 		Rule:        "abcd",
-		// 		RuleVersion: "efgh",
-		// 	}}},
-
-		// 	wantBody: `{"next":null,"requests":[{"accessRuleId":"abcd","accessRuleVersion":"efgh","id":"req_123","requestedAt":"0001-01-01T00:00:00Z","requestor":"","status":"APPROVED","timing":{"durationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z"}]}`,
-		// },
-		// {
-		// 	name:         "ok reviewer",
-		// 	wantCode:     http.StatusOK,
-		// 	giveReviewer: &reviewer,
-		// 	mockDBQuery: &storage.ListRequestsForReviewer{Result: []requests.Requestv2{{
-		// 		ID:          "req_123",
-		// 		Status:      types.RequestStatusPENDING,
-		// 		Rule:        "abcd",
-		// 		RuleVersion: "efgh",
-		// 	}}},
-
-		// 	wantBody: `{"next":null,"requests":[{"accessRuleId":"abcd","accessRuleVersion":"efgh","id":"req_123","requestedAt":"0001-01-01T00:00:00Z","requestor":"","status":"PENDING","timing":{"durationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z"}]}`,
-		// },
-		// {
-		// 	name:         "ok requestor with status",
-		// 	wantCode:     http.StatusOK,
-		// 	giveStatus:   &approved,
-		// 	giveReviewer: &reviewer,
-		// 	mockDBQuery: &storage.ListRequestsForReviewerAndStatus{Result: []requests.Requestv2{{
-		// 		ID:          "req_123",
-		// 		Status:      access.APPROVED,
-		// 		Rule:        "abcd",
-		// 		RuleVersion: "efgh",
-		// 	}}},
-
-		// 	wantBody: `{"next":null,"requests":[{"accessRuleId":"abcd","accessRuleVersion":"efgh","id":"req_123","requestedAt":"0001-01-01T00:00:00Z","requestor":"","status":"APPROVED","timing":{"durationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z"}]}`,
-		// },
-		// {
-		// 	name:           "internal error user",
-		// 	wantCode:       http.StatusInternalServerError,
-		// 	mockDBQuery:    &storage.ListRequestsForUser{},
-		// 	mockDBQueryErr: errors.New("random error"),
-		// 	wantBody:       `{"error":"Internal Server Error"}`,
-		// },
-		// {
-		// 	name:           "internal error user and status",
-		// 	wantCode:       http.StatusInternalServerError,
-		// 	giveStatus:     &approved,
-		// 	mockDBQuery:    &storage.ListRequestsForUserAndStatus{},
-		// 	mockDBQueryErr: errors.New("random error"),
-		// 	wantBody:       `{"error":"Internal Server Error"}`,
-		// },
-		// {
-		// 	name:           "internal error reviewer",
-		// 	wantCode:       http.StatusInternalServerError,
-		// 	giveReviewer:   &reviewer,
-		// 	mockDBQuery:    &storage.ListRequestsForReviewer{},
-		// 	mockDBQueryErr: errors.New("random error"),
-		// 	wantBody:       `{"error":"Internal Server Error"}`,
-		// },
-		// {
-		// 	name:           "internal error reviewer and status",
-		// 	wantCode:       http.StatusInternalServerError,
-		// 	giveReviewer:   &reviewer,
-		// 	giveStatus:     &approved,
-		// 	mockDBQuery:    &storage.ListRequestsForReviewerAndStatus{},
-		// 	mockDBQueryErr: errors.New("random error"),
-		// 	wantBody:       `{"error":"Internal Server Error"}`,
-		// },
-		// {
-		// 	name:         "bad reviewer param",
-		// 	wantCode:     http.StatusBadRequest,
-		// 	giveReviewer: &badReviewer,
-
-		// 	wantBody: `{"error":"parameter \"reviewer\" in query has an error: value hello: an invalid boolean: invalid syntax"}`,
-		// },
-		// {
-		// 	name:         "bad status",
-		// 	wantCode:     http.StatusBadRequest,
-		// 	giveReviewer: &reviewer,
-		// 	giveStatus:   &badStatus,
-		// 	wantBody:     `{"error":"parameter \"status\" in query has an error: value is not one of the allowed values"}`,
-		// },
+		{
+			name:           "ok with no requests",
+			wantCode:       http.StatusOK,
+			mockDBQuery:    &storage.ListRequestWithGroupsWithTargetsForUser{Result: nil},
+			mockDBQueryErr: nil,
+			wantBody:       `{"next":null,"requests":[]}`,
+		},
+		{
+			name:           "unhandled error",
+			wantCode:       http.StatusInternalServerError,
+			mockDBQuery:    &storage.ListRequestWithGroupsWithTargetsForUser{},
+			mockDBQueryErr: errors.New("random error"),
+			wantBody:       `{"error":"Internal Server Error"}`,
+		},
+		{
+			name:       "with filter param PAST",
+			giveFilter: aws.String("PAST"),
+			wantCode:   http.StatusOK,
+			mockDBQuery: &storage.ListRequestWithGroupsWithTargetsForUserAndPastUpcoming{
+				Result: []access.RequestWithGroupsWithTargets{{
+					Request: r.Request,
+					Groups:  r.Groups,
+				}}},
+			wantBody: `{"next":null,"requests":[{"accessGroups":[{"accessRule":{"timeConstraints":{"maxDurationSeconds":0}},"createdAt":"0001-01-01T00:00:00Z","id":"group1","requestId":"req_123","requestStatus":"ACTIVE","requestedBy":{"email":"","firstName":"","id":"","lastName":""},"requestedTiming":{"durationSeconds":0},"status":"APPROVED","targets":[{"accessGroupId":"group1","fields":[{"fieldTitle":"","id":"123","value":"","valueLabel":""}],"id":"xyz","requestId":"req_123","requestedBy":{"email":"","firstName":"","id":"","lastName":""},"status":"ACTIVE","targetGroupId":"aws","targetKind":{"icon":"","kind":"","name":"","publisher":""}}],"updatedAt":"0001-01-01T00:00:00Z"},{"accessRule":{"timeConstraints":{"maxDurationSeconds":0}},"createdAt":"0001-01-01T00:00:00Z","id":"group2","requestId":"123","requestStatus":"ACTIVE","requestedBy":{"email":"","firstName":"","id":"","lastName":""},"requestedTiming":{"durationSeconds":0},"status":"APPROVED","targets":[{"accessGroupId":"group2","fields":[{"fieldTitle":"","id":"123","value":"","valueLabel":""}],"id":"xyz","requestId":"req_123","requestedBy":{"email":"","firstName":"","id":"","lastName":""},"status":"ACTIVE","targetGroupId":"aws","targetKind":{"icon":"","kind":"","name":"","publisher":""}}],"updatedAt":"0001-01-01T00:00:00Z"}],"id":"req_123","purpose":{"reason":"sample reason"},"requestedAt":"0001-01-01T00:00:00Z","requestedBy":{"email":"","firstName":"","id":"","lastName":""},"status":"ACTIVE"}]}`,
+		},
 	}
 
 	for _, tc := range testcases {
@@ -571,8 +509,6 @@ func TestUserListRequests(t *testing.T) {
 			data, err := io.ReadAll(rr.Body)
 			if err != nil {
 				t.Fatal(err)
-			} else {
-				fmt.Print((data))
 			}
 
 			if tc.wantBody != "" {
@@ -583,236 +519,200 @@ func TestUserListRequests(t *testing.T) {
 
 }
 
-// func TestRevokeRequest(t *testing.T) {
-// 	type testcase struct {
-// 		request              requests.Requestv2
-// 		name                 string
-// 		give                 string
-// 		withUID              string
-// 		withUEmail           string
-// 		withRevokeGrantErr   error
-// 		wantCode             int
-// 		withGetRequestError  error
-// 		withGetReviewerError error
-// 		wantBody             string
-// 		withIsAdmin          bool
-// 	}
+func TestRevokeRequest(t *testing.T) {
+	type testcase struct {
+		request              access.RequestWithGroupsWithTargets
+		name                 string
+		give                 string
+		revokeSvcResp        *access.RequestWithGroupsWithTargets
+		withUID              string
+		withUEmail           string
+		withRevokeGrantErr   error
+		wantCode             int
+		withGetRequestError  error
+		withGetReviewerError error
+		wantBody             string
+		withIsAdmin          bool
+	}
 
-// 	testcases := []testcase{
+	testcases := []testcase{
+		{
+			name:                "grant not found",
+			request:             r,
+			wantCode:            http.StatusNotFound,
+			withGetRequestError: ddb.ErrNoItems,
+			wantBody:            `{"error":"request not found or you don't have access to it"}`,
+		},
+		{
+			name:          "user can revoke their own grant",
+			request:       r,
+			withUID:       "user1",
+			withUEmail:    "user1@gmail.com",
+			wantCode:      http.StatusOK,
+			revokeSvcResp: &access.RequestWithGroupsWithTargets{},
+			withIsAdmin:   false,
+		},
+		{
+			name:          "admin can revoke any request",
+			revokeSvcResp: &access.RequestWithGroupsWithTargets{},
+			withUID:       "admin",
+			withUEmail:    "admin@mail.com",
+			withIsAdmin:   true,
+			wantCode:      http.StatusOK,
+		},
+		{
+			name:                "user cant revoke other users request",
+			withIsAdmin:         false,
+			withUID:             "abcd",
+			withUEmail:          "userinvalid@gmai.com",
+			request:             r,
+			wantCode:            http.StatusNotFound,
+			withGetRequestError: ddb.ErrNoItems,
+			wantBody:            `{"error":"request not found or you don't have access to it"}`,
+		},
+		{
+			name:          "reviewer can revoke request",
+			request:       r,
+			revokeSvcResp: &access.RequestWithGroupsWithTargets{},
+			withUID:       "user2",
+			withUEmail:    "user2@mail.com",
+			wantCode:      http.StatusOK,
+		},
+	}
 
-// 		{
-// 			name:                "grant not found",
-// 			request:             requests.Requestv2{},
-// 			wantCode:            http.StatusNotFound,
-// 			withGetRequestError: ddb.ErrNoItems,
-// 			wantBody:            `{"error":"request not found or you don't have access to it"}`,
-// 		},
-// 		{
-// 			name: "user can revoke their own grant",
-// 			request: requests.Requestv2{
-// 				RequestedBy: "user1",
-// 			},
-// 			withUID:    "user1",
-// 			withUEmail: "user1@mail.com",
-// 			wantCode:   http.StatusOK,
-// 		},
-// 		{
-// 			name: "admin can revoke any request",
-// 			request: requests.Requestv2{
-// 				RequestedBy: "user1",
-// 			},
-// 			withUID:     "admin",
-// 			withUEmail:  "admin@mail.com",
-// 			withIsAdmin: true,
-// 			wantCode:    http.StatusOK,
-// 		},
-// 		{
-// 			name: "user cant revoke other users request",
-// 			request: requests.Requestv2{
-// 				RequestedBy: "user1",
-// 			},
-// 			withUID:              "user2",
-// 			withUEmail:           "user2@mail.com",
-// 			withGetReviewerError: ddb.ErrNoItems,
-// 			wantCode:             http.StatusNotFound,
-// 			wantBody:             `{"error":"request not found or you don't have access to it"}`,
-// 		},
-// 		{
-// 			name: "reviewer can revoke request",
-// 			request: requests.Requestv2{
-// 				RequestedBy: "user1",
-// 			},
-// 			withUID:    "user2",
-// 			withUEmail: "user2@mail.com",
-// 			wantCode:   http.StatusOK,
-// 		},
-// 	}
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
 
-// 	for _, tc := range testcases {
-// 		t.Run(tc.name, func(t *testing.T) {
+			db := ddbmock.New(t)
+			db.MockQueryWithErr(&storage.GetRequestWithGroupsWithTargets{Result: &tc.request}, tc.withGetRequestError)
+			db.MockQueryWithErr(&storage.GetRequestReviewer{Result: &access.Reviewer{
+				ReviewerID: tc.request.Request.RequestedBy.ID,
+				RequestID:  tc.request.Request.ID,
+			}}, tc.withGetReviewerError)
+			ctrl := gomock.NewController(t)
+			m := mocks.NewMockAccessService(ctrl)
 
-// 			db := ddbmock.New(t)
-// 			db.MockQueryWithErr(&storage.GetRequest{Result: &tc.request}, tc.withGetRequestError)
-// 			db.MockQueryWithErr(&storage.GetRequestReviewer{Result: &requests.Reviewer{Request: tc.request}}, tc.withGetReviewerError)
-// 			ctrl := gomock.NewController(t)
-// 			workflowMock := mocks.NewMockWorkflow(ctrl)
-// 			workflowMock.EXPECT().Revoke(gomock.Any(), tc.request, tc.withUID, tc.withUEmail).AnyTimes().Return(nil, tc.withRevokeGrantErr)
+			m.EXPECT().RevokeRequest(gomock.Any(), gomock.Any()).Return(tc.revokeSvcResp, tc.withRevokeGrantErr).AnyTimes()
+			a := API{DB: db, Access: m}
+			handler := newTestServer(t, &a, WithIsAdmin(tc.withIsAdmin), WithRequestUser(identity.User{ID: tc.withUID, Email: tc.withUEmail}))
 
-// 			a := API{DB: db, Workflow: workflowMock}
-// 			handler := newTestServer(t, &a, withIsAdmin(tc.withIsAdmin), withRequestUser(identity.User{ID: tc.withUID, Email: tc.withUEmail}))
+			req, err := http.NewRequest("POST", "/api/v1/requests/123/revoke", strings.NewReader(tc.give))
+			if err != nil {
+				t.Fatal(err)
+			}
+			req.Header.Add("Content-Type", "application/json")
+			rr := httptest.NewRecorder()
 
-// 			req, err := http.NewRequest("POST", "/api/v1/requests/123/revoke", strings.NewReader(tc.give))
-// 			if err != nil {
-// 				t.Fatal(err)
-// 			}
-// 			req.Header.Add("Content-Type", "application/json")
-// 			rr := httptest.NewRecorder()
+			handler.ServeHTTP(rr, req)
+			data, err := io.ReadAll(rr.Body)
+			if err != nil {
+				t.Fatal(err)
+			}
 
-// 			handler.ServeHTTP(rr, req)
-// 			data, err := io.ReadAll(rr.Body)
-// 			if err != nil {
-// 				t.Fatal(err)
-// 			} else {
-// 				fmt.Print((data))
-// 			}
-// 			assert.Equal(t, tc.wantCode, rr.Code)
-// 			if tc.wantBody != "" {
-// 				assert.Equal(t, tc.wantBody, string(data))
-// 			}
-// 		})
-// 	}
-// }
-// func TestUserListRequestEvents(t *testing.T) {
+			assert.Equal(t, tc.wantCode, rr.Code)
+			if tc.wantBody != "" {
+				assert.Equal(t, tc.wantBody, string(data))
+			}
+		})
+	}
+}
 
-// 	type testcase struct {
-// 		name                      string
-// 		mockGetRequest            storage.GetRequest
-// 		mockGetRequestErr         error
-// 		mockGetRequestReviewer    storage.GetRequestReviewer
-// 		mockGetRequestReviewerErr error
-// 		mockListEvents            storage.ListRequestEvents
-// 		mockListEventsErr         error
-// 		apiUserID                 string
-// 		apiUserIsAdmin            bool
-// 		// expected HTTP response code
-// 		wantCode int
-// 		// expected HTTP response body
-// 		wantBody string
-// 	}
+func TestUserListRequestEvents(t *testing.T) {
+	type testcase struct {
+		name                      string
+		mockGetRequest            storage.GetRequestWithGroupsWithTargets
+		mockGetRequestErr         error
+		mockGetRequestReviewer    storage.GetRequestReviewer
+		mockGetRequestReviewerErr error
+		mockListEvents            storage.ListRequestEvents
+		mockListEventsErr         error
+		apiUserID                 string
+		apiUserIsAdmin            bool
+		// expected HTTP response code
+		wantCode int
+		// expected HTTP response body
+		wantBody string
+	}
 
-// 	testcases := []testcase{
+	testcases := []testcase{
+		{
+			name:     "ok requestor",
+			wantCode: http.StatusOK,
+			mockGetRequest: storage.GetRequestWithGroupsWithTargets{
+				ID:     "",
+				Result: &r,
+			},
+			mockListEvents: storage.ListRequestEvents{
+				RequestID: "1234",
+				Result: []access.RequestEvent{
+					{ID: "event", RequestID: "1234"},
+				},
+			},
+			apiUserID: "abcd",
+			wantBody:  `{"events":[{"createdAt":"0001-01-01T00:00:00Z","id":"event","requestId":"1234"}],"next":null}`,
+		},
+		{
+			name:     "empty event lists",
+			wantCode: http.StatusOK,
+			mockGetRequest: storage.GetRequestWithGroupsWithTargets{
+				ID:     "",
+				Result: &r,
+			},
+			mockGetRequestReviewer: storage.GetRequestReviewer{
+				RequestID:  "1234",
+				ReviewerID: "abcd",
+				Result: &access.Reviewer{
+					ReviewerID:    "abcd",
+					RequestID:     "req_123",
+					Notifications: access.Notifications{},
+				},
+			},
+			mockListEvents: storage.ListRequestEvents{
+				RequestID: "1234",
+				Result:    []access.RequestEvent{},
+			},
+			apiUserID: "abcd",
+			wantBody:  `{"events":[],"next":null}`,
+		},
+		{
+			name:              "not found",
+			wantCode:          http.StatusUnauthorized,
+			mockGetRequestErr: ddb.ErrNoItems,
 
-// 		{
-// 			name:     "ok requestor",
-// 			wantCode: http.StatusOK,
-// 			mockGetRequest: storage.GetRequest{
-// 				ID: "1234",
-// 				Result: &requests.Requestv2{
-// 					ID:          "1234",
-// 					RequestedBy: "abcd",
-// 				},
-// 			},
-// 			mockListEvents: storage.ListRequestEvents{
-// 				RequestID: "1234",
-// 				Result: []requests.Requestv2Event{
-// 					{ID: "event", RequestID: "1234"},
-// 				},
-// 			},
-// 			apiUserID: "abcd",
-// 			wantBody:  `{"events":[{"createdAt":"0001-01-01T00:00:00Z","id":"event","requestId":"1234"}],"next":null}`,
-// 		},
-// 		{
-// 			name:     "ok reviewer",
-// 			wantCode: http.StatusOK,
-// 			mockGetRequest: storage.GetRequest{
-// 				ID: "1234",
-// 				Result: &requests.Requestv2{
-// 					ID:          "1234",
-// 					RequestedBy: "wrong",
-// 				},
-// 			},
-// 			mockGetRequestReviewer: storage.GetRequestReviewer{
-// 				RequestID:  "1234",
-// 				ReviewerID: "abcd",
-// 				Result: &requests.Reviewer{
-// 					ReviewerID: "abcd",
-// 					Request: requests.Requestv2{
-// 						ID:          "1234",
-// 						RequestedBy: "wrong",
-// 					},
-// 				},
-// 			},
-// 			mockListEvents: storage.ListRequestEvents{
-// 				RequestID: "1234",
-// 				Result: []requests.Requestv2Event{
-// 					{ID: "event", RequestID: "1234"},
-// 				},
-// 			},
-// 			apiUserID: "abcd",
-// 			wantBody:  `{"events":[{"createdAt":"0001-01-01T00:00:00Z","id":"event","requestId":"1234"}],"next":null}`,
-// 		},
-// 		{
-// 			name:     "ok admin",
-// 			wantCode: http.StatusOK,
-// 			mockGetRequest: storage.GetRequest{
-// 				ID: "1234",
-// 				Result: &requests.Requestv2{
-// 					ID:          "1234",
-// 					RequestedBy: "wrong",
-// 				},
-// 			},
-// 			mockGetRequestReviewerErr: ddb.ErrNoItems,
-// 			mockListEvents: storage.ListRequestEvents{
-// 				RequestID: "1234",
-// 				Result: []requests.Requestv2Event{
-// 					{ID: "event", RequestID: "1234"},
-// 				},
-// 			},
-// 			apiUserID:      "abcd",
-// 			apiUserIsAdmin: true,
-// 			wantBody:       `{"events":[{"createdAt":"0001-01-01T00:00:00Z","id":"event","requestId":"1234"}],"next":null}`,
-// 		},
-// 		{
-// 			name:              "not found",
-// 			wantCode:          http.StatusUnauthorized,
-// 			mockGetRequestErr: ddb.ErrNoItems,
+			wantBody: `{"error":"item query returned no items"}`,
+		},
+	}
 
-// 			wantBody: `{"error":"item query returned no items"}`,
-// 		},
-// 	}
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
 
-// 	for _, tc := range testcases {
-// 		t.Run(tc.name, func(t *testing.T) {
-//
-// 			db := ddbmock.New(t)
-// 			db.MockQueryWithErr(&tc.mockGetRequest, tc.mockGetRequestErr)
-// 			db.MockQueryWithErr(&tc.mockListEvents, tc.mockListEventsErr)
-// 			db.MockQueryWithErr(&tc.mockGetRequestReviewer, tc.mockGetRequestReviewerErr)
-// 			a := API{DB: db}
-// 			handler := newTestServer(t, &a, withRequestUser(identity.User{ID: tc.apiUserID}), withIsAdmin(tc.apiUserIsAdmin))
+			db := ddbmock.New(t)
+			db.MockQueryWithErr(&tc.mockGetRequest, tc.mockGetRequestErr)
+			db.MockQueryWithErr(&tc.mockListEvents, tc.mockListEventsErr)
+			db.MockQueryWithErr(&tc.mockGetRequestReviewer, tc.mockGetRequestReviewerErr)
+			a := API{DB: db}
+			handler := newTestServer(t, &a, WithRequestUser(identity.User{ID: tc.apiUserID}), WithIsAdmin(tc.apiUserIsAdmin))
 
-// 			req, err := http.NewRequest("GET", "/api/v1/requests/1234/events", strings.NewReader(""))
-// 			if err != nil {
-// 				t.Fatal(err)
-// 			}
-// 			req.Header.Add("Content-Type", "application/json")
-// 			rr := httptest.NewRecorder()
+			req, err := http.NewRequest("GET", "/api/v1/requests/1234/events", strings.NewReader(""))
+			if err != nil {
+				t.Fatal(err)
+			}
+			req.Header.Add("Content-Type", "application/json")
+			rr := httptest.NewRecorder()
 
-// 			handler.ServeHTTP(rr, req)
+			handler.ServeHTTP(rr, req)
 
-// 			assert.Equal(t, tc.wantCode, rr.Code)
+			assert.Equal(t, tc.wantCode, rr.Code)
 
-// 			data, err := io.ReadAll(rr.Body)
-// 			if err != nil {
-// 				t.Fatal(err)
-// 			} else {
-// 				fmt.Print((data))
-// 			}
+			data, err := io.ReadAll(rr.Body)
+			if err != nil {
+				t.Fatal(err)
+			}
 
-// 			if tc.wantBody != "" {
-// 				assert.Equal(t, tc.wantBody, string(data))
-// 			}
-// 		})
-// 	}
+			if tc.wantBody != "" {
+				assert.Equal(t, tc.wantBody, string(data))
+			}
+		})
+	}
 
-// }
+}
