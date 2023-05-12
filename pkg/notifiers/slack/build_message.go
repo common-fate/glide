@@ -52,8 +52,6 @@ func BuildRequestReviewMessage(o RequestMessageOpts) (summary string, msg slack.
 
 	group := o.Group
 
-	// @TODO: we're wondering where the best place it to run this itteration logic...
-
 	requestor := group.RequestedBy.Email
 	if o.RequestorSlackID != "" {
 		requestor = fmt.Sprintf("<@%s>", o.RequestorSlackID)
@@ -186,7 +184,6 @@ func BuildRequestDetailMessage(o RequestDetailMessageOpts) (summary string, msg 
 	duration := end.Sub(start) // if this is off by a couple seconds it could make the duration values inconsistent
 
 	requestDetails := []*slack.TextBlockObject{
-
 		{
 			Type: "mrkdwn",
 			Text: fmt.Sprintf("*Duration:*\n%s", duration),
@@ -197,7 +194,16 @@ func BuildRequestDetailMessage(o RequestDetailMessageOpts) (summary string, msg 
 		},
 	}
 
-	// for _, v := range access_group. {
+	// FIELD MAPPINGS
+	//
+	// If we want to map over fields we can use `o.Request.Targets`
+	//
+	// 🚨🚨 Since a request group contains multipe targets, each with multiple fields 🚨🚨
+	// How best should we dislay this in a single slack request
+	// Is it ok to base it off the first target?
+	// Is it ok to display a max of 2 fields from the target?
+
+	// for _, v := range o.Request.Targets {
 	// 	requestDetails = append(requestDetails, &slack.TextBlockObject{
 	// 		Type: "mrkdwn",
 	// 		Text: fmt.Sprintf("*%s:*\n%s", v.Title, v.Label),
@@ -228,80 +234,3 @@ func BuildRequestDetailMessage(o RequestDetailMessageOpts) (summary string, msg 
 
 	return summary, msg
 }
-
-// func (n *SlackNotifier) SendUpdatesForAccess(ctx context.Context, log *zap.SugaredLogger, request access.Request) {
-// 	// Loop over the request reviewers
-// 	reviewers := storage.ListRequestReviewers{RequestID: request.ID}
-// 	_, err := n.DB.Query(ctx, &reviewers)
-// 	if err != nil && err != ddb.ErrNoItems {
-// 		log.Errorw("failed to fetch reviewers for request", zap.Error(err))
-// 		return
-// 	}
-// 	reqReviewer := storage.GetUser{ID: requestEvent.ReviewerID}
-// 	_, err = n.DB.Query(ctx, &reqReviewer)
-// 	if err != nil && request.Status != access.CANCELLED {
-// 		log.Errorw("failed to fetch reviewer for request which wasn't cancelled", zap.Error(err))
-// 		return
-// 	}
-// 	reviewURL, err := notifiers.ReviewURL(n.FrontendURL, request.ID)
-// 	if err != nil {
-// 		log.Errorw("building review URL", zap.Error(err))
-// 		return
-// 	}
-// 	requestArguments, err := n.RenderRequestArguments(ctx, log, request, rule)
-// 	if err != nil {
-// 		log.Errorw("failed to generate request arguments, skipping including them in the slack message", "error", err)
-// 	}
-// 	log.Infow("messaging reviewers", "reviewers", reviewers.Result)
-// 	if n.directMessageClient != nil {
-// 		// get the requestor's Slack user ID if it exists to render it nicely in the message to approvers.
-// 		var slackUserID string
-// 		requestor, err := n.directMessageClient.client.GetUserByEmailContext(ctx, requestingUser.Email)
-// 		if err != nil {
-// 			// log this instead of returning
-// 			log.Errorw("failed to get slack user id, defaulting to email", "user", requestingUser.Email, zap.Error(err))
-// 		}
-// 		if requestor != nil {
-// 			slackUserID = requestor.ID
-// 		}
-// 		_, msg := BuildRequestReviewMessage(RequestMessageOpts{
-// 			Request:          request,
-// 			RequestArguments: requestArguments,
-// 			Rule:             rule,
-// 			RequestorSlackID: slackUserID,
-// 			RequestorEmail:   requestingUser.Email,
-// 			ReviewURLs:       reviewURL,
-// 			WasReviewed:      true,
-// 			RequestReviewer:  reqReviewer.Result,
-// 			IsWebhook:        false,
-// 		})
-// 		for _, usr := range reviewers.Result {
-// 			err = n.UpdateMessageBlockForReviewer(ctx, usr, msg)
-// 			if err != nil {
-// 				log.Errorw("failed to update slack message", "user", usr, zap.Error(err))
-// 			}
-// 		}
-// 	}
-
-// 	// log for testing purposes
-// 	if len(n.webhooks) > 0 {
-// 		log.Infow("webhooks found", "webhooks", n.webhooks)
-// 	}
-// 	// this does not include the slackUserID because we don't have access to look it up
-// 	summary, msg := BuildRequestReviewMessage(RequestMessageOpts{
-// 		Request:          request,
-// 		RequestArguments: requestArguments,
-// 		Rule:             rule,
-// 		RequestorEmail:   requestingUser.Email,
-// 		ReviewURLs:       reviewURL,
-// 		WasReviewed:      true,
-// 		RequestReviewer:  reqReviewer.Result,
-// 		IsWebhook:        true,
-// 	})
-// 	for _, webhook := range n.webhooks {
-// 		err = webhook.SendWebhookMessage(ctx, msg.Blocks, summary)
-// 		if err != nil {
-// 			log.Errorw("failed to send review message to incomingWebhook channel", "error", err)
-// 		}
-// 	}
-// }
