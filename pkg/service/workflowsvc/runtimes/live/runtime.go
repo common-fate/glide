@@ -11,10 +11,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
 	"go.uber.org/zap"
 
+	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/cfaws"
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/service/requestroutersvc"
-	"github.com/common-fate/common-fate/pkg/service/workflowsvc"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/targetgroupgranter"
 	"github.com/common-fate/ddb"
@@ -33,7 +33,7 @@ type Runtime struct {
 	RequestRouter *requestroutersvc.Service
 }
 
-func (r *Runtime) Grant(ctx context.Context, grant workflowsvc.CreateGroupTargetRequest) error {
+func (r *Runtime) Grant(ctx context.Context, grant access.GroupTarget) error {
 
 	cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 	if err != nil {

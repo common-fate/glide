@@ -15,7 +15,6 @@ import (
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/handler"
 	"github.com/common-fate/common-fate/pkg/service/requestroutersvc"
-	"github.com/common-fate/common-fate/pkg/service/workflowsvc"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
 )
@@ -34,7 +33,7 @@ type Granter struct {
 	RuntimeGetter RuntimeGetter
 }
 type WorkflowInput struct {
-	RequestAccessGroupTarget workflowsvc.CreateGroupTargetRequest `json:"requestAccessGroupTarget"`
+	RequestAccessGroupTarget access.GroupTarget `json:"requestAccessGroupTarget"`
 }
 type EventType string
 
@@ -44,12 +43,12 @@ const (
 )
 
 type GrantState struct {
-	RequestAccessGroupTarget workflowsvc.CreateGroupTargetRequest `json:"requestAccessGroupTarget"`
-	State                    map[string]any                       `json:"state"`
+	RequestAccessGroupTarget access.GroupTarget `json:"requestAccessGroupTarget"`
+	State                    map[string]any     `json:"state"`
 }
 type InputEvent struct {
-	Action                   EventType                            `json:"action"`
-	RequestAccessGroupTarget workflowsvc.CreateGroupTargetRequest `json:"requestAccessGroupTarget"`
+	Action                   EventType          `json:"action"`
+	RequestAccessGroupTarget access.GroupTarget `json:"requestAccessGroupTarget"`
 	// Will be available for revoke events
 	State map[string]any `json:"state,omitempty"`
 }
@@ -140,7 +139,7 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (GrantState,
 		log.Errorf("error while handling granter event", "error", err.Error(), "event", in)
 		requestAccessGroupTarget.Grant.Status = types.RequestAccessGroupTargetStatusERROR
 
-		eventErr := g.EventPutter.Put(ctx, gevent.GrantFailed{Grant: requestAccessGroupTarget.ToDBType(), Reason: err.Error()})
+		eventErr := g.EventPutter.Put(ctx, gevent.GrantFailed{Grant: requestAccessGroupTarget, Reason: err.Error()})
 		if eventErr != nil {
 			return GrantState{}, errWithFileMeta(errors.Wrapf(err, "failed to emit event, emit error: %s", eventErr.Error()))
 		}
@@ -152,10 +151,10 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (GrantState,
 	switch in.Action {
 	case ACTIVATE:
 		// grant.Grant.Status = types.RequestAccessGroupTargetStatusACTIVE
-		evt = &gevent.GrantActivated{Grant: requestAccessGroupTarget.ToDBType()}
+		evt = &gevent.GrantActivated{Grant: requestAccessGroupTarget}
 	case DEACTIVATE:
 		// grant.Grant.Status = types.RequestAccessGroupTargetStatusEXPIRED
-		evt = &gevent.GrantExpired{Grant: requestAccessGroupTarget.ToDBType()}
+		evt = &gevent.GrantExpired{Grant: requestAccessGroupTarget}
 
 	}
 
@@ -181,7 +180,7 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (GrantState,
 
 	}
 	// Should be fine, it there is potential that
-	groupTarget := requestAccessGroupTarget.ToDBType()
+	groupTarget := requestAccessGroupTarget
 	items = append(items, &groupTarget)
 	err = g.DB.PutBatch(ctx, items...)
 	// If there is an error writing instructions, don't return the error.

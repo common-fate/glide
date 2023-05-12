@@ -9,7 +9,6 @@ import (
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/handler"
 	"github.com/common-fate/common-fate/pkg/service/requestroutersvc"
-	"github.com/common-fate/common-fate/pkg/service/workflowsvc"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/targetgroupgranter"
 	"github.com/common-fate/ddb"
@@ -43,7 +42,7 @@ func NewRuntime(db ddb.Storage, granter GrantHandler, router *requestroutersvc.S
 	}
 }
 
-func (r *Runtime) Grant(ctx context.Context, grant workflowsvc.CreateGroupTargetRequest) error {
+func (r *Runtime) Grant(ctx context.Context, grant access.GroupTarget) error {
 	log := logger.Get(ctx)
 
 	// create a channel to communicate with the goroutine
@@ -52,7 +51,7 @@ func (r *Runtime) Grant(ctx context.Context, grant workflowsvc.CreateGroupTarget
 	// lock the grantsDoneChans map while adding the new channel
 	r.grantsRevokeChansM.Lock()
 	r.grantsRevokeChans[grant.ID] = grantWorkflow{
-		grant:  grant.ToDBType(),
+		grant:  grant,
 		revoke: revokeChan,
 		state:  stateChan,
 	}
