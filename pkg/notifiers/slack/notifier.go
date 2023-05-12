@@ -58,6 +58,27 @@ func (n *SlackNotifier) HandleEvent(ctx context.Context, event events.CloudWatch
 	log.Info("received event from eventbridge")
 	if strings.HasPrefix(event.DetailType, "request") {
 		log.Info("request event type")
+
+		if n.directMessageClient != nil {
+			err := n.HandleRequestEvent(ctx, log, event)
+			if err != nil {
+				return err
+			}
+			err = n.HandleAccessGroupEvent(ctx, log, event)
+			if err != nil {
+				return err
+			}
+		}
+	} else if strings.HasPrefix(event.DetailType, "accessGroup") {
+		log.Info("accessGroup event type")
+
+		if n.directMessageClient != nil {
+
+			err := n.HandleAccessGroupEvent(ctx, log, event)
+			if err != nil {
+				return err
+			}
+		}
 	} else {
 		log.Info("ignoring unhandled event type")
 	}

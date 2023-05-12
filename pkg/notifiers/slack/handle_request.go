@@ -175,11 +175,14 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 		if err != nil {
 			return err
 		}
+		// I'm firing, but there's no support for automaticaly approved notifications
 
 		// REQUESTOR Message:
 		requestorEmail = requestEvent.Request.Request.RequestedBy.Email
 		requestorMessage = fmt.Sprintf("Your access to *%d* Resources has now expired. If you still need access you can send another request using Common Fate.", len(requestEvent.Request.Groups))
 		requestorMessageFallback = fmt.Sprintf("Your access to *%d* Resources has now expired.", len(requestEvent.Request.Groups))
+
+		// @TODO: make me better support
 
 		// REVIEWER Message Update:
 		n.sendRequestUpdatesReviewer(ctx, log, requestEvent.Request)
@@ -212,6 +215,11 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 
 		// REVIEWER Message Update:
 		n.sendRequestUpdatesReviewer(ctx, log, requestEvent.Request)
+	}
+
+	REQUESTO_EMAIL_OVERRIDE_DEV := true
+	if REQUESTO_EMAIL_OVERRIDE_DEV {
+		requestorEmail = "jordi@commonfate.io"
 	}
 
 	if requestorMessage != "" {
