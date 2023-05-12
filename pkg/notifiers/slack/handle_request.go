@@ -13,6 +13,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/pkg/errors"
+	"github.com/slack-go/slack"
 	"go.uber.org/zap"
 )
 
@@ -20,6 +21,10 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 
 	var HAS_SLACK_CLIENT = n.directMessageClient != nil
 	var HAS_SLACK_WEBHOOKS = len(n.webhooks) > 0
+
+	var requestorMessage string
+	var requestorMessageFallback string
+	var accessory *slack.Accessory
 
 	switch event.DetailType {
 	// who: new.requestor-pending, new.reviewers-review-required
@@ -33,10 +38,8 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 		req := requestEvent.Request
 		requestor := req.Request.RequestedBy
 
-		// REVIEWER LOGIC: for each access group run notification logic
+		// REVIEWERS: for each access group run notification logic...
 		for _, group := range req.Groups {
-
-			// group.Group == `access.Group`
 
 			// 🚨🚨🚨 I don't think we actually need any additional request type handling here,
 			// bc the request should only be in PendingApproval state when requested.... 🚨🚨🚨
@@ -139,20 +142,13 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 					}
 					wg.Wait()
 
+					// @TODO: I think we leave this out for DEV
 					// Notify requestor per PENDING group
 					// ALSO notify per group automatic....
 					// todo: reviewer specific handling
-					msg := fmt.Sprintf("Your request to access *%s* requires approval. We've notified the approvers and will let you know once your request has been reviewed.", group.Group.AccessRuleSnapshot.Name)
-					fallback := fmt.Sprintf("Your request to access %s requires approval.", group.Group.AccessRuleSnapshot.Name)
-					if n.directMessageClient != nil {
-						// email := reviewerObj.Result.Email
-						email := "jordi@commonfate.io"
+					requestorMessage = fmt.Sprintf("Your request to access *%s* requires approval. We've notified the approvers and will let you know once your request has been reviewed.", group.Group.AccessRuleSnapshot.Name)
+					requestorMessageFallback = fmt.Sprintf("Your request to access %s requires approval.", group.Group.AccessRuleSnapshot.Name)
 
-						_, err = SendMessage(ctx, n.directMessageClient.client, email, msg, fallback, nil)
-						if err != nil {
-							log.Errorw("Failed to send direct message", "email", email, "msg", msg, "error", err)
-						}
-					}
 				}
 
 			}
@@ -167,9 +163,7 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 			// 	}
 			// }
 		}
-		// 🚨🚨🚨 We should be able to ignore these according to the FigJam flow diagram 🚨🚨🚨
-		// case gevent.RequestCancelInitiatedType:
-		// case gevent.RequestRevokeInitiatedType:
+		// REQUESTOR: no-message; sent when approved
 
 	// who: new.requestor, update.reviewers
 	case gevent.RequestCompleteType:
@@ -180,14 +174,10 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 			return err
 		}
 
-		// req := requestEvent.Request
-		// requestor := req.Request
+		// REQUESTOR Message:
+		requestorMessage = fmt.Sprintf("Your access to *%s* Resources has now expired. If you still need access you can send another request using Common Fate.", len(requestEvent.Request.Groups))
+		requestorMessageFallback = fmt.Sprintf("Your access to *%s* Resources has now expired.", len(requestEvent.Request.Groups))
 
-		// msg := fmt.Sprintf(":white_check_mark: Your request to access *%s* has been approved.", requestedRule.Name)
-		// fallback := fmt.Sprintf("Your request to access %s has been approved.", requestedRule.Name)
-		// 🚨🚨 sendRequestDetailsMessage should be sent to the requestor only and it should go on at RequestCreated event
-		// n.sendRequestDetailsMessage(ctx, log, request, requestedRule, *requestingUserQuery.Result, msg, fallback)
-		// n.SendUpdatesForRequest(ctx, log, request, requestEvent, requestedRule, requestingUserQuery.Result)
 	case gevent.RequestCancelCompletedType:
 
 		var requestEvent gevent.RequestCancelled
@@ -203,6 +193,9 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 		// requestEvent.Request.Groups[0]
 
 		// n.SendUpdatesForRequest(ctx, log, request, requestEvent, requestedRule, requestingUserQuery.Result)
+
+		// REQUESTOR Message: no message
+
 	case gevent.RequestRevokeCompletedType:
 
 		var requestEvent gevent.RequestRevoked
@@ -217,30 +210,46 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 		// fallback := fmt.Sprintf("Your request to access %s has been declined.", requestedRule.Name)
 		// n.SendDMWithLogOnError(ctx, log, request.RequestedBy.ID, msg, fallback)
 		// n.SendUpdatesForRequest(ctx, log, request, requestEvent, requestedRule, requestingUserQuery.Result)
+
+		requestorMessage = fmt.Sprintf("Your access to *%d* Resources has been cancelled by your administrator. Please contact your cloud administrator for more information.", len(requestEvent.Request.Groups))
+		requestorMessageFallback = fmt.Sprintf("Your access to *%d* Resources has been cancelled by your administrator.", len(requestEvent.Request.Groups))
+
 	}
+
+	if requestorMessage != "" {
+		_, err := SendMessage(ctx, n.directMessageClient.client, "jordi@commonfate.io", requestorMessage, requestorMessageFallback, accessory)
+
+		return err
+	}
+
 	return nil
 }
 
 // sendRequestDetailsMessage sends a message to the user who requested access with details about the request. Sent only on access create/approved
 func (n *SlackNotifier) sendRequestDetailsMessage(ctx context.Context, log *zap.SugaredLogger, request access.RequestWithGroupsWithTargets, headingMsg string, summary string) {
 
-	approvalRequired := false // TODO
+	var HAS_SLACK_CLIENT = n.directMessageClient != nil
+	var HAS_SLACK_WEBHOOKS = len(n.webhooks) > 0
 
-	requestor := request.Group.RequestedBy
+	if HAS_SLACK_CLIENT {
 
-	// 🚨🚨 `requestedRule.Name` references to -> a count of the Resource Gropus that the user is requesting access to
+		approvalRequired := false // TODO
+		requestor := request.Group.RequestedBy
 
-	if n.directMessageClient != nil || len(n.webhooks) > 0 {
-		if n.directMessageClient != nil {
-			_, msg := BuildRequestDetailMessage(RequestDetailMessageOpts{
-				Request:        request,
-				HeadingMessage: headingMsg,
-			})
+		// 🚨🚨 `requestedRule.Name` references to -> a count of the Resource Gropus that the user is requesting access to
 
-			_, err := SendMessageBlocks(ctx, n.directMessageClient.client, requestor.Email, msg, summary)
+		if n.directMessageClient != nil || len(n.webhooks) > 0 {
+			if n.directMessageClient != nil {
+				_, msg := BuildRequestDetailMessage(RequestDetailMessageOpts{
+					Request:        request,
+					HeadingMessage: headingMsg,
+				})
 
-			if err != nil {
-				log.Errorw("failed to send slack message", "user", requestor, zap.Error(err))
+				_, err := SendMessageBlocks(ctx, n.directMessageClient.client, requestor.Email, msg, summary)
+
+				if err != nil {
+					log.Errorw("failed to send slack message", "user", requestor, zap.Error(err))
+				}
 			}
 		}
 

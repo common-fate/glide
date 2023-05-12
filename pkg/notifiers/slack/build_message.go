@@ -25,8 +25,7 @@ func titleCase(s string) string {
 }
 
 type RequestMessageOpts struct {
-	Group         access.Group
-	RequestReason string
+	Group access.Group
 	// AccessGroups []access.Group
 	// RequestArguments []types.With
 
@@ -93,10 +92,10 @@ func BuildRequestReviewMessage(o RequestMessageOpts) (summary string, msg slack.
 
 	// Only show the Request reason if it is not empty
 
-	if o.RequestReason != "" {
+	if group.RequestPurposeReason != "" {
 		requestDetails = append(requestDetails, &slack.TextBlockObject{
 			Type: "mrkdwn",
-			Text: fmt.Sprintf("*Request Reason:*\n%s", o.RequestReason),
+			Text: fmt.Sprintf("*Request Reason:*\n%s", group.RequestPurposeReason),
 		})
 	}
 
@@ -167,6 +166,8 @@ func BuildRequestReviewMessage(o RequestMessageOpts) (summary string, msg slack.
 }
 
 type RequestDetailMessageOpts struct {
+	// 🚨🚨 If we want to add target fields to the slack message we should
+	// extract them from here... 🚨🚨
 	Request access.GroupWithTargets
 	// the message that renders in the header of the slack message
 	HeadingMessage string
@@ -175,39 +176,12 @@ type RequestDetailMessageOpts struct {
 // Builds a contextual request detail message, with an optional HeadingMessage to be rendered in the header, this is fired after a request has been reviewed
 func BuildRequestDetailMessage(o RequestDetailMessageOpts) (summary string, msg slack.Message) {
 
-	req := o.Request
-	access_group := req.Group
+	accessGroup := o.Request.Group
 
-	summary = fmt.Sprintf("Request detail for %s", access_group.Group.AccessRuleSnapshot.Name)
-	/**
-	var expires time.Time
-	// has start time...
-	if access_group.Group.RequestedTiming.StartTime != nil {
-		// has override..
-		if access_group.Group.OverrideTiming.StartTime != nil {
-			// has override duration
-			if access_group.Group.OverrideTiming.Duration != nil {
-				expires = access_group.Group.OverrideTiming.StartTime.Add(*access_group.Group.OverrideTiming.Duration)
-			} else {
-				expires = access_group.Group.OverrideTiming.StartTime.Add(access_group.Group.OverrideTiming.Duration)
-			}
-		} else {
-			// has override duration
-			expires = access_group.Group.RequestedTiming.StartTime.Add(access_group.Group.RequestedTiming.Duration)
-		}
-	} else {
-		expires = time.Now().Add(access_group.TimeConstraints.Duration)
-	}
-
-
-	...
-
-	We had this but we probably want to leveraage FinalTiming if possibel to reduce if/else logic
-
-	*/
+	summary = fmt.Sprintf("Request detail for %s", accessGroup.AccessRuleSnapshot.Name)
 
 	// when := types.ExpiryString(expires)
-	start, end := access_group.GetInterval(access.WithNow(clock.New().Now()))
+	start, end := accessGroup.GetInterval(access.WithNow(clock.New().Now()))
 
 	duration := end.Sub(start) // if this is off by a couple seconds it could make the duration values inconsistent
 
@@ -231,10 +205,10 @@ func BuildRequestDetailMessage(o RequestDetailMessageOpts) (summary string, msg 
 	// }
 
 	// Only show the Request reason if it is not empty
-	if req.Request.Purpose.Reason != nil && len(*req.Request.Purpose.Reason) > 0 {
+	if accessGroup.RequestPurposeReason != "" {
 		requestDetails = append(requestDetails, &slack.TextBlockObject{
 			Type: "mrkdwn",
-			Text: fmt.Sprintf("*Request Reason:*\n%s", *req.Request.Purpose.Reason),
+			Text: fmt.Sprintf("*Request Reason:*\n%s", accessGroup.RequestPurposeReason),
 		})
 	}
 

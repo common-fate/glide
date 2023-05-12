@@ -25,17 +25,13 @@ func (n *SlackNotifier) HandleAccessGroupEvent(ctx context.Context, log *zap.Sug
 		}
 		accessGroup := accessGroupEvent.AccessGroup
 
-		// accessGroup.Group == `access.Group`
-		// can fetched request using an id
-
 		// REQUESTOR Message:
 		// "your access to X no. of resources for Y access rule has been approved"
 		msg := fmt.Sprintf(":white_check_mark: Your request to access *%s* has been approved.", accessGroup.Group.AccessRuleSnapshot.Name)
 		fallback := fmt.Sprintf("Your request to access %s has been approved.", accessGroup.Group.AccessRuleSnapshot.Name)
 		n.sendAccessGroupDetailsMessage(ctx, log, accessGroup, msg, fallback)
 
-		// REVIWER Message Update:
-		// REVIWER Message Update:
+		// REVIEWER Message Update:
 		n.sendAccessGroupUpdates(ctx, log, accessGroup)
 
 	case gevent.AccessGroupDeclinedType:
@@ -53,7 +49,7 @@ func (n *SlackNotifier) HandleAccessGroupEvent(ctx context.Context, log *zap.Sug
 		fallback := fmt.Sprintf("Your request to access %s has been declined.", accessGroup.Group.AccessRuleSnapshot.Name)
 		n.sendAccessGroupDetailsMessage(ctx, log, accessGroup, msg, fallback)
 
-		// REVIWER Message Update:
+		// REVIEWER Message Update:
 		n.sendAccessGroupUpdates(ctx, log, accessGroup)
 
 	default:
@@ -66,15 +62,10 @@ func (n *SlackNotifier) HandleAccessGroupEvent(ctx context.Context, log *zap.Sug
 // sendAccessGroupDetailsMessage sends a message to the Requestor with details about the request. Sent only on AccessGroupDeclinedType, AccessGroupApprovedType
 func (n *SlackNotifier) sendAccessGroupDetailsMessage(ctx context.Context, log *zap.SugaredLogger, accessGroup access.GroupWithTargets, headingMsg string, summary string) {
 
-	approvalRequired := false // TODO
-
 	var HAS_SLACK_CLIENT = n.directMessageClient != nil
 	var HAS_SLACK_WEBHOOKS = len(n.webhooks) > 0
 
 	requestor := accessGroup.Group.RequestedBy
-	// reviewers := accessGroup.Group.GroupReviewers
-
-	// 🚨🚨 `requestedRule.Name` references to -> a count of the Resource Gropus that the user is requesting access to
 
 	if HAS_SLACK_CLIENT {
 		_, msg := BuildRequestDetailMessage(RequestDetailMessageOpts{
@@ -91,14 +82,9 @@ func (n *SlackNotifier) sendAccessGroupDetailsMessage(ctx context.Context, log *
 
 	if HAS_SLACK_WEBHOOKS {
 		for _, webhook := range n.webhooks {
-			if !approvalRequired {
-				// headingMsg = fmt.Sprintf(":white_check_mark: %s's request to access *%s* has been automatically approved.\n", requestingUser.Email, requestedRule.Name)
 
-				// summary = fmt.Sprintf("%s's request to access %s has been automatically approved.", requestingUser.Email, requestedRule.Name)
-			}
 			_, msg := BuildRequestDetailMessage(RequestDetailMessageOpts{
-				Request: accessGroup,
-				// RequestArguments: requestArguments,
+				Request:        accessGroup,
 				HeadingMessage: headingMsg,
 			})
 
@@ -116,8 +102,6 @@ What we need to do:
 - Could also do with a major cleanup commit of the code base
 
 See if you can reproduce BuildRequestDetailMessage with with just those props
-
-
 
 */
 
@@ -143,7 +127,7 @@ func (n *SlackNotifier) sendAccessGroupUpdates(ctx context.Context, log *zap.Sug
 				continue
 			}
 
-			reviewURL, err := notifiers.ReviewURL(n.FrontendURL, request.ID)
+			reviewURL, err := notifiers.ReviewURL(n.FrontendURL, accessGroup.Group.RequestID)
 			if err != nil {
 				log.Errorw("building review URL", zap.Error(err))
 				return
@@ -173,23 +157,18 @@ func (n *SlackNotifier) sendAccessGroupUpdates(ctx context.Context, log *zap.Sug
 	}
 
 	if HAS_SLACK_WEBHOOKS {
-		// 	for _, webhook := range n.webhooks {
-		// 		// if !approvalRequired {
-		// 		// headingMsg = fmt.Sprintf(":white_check_mark: %s's request to access *%s* has been automatically approved.\n", requestingUser.Email, requestedRule.Name)
-
-		// 		// summary = fmt.Sprintf("%s's request to access %s has been automatically approved.", requestingUser.Email, requestedRule.Name)
-		// 		// }
-		// 		_, msg := BuildRequestDetailMessage(RequestDetailMessageOpts{
-		// 			Request: accessGroup,
-		// 			// RequestArguments: requestArguments,
-		// 			HeadingMessage: headingMsg,
-		// 		})
-
-		// 		err := webhook.SendWebhookMessage(ctx, msg.Blocks, summary)
-		// 		if err != nil {
-		// 			log.Errorw("failed to send slack message to webhook channel", "error", err)
-		// 		}
+		// Note: propably don't need webhook alerts here...
+		// for _, webhook := range n.webhooks {
+		// 	_, msg := BuildRequestDetailMessage(RequestDetailMessageOpts{
+		// 		Request: accessGroup,
+		// 		// RequestArguments: requestArguments,
+		// 		HeadingMessage: headingMsg,
+		// 	})
+		// 	err := webhook.SendWebhookMessage(ctx, msg.Blocks, summary)
+		// 	if err != nil {
+		// 		log.Errorw("failed to send slack message to webhook channel", "error", err)
 		// 	}
+		// }
 	}
 
 }
