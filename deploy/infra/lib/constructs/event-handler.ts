@@ -7,6 +7,7 @@ import { Construct } from "constructs";
 import { TargetGroupGranter } from "./targetgroup-granter";
 import * as path from "path";
 import { PolicyStatement } from "aws-cdk-lib/aws-iam";
+import { grantAssumeHandlerRole } from "../helpers/permissions";
 
 interface Props {
   eventBusSourceName: string;
@@ -55,6 +56,9 @@ export class EventHandler extends Construct {
       // Concurrency set to 1
       reservedConcurrentExecutions: 1,
     });
+
+    // allows to invoke the function from any account if they have the correct tag
+    grantAssumeHandlerRole(this._sequentialLambda);
 
     props.targetGroupGranter
       .getStateMachine()

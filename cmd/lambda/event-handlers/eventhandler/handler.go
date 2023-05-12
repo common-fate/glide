@@ -10,15 +10,25 @@ import (
 	"github.com/common-fate/common-fate/pkg/config"
 	"github.com/common-fate/common-fate/pkg/eventhandler"
 	"github.com/common-fate/common-fate/pkg/gevent"
+	"github.com/common-fate/common-fate/pkg/handler"
 	"github.com/common-fate/common-fate/pkg/service/requestroutersvc"
 	"github.com/common-fate/common-fate/pkg/service/workflowsvc"
 	"github.com/common-fate/common-fate/pkg/service/workflowsvc/runtimes/live"
+	"github.com/common-fate/common-fate/pkg/targetgroupgranter"
+	"github.com/common-fate/provider-registry-sdk-go/pkg/handlerclient"
 
 	"github.com/common-fate/ddb"
 	"github.com/joho/godotenv"
 	"github.com/sethvargo/go-envconfig"
 	"go.uber.org/zap"
 )
+
+type DefaultGetter struct {
+}
+
+func (DefaultGetter) GetRuntime(ctx context.Context, h handler.Handler) (*handlerclient.Client, error) {
+	return handler.GetRuntime(ctx, h)
+}
 
 func main() {
 	var cfg config.EventHandlerConfig
@@ -54,6 +64,14 @@ func main() {
 				DB:              db,
 				RequestRouter: &requestroutersvc.Service{
 					DB: db,
+				},
+				Granter: &targetgroupgranter.Granter{
+					DB:          db,
+					EventPutter: eb,
+					RequestRouter: &requestroutersvc.Service{
+						DB: db,
+					},
+					RuntimeGetter: DefaultGetter{},
 				},
 			},
 		},

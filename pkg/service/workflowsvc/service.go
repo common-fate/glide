@@ -13,6 +13,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/iso8601"
+	"go.uber.org/zap"
 )
 
 type WorkflowGroupTarget struct {
@@ -83,8 +84,7 @@ func (g *WorkflowGroupTarget) FieldsToMap() map[string]string {
 type Runtime interface {
 	// grant is expected to be asyncronous
 	Grant(ctx context.Context, grant WorkflowGroupTarget) error
-	// isForTargetGroup tells the runtime how to process the request
-	// revoke is expected to be syncronous
+	// revoke is expected to be asyncronous
 	Revoke(ctx context.Context, grantID string) error
 }
 
@@ -201,8 +201,12 @@ func (s *Service) Revoke(ctx context.Context, requestID string, groupID string, 
 			return ErrGrantInactive
 		}
 
+		zap.S().Infow("Can revoke. calling runtime revoke.")
+
 		err = s.Runtime.Revoke(ctx, target.ID)
 		if err != nil {
+			zap.S().Errorw("error revoking", err)
+
 			return err
 		}
 		//emit request group revoke event

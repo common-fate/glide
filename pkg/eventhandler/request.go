@@ -142,7 +142,7 @@ func (n *EventHandler) handleRequestRevokeInitiated(ctx context.Context, detail 
 	}
 
 	items := []ddb.Keyer{}
-
+	zap.S().Infow("revoking all groups in request")
 	for _, group := range requestEvent.Request.Groups {
 		err := n.Workflow.Revoke(ctx, group.Group.RequestID, group.Group.ID, requestEvent.Revoker.ID, requestEvent.Revoker.Email)
 		if err != nil {
