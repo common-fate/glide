@@ -174,13 +174,13 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (GrantState,
 			GroupTargetID: requestAccessGroupTarget.ID,
 			RequestedBy:   requestAccessGroupTarget.RequestedBy.ID,
 		}
-		requestAccessGroupTarget.Grant.Instructions = &grantResponse.AccessInstructions
 		items = append(items, &instructions)
 		//Save the new grant status and the instructions
 
 	}
 	// Should be fine, it there is potential that
-	items = append(items, &requestAccessGroupTarget)
+	groupTarget := requestAccessGroupTarget
+	items = append(items, &groupTarget)
 	err = g.DB.PutBatch(ctx, items...)
 	// If there is an error writing instructions, don't return the error.
 	// instead just continue so that the grant can be revoked

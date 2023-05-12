@@ -10,14 +10,14 @@ import (
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
+	"github.com/common-fate/iso8601"
 )
 
 // //go:generate go run github.com/golang/mock/mockgen -destination=mocks/runtime.go -package=mocks . Runtime
 type Runtime interface {
 	// grant is expected to be asyncronous
-	Grant(ctx context.Context, access_group access.GroupTarget) error
-	// isForTargetGroup tells the runtime how to process the request
-	// revoke is expected to be syncronous
+	Grant(ctx context.Context, grant access.GroupTarget) error
+	// revoke is expected to be asyncronous
 	Revoke(ctx context.Context, grantID string) error
 }
 
@@ -62,10 +62,11 @@ func (s *Service) Grant(ctx context.Context, requestID string, groupID string) (
 	for i, target := range group.Targets {
 		target.Grant = &access.Grant{
 			Subject: group.Group.RequestedBy.Email,
-			Start:   start,
-			End:     end,
+			Start:   iso8601.New(start),
+			End:     iso8601.New(end),
 			Status:  types.RequestAccessGroupTargetStatusAWAITINGSTART,
 		}
+
 		err := s.Runtime.Grant(ctx, target)
 		if err != nil {
 			//override the status here to error
@@ -112,8 +113,13 @@ func (s *Service) Revoke(ctx context.Context, requestID string, groupID string, 
 			return ErrGrantInactive
 		}
 
+		log := logger.Get(ctx)
+		log.Infow("Can revoke. calling runtime revoke.")
+
 		err = s.Runtime.Revoke(ctx, target.ID)
 		if err != nil {
+			log.Errorw("error revoking", err)
+
 			return err
 		}
 		//emit request group revoke event

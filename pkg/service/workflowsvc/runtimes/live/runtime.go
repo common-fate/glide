@@ -9,23 +9,28 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	aws_config "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
+	"go.uber.org/zap"
 
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/cfaws"
 	"github.com/common-fate/common-fate/pkg/gevent"
-	"github.com/common-fate/common-fate/pkg/handler"
 	"github.com/common-fate/common-fate/pkg/service/requestroutersvc"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/targetgroupgranter"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/provider-registry-sdk-go/pkg/msg"
 )
+
+type GrantHandler interface {
+	HandleRequest(ctx context.Context, in targetgroupgranter.InputEvent) (targetgroupgranter.GrantState, error)
+}
 
 type Runtime struct {
 	StateMachineARN string
-	Eventbus        *gevent.Sender
-	DB              ddb.Storage
-	RequestRouter   *requestroutersvc.Service
+	Granter         GrantHandler
+
+	Eventbus      *gevent.Sender
+	DB            ddb.Storage
+	RequestRouter *requestroutersvc.Service
 }
 
 func (r *Runtime) Grant(ctx context.Context, grant access.GroupTarget) error {
@@ -55,6 +60,7 @@ func (r *Runtime) Grant(ctx context.Context, grant access.GroupTarget) error {
 
 }
 func (r *Runtime) Revoke(ctx context.Context, grantID string) error {
+
 	// we can grab all this from the execution input for the step function we will use this as the source of truth
 	c, err := aws_config.LoadDefaultConfig(ctx)
 	if err != nil {
@@ -91,14 +97,7 @@ func (r *Runtime) Revoke(ctx context.Context, grantID string) error {
 	if err != nil {
 		return err
 	}
-	routeResult, err := r.RequestRouter.Route(ctx, *tgq.Result)
-	if err != nil {
-		return err
-	}
-	runtime, err := handler.GetRuntime(ctx, routeResult.Handler)
-	if err != nil {
-		return err
-	}
+
 	lastState := statefn.Events[len(statefn.Events)-1]
 
 	// if the state of the grant is in the active state
@@ -116,21 +115,15 @@ func (r *Runtime) Revoke(ctx context.Context, grantID string) error {
 			return err
 		}
 
-		//call the provider revoke
-		req := msg.Revoke{
-			Subject: input.RequestAccessGroupTarget.RequestedBy.Email,
-			Target: msg.Target{
-				Kind:      routeResult.Route.Kind,
-				Arguments: input.RequestAccessGroupTarget.FieldsToMap(),
-			},
-			Request: msg.AccessRequest{
-				ID: grantID,
-			},
-			State: gs.State,
-		}
+		zap.S().Infow("calling invoke lambda to revoke")
 
-		err = runtime.Revoke(ctx, req)
+		_, err = r.Granter.HandleRequest(ctx, targetgroupgranter.InputEvent{
+			Action:                   targetgroupgranter.DEACTIVATE,
+			RequestAccessGroupTarget: input.RequestAccessGroupTarget,
+			State:                    gs.State,
+		})
 		if err != nil {
+			zap.S().Errorw("failed to deactivate grant", "err", err)
 			return err
 		}
 	}
