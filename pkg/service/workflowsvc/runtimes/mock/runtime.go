@@ -51,7 +51,7 @@ func NewRuntime(db ddb.Storage, eventBus EventPutter, router *requestroutersvc.S
 	}, router)}
 }
 
-func (r *Runtime) Grant(ctx context.Context, grant workflowsvc.WorkflowGroupTarget) error {
+func (r *Runtime) Grant(ctx context.Context, grant workflowsvc.CreateGroupTargetRequest) error {
 	return r.runtime.Grant(ctx, grant)
 }
 

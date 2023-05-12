@@ -34,7 +34,7 @@ type Granter struct {
 	RuntimeGetter RuntimeGetter
 }
 type WorkflowInput struct {
-	RequestAccessGroupTarget workflowsvc.WorkflowGroupTarget `json:"requestAccessGroupTarget"`
+	RequestAccessGroupTarget workflowsvc.CreateGroupTargetRequest `json:"requestAccessGroupTarget"`
 }
 type EventType string
 
@@ -44,12 +44,12 @@ const (
 )
 
 type GrantState struct {
-	RequestAccessGroupTarget workflowsvc.WorkflowGroupTarget `json:"requestAccessGroupTarget"`
-	State                    map[string]any                  `json:"state"`
+	RequestAccessGroupTarget workflowsvc.CreateGroupTargetRequest `json:"requestAccessGroupTarget"`
+	State                    map[string]any                       `json:"state"`
 }
 type InputEvent struct {
-	Action                   EventType                       `json:"action"`
-	RequestAccessGroupTarget workflowsvc.WorkflowGroupTarget `json:"requestAccessGroupTarget"`
+	Action                   EventType                            `json:"action"`
+	RequestAccessGroupTarget workflowsvc.CreateGroupTargetRequest `json:"requestAccessGroupTarget"`
 	// Will be available for revoke events
 	State map[string]any `json:"state,omitempty"`
 }

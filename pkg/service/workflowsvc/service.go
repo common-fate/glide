@@ -16,7 +16,9 @@ import (
 	"go.uber.org/zap"
 )
 
-type WorkflowGroupTarget struct {
+// copy of grouptarget to be used in the granting process.
+// Uses iso8601 time for grant start and end to preserve timezone when granting
+type CreateGroupTargetRequest struct {
 	ID        string `json:"id" dynamodbav:"id"`
 	GroupID   string `json:"groupId" dynamodbav:"groupId"`
 	RequestID string `json:"requestId" dynamodbav:"requestId"`
@@ -49,7 +51,7 @@ type WorkflowGrant struct {
 	Instructions *string      `json:"instructions" dynamodbav:"instructions"`
 }
 
-func (g *WorkflowGroupTarget) ToDBType() access.GroupTarget {
+func (g *CreateGroupTargetRequest) ToDBType() access.GroupTarget {
 	return access.GroupTarget{
 		ID:            g.ID,
 		GroupID:       g.GroupID,
@@ -72,7 +74,7 @@ func (g *WorkflowGroupTarget) ToDBType() access.GroupTarget {
 	}
 }
 
-func (g *WorkflowGroupTarget) FieldsToMap() map[string]string {
+func (g *CreateGroupTargetRequest) FieldsToMap() map[string]string {
 	args := make(map[string]string)
 	for _, field := range g.Fields {
 		args[field.ID] = field.Value.Value
@@ -83,7 +85,7 @@ func (g *WorkflowGroupTarget) FieldsToMap() map[string]string {
 // //go:generate go run github.com/golang/mock/mockgen -destination=mocks/runtime.go -package=mocks . Runtime
 type Runtime interface {
 	// grant is expected to be asyncronous
-	Grant(ctx context.Context, grant WorkflowGroupTarget) error
+	Grant(ctx context.Context, grant CreateGroupTargetRequest) error
 	// revoke is expected to be asyncronous
 	Revoke(ctx context.Context, grantID string) error
 }
@@ -134,7 +136,7 @@ func (s *Service) Grant(ctx context.Context, requestID string, groupID string) (
 			Status:  types.RequestAccessGroupTargetStatusAWAITINGSTART,
 		}
 
-		requestGrant := WorkflowGroupTarget{
+		requestGrant := CreateGroupTargetRequest{
 			ID:               target.ID,
 			GroupID:          target.GroupID,
 			RequestID:        target.RequestID,

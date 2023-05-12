@@ -33,7 +33,7 @@ type Runtime struct {
 	RequestRouter *requestroutersvc.Service
 }
 
-func (r *Runtime) Grant(ctx context.Context, grant workflowsvc.WorkflowGroupTarget) error {
+func (r *Runtime) Grant(ctx context.Context, grant workflowsvc.CreateGroupTargetRequest) error {
 
 	cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 	if err != nil {

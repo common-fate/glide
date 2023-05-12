@@ -43,7 +43,7 @@ func NewRuntime(db ddb.Storage, granter GrantHandler, router *requestroutersvc.S
 	}
 }
 
-func (r *Runtime) Grant(ctx context.Context, grant workflowsvc.WorkflowGroupTarget) error {
+func (r *Runtime) Grant(ctx context.Context, grant workflowsvc.CreateGroupTargetRequest) error {
 	log := logger.Get(ctx)
 
 	// create a channel to communicate with the goroutine
