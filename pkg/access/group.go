@@ -32,7 +32,7 @@ type Group struct {
 	UpdatedAt            time.Time           `json:"updatedAt" dynamodbav:"updatedAt"`
 	// request reviewers are users who have one or more groups to review on the request as a whole
 	RequestReviewers []string `json:"requestReviewers" dynamodbav:"requestReviewers, set"`
-	// groupReviewers are the users who are able to review this access group
+	// groupReviewers are the users who are able to review this access group; id = access.Reviewer.ID
 	GroupReviewers []string `json:"groupReviewers" dynamodbav:"groupReviewers, set"`
 }
 

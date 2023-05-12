@@ -186,15 +186,10 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 			return err
 		}
 
-		// Send message to the user.....
-		// requestEvent.Request.Request.RequestedBy.Email
-
-		// Send message to reviewers....
-		// requestEvent.Request.Groups[0]
-
-		// n.SendUpdatesForRequest(ctx, log, request, requestEvent, requestedRule, requestingUserQuery.Result)
-
 		// REQUESTOR Message: no message
+
+		// REVIEWER Message Update:
+		n.sendRequestUpdatesReviewer(ctx, log, requestEvent.Request)
 
 	case gevent.RequestRevokeCompletedType:
 
@@ -211,14 +206,16 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 		// n.SendDMWithLogOnError(ctx, log, request.RequestedBy.ID, msg, fallback)
 		// n.SendUpdatesForRequest(ctx, log, request, requestEvent, requestedRule, requestingUserQuery.Result)
 
+		// REQUESTOR Message:
 		requestorMessage = fmt.Sprintf("Your access to *%d* Resources has been cancelled by your administrator. Please contact your cloud administrator for more information.", len(requestEvent.Request.Groups))
 		requestorMessageFallback = fmt.Sprintf("Your access to *%d* Resources has been cancelled by your administrator.", len(requestEvent.Request.Groups))
 
+		// REVIEWER Message Update:
+		n.sendRequestUpdatesReviewer(ctx, log, requestEvent.Request)
 	}
 
 	if requestorMessage != "" {
 		_, err := SendMessage(ctx, n.directMessageClient.client, "jordi@commonfate.io", requestorMessage, requestorMessageFallback, accessory)
-
 		return err
 	}
 
@@ -271,4 +268,98 @@ func (n *SlackNotifier) sendRequestDetailsMessage(ctx context.Context, log *zap.
 			}
 		}
 	}
+}
+
+func (n *SlackNotifier) sendRequestUpdatesReviewer(ctx context.Context, log *zap.SugaredLogger, req access.RequestWithGroupsWithTargets) {
+
+	var HAS_SLACK_CLIENT = n.directMessageClient != nil
+	var HAS_SLACK_WEBHOOKS = len(n.webhooks) > 0
+
+	requestor := req.Request.RequestedBy
+
+	// Request update requirements:
+	//
+	// To be sent when:
+	// 1. Request is completed; all reviews are marked as complete; actions voided
+	// 2. Request is revoked; all reviews are marked as complete; actions voided
+	// 3. Request is cancelled; all reviews are marked as complete; actions voided
+	//
+	// To mark off:
+	// We need to itterate over every single request group; every single request reviewer
+	//
+	// To send update to a reviewer:
+	// 1. the access.Reviewer object
+	// 2. send the message
+	// 3. update the access.Reviewer object with the new message ID
+
+	if HAS_SLACK_CLIENT {
+
+		for _, group := range req.Groups {
+
+			// Loop over the request reviewers...
+			for _, reviewer := range group.Group.GroupReviewers {
+
+				//
+				// Jack
+				// req.Groups[0].Group.GroupReviewers
+				// loop through group, if group has request reviwers, loop through them, otherwise skip
+
+				reqReviewer := storage.GetRequestReviewer{
+					RequestID:  req.Request.ID,
+					ReviewerID: reviewer,
+				}
+				_, err := n.DB.Query(ctx, &reqReviewer)
+				if err != nil {
+					log.Errorw("failed to get request reviewer", "error", err)
+					continue
+				}
+
+				reviewURL, err := notifiers.ReviewURL(n.FrontendURL, req.Request.ID)
+				if err != nil {
+					log.Errorw("building review URL", zap.Error(err))
+					return
+				}
+
+				reviewerUserObj := storage.GetUser{ID: reviewer}
+				_, err = n.DB.Query(ctx, &reviewerUserObj)
+				if err != nil {
+					log.Errorw("failed to get reviewer user", "error", err)
+					continue
+				}
+
+				// 🚨🚨 TODO: may need to pass in reqReviewer.Result.Notifications.SlackMessageID
+				// 🚨🚨 TODO: this must change to UpdateMessageBlockForReviewer 🚨🚨
+
+				_, slackMsg := BuildRequestReviewMessage(RequestMessageOpts{
+					Group:      req.Group,
+					ReviewURLs: reviewURL,
+				})
+
+				// _, err = SendMessageBlocks(ctx, n.directMessageClient.client, requestor.Email, slackMsg, summary)
+				err = n.UpdateMessageBlockForReviewer(ctx, *reqReviewer.Result, slackMsg)
+
+				if err != nil {
+					log.Errorw("failed to send slack message", "user", requestor, zap.Error(err))
+				}
+
+			}
+		}
+
+	}
+
+	if HAS_SLACK_WEBHOOKS {
+		// Note: propably don't need webhook alerts here...
+		// for _, webhook := range n.webhooks {
+		// 	_, msg := BuildRequestDetailMessage(RequestDetailMessageOpts{
+		// 		Request: accessGroup,
+		// 		// RequestArguments: requestArguments,
+		// 		HeadingMessage: headingMsg,
+		// 	})
+		// 	err := webhook.SendWebhookMessage(ctx, msg.Blocks, summary)
+		// 	if err != nil {
+		// 		log.Errorw("failed to send slack message to webhook channel", "error", err)
+		// 	}
+		// }
+	}
+
 }

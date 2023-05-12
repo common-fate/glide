@@ -32,7 +32,16 @@ func (n *SlackNotifier) HandleAccessGroupEvent(ctx context.Context, log *zap.Sug
 		n.sendAccessGroupDetailsMessage(ctx, log, accessGroup, msg, fallback)
 
 		// REVIEWER Message Update:
-		n.sendAccessGroupUpdates(ctx, log, accessGroup)
+		//
+		// To make `sendAccessGroupUpdatesReviewer` multi-purpose we could do some pre-update processing to construct a contextual message about whether the request was approved or declined. We can then send this as a payload to the updater function. We can then just send this accessGroup
+		//
+		// To determine whether this is viable let's template out the messaging requirements:
+		// - Reviewer: just update the status to APPROVED
+		// - Reviewer: just update the status to DECLINED
+		//
+		// Other contextual data needed for the slack request
+		// When | Duration | Status | Requestor | Resources | Slack Message IDs + The reviewers to update
+		n.sendAccessGroupUpdatesReviewer(ctx, log, accessGroup)
 
 	case gevent.AccessGroupDeclinedType:
 
@@ -50,7 +59,7 @@ func (n *SlackNotifier) HandleAccessGroupEvent(ctx context.Context, log *zap.Sug
 		n.sendAccessGroupDetailsMessage(ctx, log, accessGroup, msg, fallback)
 
 		// REVIEWER Message Update:
-		n.sendAccessGroupUpdates(ctx, log, accessGroup)
+		n.sendAccessGroupUpdatesReviewer(ctx, log, accessGroup)
 
 	default:
 		zap.S().Infow("unhandled access group event", "detailType", event.DetailType)
@@ -102,10 +111,8 @@ What we need to do:
 - Could also do with a major cleanup commit of the code base
 
 See if you can reproduce BuildRequestDetailMessage with with just those props
-
 */
-
-func (n *SlackNotifier) sendAccessGroupUpdates(ctx context.Context, log *zap.SugaredLogger, accessGroup access.GroupWithTargets) {
+func (n *SlackNotifier) sendAccessGroupUpdatesReviewer(ctx context.Context, log *zap.SugaredLogger, accessGroup access.GroupWithTargets) {
 
 	var HAS_SLACK_CLIENT = n.directMessageClient != nil
 	var HAS_SLACK_WEBHOOKS = len(n.webhooks) > 0
@@ -141,13 +148,15 @@ func (n *SlackNotifier) sendAccessGroupUpdates(ctx context.Context, log *zap.Sug
 			}
 
 			// 🚨🚨 TODO: may need to pass in reqReviewer.Result.Notifications.SlackMessageID
+			// 🚨🚨 TODO: this must change to UpdateMessageBlockForReviewer 🚨🚨
 
-			summary, slackMsg := BuildRequestReviewMessage(RequestMessageOpts{
+			_, slackMsg := BuildRequestReviewMessage(RequestMessageOpts{
 				Group:      accessGroup.Group,
 				ReviewURLs: reviewURL,
 			})
 
-			_, err = SendMessageBlocks(ctx, n.directMessageClient.client, requestor.Email, slackMsg, summary)
+			// _, err = SendMessageBlocks(ctx, n.directMessageClient.client, requestor.Email, slackMsg, summary)
+			err = n.UpdateMessageBlockForReviewer(ctx, *reqReviewer.Result, slackMsg)
 
 			if err != nil {
 				log.Errorw("failed to send slack message", "user", requestor, zap.Error(err))
