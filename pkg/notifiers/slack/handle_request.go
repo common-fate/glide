@@ -23,11 +23,12 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 	var HAS_SLACK_WEBHOOKS = len(n.webhooks) > 0
 
 	var requestorMessage string
+	var requestorEmail string
 	var requestorMessageFallback string
 	var accessory *slack.Accessory
 
 	switch event.DetailType {
-	// who: new.requestor-pending, new.reviewers-review-required
+
 	case gevent.RequestCreatedType:
 
 		var requestEvent gevent.RequestCreated
@@ -37,6 +38,7 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 		}
 		req := requestEvent.Request
 		requestor := req.Request.RequestedBy
+		requestorEmail = requestEvent.Request.Request.RequestedBy.Email
 
 		// REVIEWERS: for each access group run notification logic...
 		for _, group := range req.Groups {
@@ -49,8 +51,8 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 
 				// get the requestor's Slack user ID if it exists to render it nicely in the message to approvers.
 				var slackUserID string
-				slackRequestor, err := n.directMessageClient.client.GetUserByEmailContext(ctx, "jordi@commonfate.io")
-				// requestor, err := n.directMessageClient.client.GetUserByEmailContext(ctx, requestor.Email)
+				// slackRequestor, err := n.directMessageClient.client.GetUserByEmailContext(ctx, "jordi@commonfate.io")
+				slackRequestor, err := n.directMessageClient.client.GetUserByEmailContext(ctx, requestor.Email)
 				if err != nil {
 					zap.S().Infow("couldn't get slack user from requestor - falling back to email address", "requestor.id", requestor.Email, zap.Error(err))
 				}
@@ -58,7 +60,6 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 					slackUserID = slackRequestor.ID
 				}
 
-				// Notify approvers
 				reviewURL, err := notifiers.ReviewURL(n.FrontendURL, req.Request.ID)
 				if err != nil {
 					return errors.Wrap(err, "building review URL")
@@ -66,11 +67,11 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 
 				if HAS_SLACK_WEBHOOKS {
 					reviewerSummary, reviewerMsg := BuildRequestReviewMessage(RequestMessageOpts{
-						RequestReason:    *req.Request.Purpose.Reason,
 						Group:            group.Group,
 						RequestorSlackID: slackUserID,
 						ReviewURLs:       reviewURL,
 						IsWebhook:        true,
+						RequestorEmail:   requestorEmail,
 					})
 
 					// log for testing purposes
@@ -90,11 +91,11 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 				if HAS_SLACK_CLIENT {
 
 					reviewerSummary, reviewerMsg := BuildRequestReviewMessage(RequestMessageOpts{
-						RequestReason:    *req.Request.Purpose.Reason,
 						Group:            group.Group,
 						RequestorSlackID: slackUserID,
 						ReviewURLs:       reviewURL,
 						IsWebhook:        false,
+						RequestorEmail:   requestorEmail,
 					})
 
 					reviewersQuery := storage.ListAccessGroupReviewers{
@@ -146,6 +147,7 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 					// Notify requestor per PENDING group
 					// ALSO notify per group automatic....
 					// todo: reviewer specific handling
+					requestorEmail = requestEvent.Request.Request.RequestedBy.Email
 					requestorMessage = fmt.Sprintf("Your request to access *%s* requires approval. We've notified the approvers and will let you know once your request has been reviewed.", group.Group.AccessRuleSnapshot.Name)
 					requestorMessageFallback = fmt.Sprintf("Your request to access %s requires approval.", group.Group.AccessRuleSnapshot.Name)
 
@@ -175,8 +177,12 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 		}
 
 		// REQUESTOR Message:
-		requestorMessage = fmt.Sprintf("Your access to *%s* Resources has now expired. If you still need access you can send another request using Common Fate.", len(requestEvent.Request.Groups))
-		requestorMessageFallback = fmt.Sprintf("Your access to *%s* Resources has now expired.", len(requestEvent.Request.Groups))
+		requestorEmail = requestEvent.Request.Request.RequestedBy.Email
+		requestorMessage = fmt.Sprintf("Your access to *%d* Resources has now expired. If you still need access you can send another request using Common Fate.", len(requestEvent.Request.Groups))
+		requestorMessageFallback = fmt.Sprintf("Your access to *%d* Resources has now expired.", len(requestEvent.Request.Groups))
+
+		// REVIEWER Message Update:
+		n.sendRequestUpdatesReviewer(ctx, log, requestEvent.Request)
 
 	case gevent.RequestCancelCompletedType:
 
@@ -198,15 +204,9 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 		if err != nil {
 			return err
 		}
-		// Send message to the user.....
-		// requestEvent.Request.Request.RequestedBy.Email
-
-		// msg := fmt.Sprintf("Your request to access *%s* has been declined.", requestedRule.Name)
-		// fallback := fmt.Sprintf("Your request to access %s has been declined.", requestedRule.Name)
-		// n.SendDMWithLogOnError(ctx, log, request.RequestedBy.ID, msg, fallback)
-		// n.SendUpdatesForRequest(ctx, log, request, requestEvent, requestedRule, requestingUserQuery.Result)
 
 		// REQUESTOR Message:
+		requestorEmail = requestEvent.Request.Request.RequestedBy.Email
 		requestorMessage = fmt.Sprintf("Your access to *%d* Resources has been cancelled by your administrator. Please contact your cloud administrator for more information.", len(requestEvent.Request.Groups))
 		requestorMessageFallback = fmt.Sprintf("Your access to *%d* Resources has been cancelled by your administrator.", len(requestEvent.Request.Groups))
 
@@ -215,7 +215,8 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 	}
 
 	if requestorMessage != "" {
-		_, err := SendMessage(ctx, n.directMessageClient.client, "jordi@commonfate.io", requestorMessage, requestorMessageFallback, accessory)
+		_, err := SendMessage(ctx, n.directMessageClient.client, requestorEmail, requestorMessage, requestorMessageFallback, accessory)
+		// _, err := SendMessage(ctx, n.directMessageClient.client, "jordi@commonfate.io", requestorMessage, requestorMessageFallback, accessory)
 		return err
 	}
 
@@ -226,19 +227,19 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 func (n *SlackNotifier) sendRequestDetailsMessage(ctx context.Context, log *zap.SugaredLogger, request access.RequestWithGroupsWithTargets, headingMsg string, summary string) {
 
 	var HAS_SLACK_CLIENT = n.directMessageClient != nil
-	var HAS_SLACK_WEBHOOKS = len(n.webhooks) > 0
 
 	if HAS_SLACK_CLIENT {
 
 		approvalRequired := false // TODO
-		requestor := request.Group.RequestedBy
+		requestor := request.Request.RequestedBy
 
 		// 🚨🚨 `requestedRule.Name` references to -> a count of the Resource Gropus that the user is requesting access to
 
 		if n.directMessageClient != nil || len(n.webhooks) > 0 {
 			if n.directMessageClient != nil {
+				// 🚨🚨 TODO: I NEED FIXING INPUT PROPS 🚨🚨
 				_, msg := BuildRequestDetailMessage(RequestDetailMessageOpts{
-					Request:        request,
+					// Request:        request,
 					HeadingMessage: headingMsg,
 				})
 
@@ -277,6 +278,8 @@ func (n *SlackNotifier) sendRequestUpdatesReviewer(ctx context.Context, log *zap
 
 	requestor := req.Request.RequestedBy
 
+	// requestorSlackId :=
+
 	// Request update requirements:
 	//
 	// To be sent when:
@@ -298,11 +301,6 @@ func (n *SlackNotifier) sendRequestUpdatesReviewer(ctx context.Context, log *zap
 
 			// Loop over the request reviewers...
 			for _, reviewer := range group.Group.GroupReviewers {
-
-				//
-				// Jack
-				// req.Groups[0].Group.GroupReviewers
-				// loop through group, if group has request reviwers, loop through them, otherwise skip
 
 				reqReviewer := storage.GetRequestReviewer{
 					RequestID:  req.Request.ID,
@@ -327,12 +325,14 @@ func (n *SlackNotifier) sendRequestUpdatesReviewer(ctx context.Context, log *zap
 					continue
 				}
 
-				// 🚨🚨 TODO: may need to pass in reqReviewer.Result.Notifications.SlackMessageID
-				// 🚨🚨 TODO: this must change to UpdateMessageBlockForReviewer 🚨🚨
-
 				_, slackMsg := BuildRequestReviewMessage(RequestMessageOpts{
-					Group:      req.Group,
-					ReviewURLs: reviewURL,
+					Group:          group.Group,
+					ReviewURLs:     reviewURL,
+					RequestorEmail: requestor.Email,
+					WasReviewed:    req.Request.RequestStatus != types.PENDING,
+					// RequestorSlackID: string
+					// RequestReviewer: *identity.User
+					// IsWebhook: bool,
 				})
 
 				// _, err = SendMessageBlocks(ctx, n.directMessageClient.client, requestor.Email, slackMsg, summary)
