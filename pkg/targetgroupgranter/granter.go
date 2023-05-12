@@ -174,7 +174,6 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (GrantState,
 			GroupTargetID: requestAccessGroupTarget.ID,
 			RequestedBy:   requestAccessGroupTarget.RequestedBy.ID,
 		}
-		requestAccessGroupTarget.Grant.Instructions = &grantResponse.AccessInstructions
 		items = append(items, &instructions)
 		//Save the new grant status and the instructions
 

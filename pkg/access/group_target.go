@@ -47,8 +47,7 @@ type Grant struct {
 	//the time which the grant starts
 	Start iso8601.Time `json:"start" dynamodbav:"start"`
 	//the time the grant is scheduled to end
-	End          iso8601.Time `json:"end" dynamodbav:"end"`
-	Instructions *string      `json:"instructions" dynamodbav:"instructions"`
+	End iso8601.Time `json:"end" dynamodbav:"end"`
 }
 type Field struct {
 	ID               string     `json:"id" dynamodbav:"id"`
