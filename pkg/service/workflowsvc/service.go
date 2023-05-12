@@ -11,7 +11,6 @@ import (
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/iso8601"
-	"go.uber.org/zap"
 )
 
 // //go:generate go run github.com/golang/mock/mockgen -destination=mocks/runtime.go -package=mocks . Runtime
@@ -114,11 +113,12 @@ func (s *Service) Revoke(ctx context.Context, requestID string, groupID string, 
 			return ErrGrantInactive
 		}
 
-		zap.S().Infow("Can revoke. calling runtime revoke.")
+		log := logger.Get(ctx)
+		log.Infow("Can revoke. calling runtime revoke.")
 
 		err = s.Runtime.Revoke(ctx, target.ID)
 		if err != nil {
-			zap.S().Errorw("error revoking", err)
+			log.Errorw("error revoking", err)
 
 			return err
 		}
