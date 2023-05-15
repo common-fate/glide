@@ -98,8 +98,10 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 						RequestorEmail:   requestorEmail,
 					})
 
-					reviewersQuery := storage.ListAccessGroupReviewers{
-						AccessGroupId: group.Group.ID,
+					// Should be able to do a RequestReviewers lookup and find the user
+
+					reviewersQuery := storage.ListRequestReviewers{
+						RequestId: group.Group.RequestID,
 					}
 					_, err = n.DB.Query(ctx, &reviewersQuery)
 					if err != nil {
@@ -108,10 +110,11 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 
 					var wg sync.WaitGroup
 					for _, usr := range reviewersQuery.Result {
-						if usr.ReviewerID == req.Request.RequestedBy.ID {
-							log.Infow("skipping sending approval message to requestor", "user.id", usr)
-							continue
-						}
+
+						// if usr.ReviewerID == req.Request.RequestedBy.ID {
+						// 	log.Infow("skipping sending approval message to requestor", "user.id", usr)
+						// 	continue
+						// }
 						wg.Add(1)
 						go func(usr access.Reviewer) {
 							defer wg.Done()
@@ -147,9 +150,19 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 					// Notify requestor per PENDING group
 					// ALSO notify per group automatic....
 					// todo: reviewer specific handling
+
+					// 🚨🚨
+					// We don't yet have solid handling for Auto-Approvals, so we're going to base this notification off of `len(group[i].RequestReviewers) == 0`
+					// 🚨🚨
+					if len(group.Group.RequestReviewers) == 0 {
+						requestorMessage = fmt.Sprintf("Your request to access *%s* will be automatically approved.", group.Group.AccessRuleSnapshot.Name)
+						requestorMessageFallback = fmt.Sprintf("Your request to access %s will be automatically approved.", group.Group.AccessRuleSnapshot.Name)
+					} else {
+						requestorMessage = fmt.Sprintf("Your request to access *%s* requires approval. We've notified the approvers and will let you know once your request has been reviewed.", group.Group.AccessRuleSnapshot.Name)
+						requestorMessageFallback = fmt.Sprintf("Your request to access %s requires approval.", group.Group.AccessRuleSnapshot.Name)
+					}
+
 					requestorEmail = requestEvent.Request.Request.RequestedBy.Email
-					requestorMessage = fmt.Sprintf("Your request to access *%s* requires approval. We've notified the approvers and will let you know once your request has been reviewed.", group.Group.AccessRuleSnapshot.Name)
-					requestorMessageFallback = fmt.Sprintf("Your request to access %s requires approval.", group.Group.AccessRuleSnapshot.Name)
 
 				}
 
@@ -167,7 +180,6 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 		}
 		// REQUESTOR: no-message; sent when approved
 
-	// who: new.requestor, update.reviewers
 	case gevent.RequestCompleteType:
 
 		var requestEvent gevent.RequestComplete

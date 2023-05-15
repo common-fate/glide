@@ -139,8 +139,9 @@ func (n *SlackNotifier) sendAccessGroupUpdatesReviewer(ctx context.Context, log 
 			// Ensure necessary opts are being passed in here
 
 			_, slackMsg := BuildRequestReviewMessage(RequestMessageOpts{
-				Group:      accessGroup.Group,
-				ReviewURLs: reviewURL,
+				Group:           accessGroup.Group,
+				ReviewURLs:      reviewURL,
+				RequestReviewer: reviewerUserObj.Result,
 			})
 
 			// _, err = SendMessageBlocks(ctx, n.directMessageClient.client, requestor.Email, slackMsg, summary)

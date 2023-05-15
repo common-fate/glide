@@ -48,8 +48,8 @@ func (n *EventHandler) handleRequestCreated(ctx context.Context, detail json.Raw
 			if err != nil {
 				return err
 			}
+			// Automatically Approve any groups that don't require approval
 			err = n.Eventbus.Put(ctx, gevent.AccessGroupReviewed{
-
 				AccessGroup: group,
 				Review: types.ReviewRequest{
 					Decision: types.ReviewDecisionAPPROVED,
