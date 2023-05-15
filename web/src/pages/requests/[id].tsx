@@ -120,6 +120,7 @@ const Home = () => {
             icon={<ArrowBackIcon />}
             rounded="full"
             variant="ghost"
+            to="/requests"
             // to={data?.canReview ? "/reviews?status=pending" : "/requests"}
           />
 
