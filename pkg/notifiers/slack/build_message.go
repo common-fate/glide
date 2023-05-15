@@ -57,19 +57,36 @@ func BuildRequestReviewMessage(o RequestMessageOpts) (summary string, msg slack.
 		requestor = fmt.Sprintf("<@%s>", o.RequestorSlackID)
 	}
 
-	status := titleCase(string(group.Status))
+	/**
+	In this scenario we want to override the request review status when,
+	The parent request has been:
+	- cancelled or
+	- revoked
+	*/
+	status := string(group.Status)
+	isCancelledOrRevoked := group.RequestStatus == types.CANCELLED || group.RequestStatus == types.REVOKED
+
+	if isCancelledOrRevoked {
+		status = string(o.Group.RequestStatus)
+	}
+
+	status = titleCase(string(status))
 	statusLower := strings.ToLower(status)
+	statusNoUnder := strings.Replace(statusLower, "_", " ", -1)
 
 	if o.IsWebhook && o.WasReviewed && group.Status != types.RequestAccessGroupStatusPENDINGAPPROVAL {
-		summary = fmt.Sprintf("%s %s %s's request", group, statusLower, group.RequestedBy.Email)
+		summary = fmt.Sprintf("%s %s %s's request", o.RequestReviewer.Email, statusLower, group.RequestedBy.Email)
 	} else {
 		summary = fmt.Sprintf("New request for %s from %s", group.AccessRuleSnapshot.Name, group.RequestedBy.Email)
 	}
 
+	start, _ := group.GetInterval(access.WithNow(clock.New().Now()))
+	when := start.Format(time.Kitchen)
+
 	requestDetails := []*slack.TextBlockObject{
 		{
 			Type: "mrkdwn",
-			Text: fmt.Sprintf("*When:*\n%s", group.RequestedTiming.StartTime),
+			Text: fmt.Sprintf("*When:*\n%s", when),
 		},
 		{
 			Type: "mrkdwn",
@@ -77,7 +94,7 @@ func BuildRequestReviewMessage(o RequestMessageOpts) (summary string, msg slack.
 		},
 		{
 			Type: "mrkdwn",
-			Text: fmt.Sprintf("*Status:*\n%s", status),
+			Text: fmt.Sprintf("*Status:*\n%s", statusNoUnder),
 		},
 	}
 
@@ -126,7 +143,7 @@ func BuildRequestReviewMessage(o RequestMessageOpts) (summary string, msg slack.
 		text := fmt.Sprintf("*Reviewed by* %s at %s", o.RequestorEmail, when)
 
 		if group.Status == types.RequestAccessGroupStatusDECLINED {
-			text = fmt.Sprintf("*Cancelled by* %s at %s", group.RequestedBy.Email, when)
+			text = fmt.Sprintf("*Declined by* %s at %s", o.RequestReviewer.Email, when)
 		}
 
 		reviewContextBlock := slack.NewContextBlock("", slack.TextBlockObject{
@@ -138,7 +155,7 @@ func BuildRequestReviewMessage(o RequestMessageOpts) (summary string, msg slack.
 	}
 
 	// If the request has just been sent (PENDING), then append Action Blocks
-	if group.Status == types.RequestAccessGroupStatusPENDINGAPPROVAL {
+	if group.Status == types.RequestAccessGroupStatusPENDINGAPPROVAL && !isCancelledOrRevoked {
 		msg.Blocks.BlockSet = append(msg.Blocks.BlockSet, slack.NewActionBlock("review_actions",
 			slack.ButtonBlockElement{
 				Type:     slack.METButton,
