@@ -23,8 +23,11 @@ func (s *Service) FilterResources(ctx context.Context, resources []cache.TargetG
 
 		// for now we will only filter string attributes
 		for k, v := range res.Resource.Attributes {
-			if v != nil && v.(string) != "" {
-				resource.Attributes[k] = v.(string)
+			if v != nil {
+				value, ok := v.(string)
+				if ok {
+					resource.Attributes[k] = value
+				}
 			}
 		}
 

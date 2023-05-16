@@ -14,7 +14,6 @@ import (
 func (a *API) AdminGetTargetGroupResources(w http.ResponseWriter, r *http.Request, id string, resourceType string) {
 	ctx := r.Context()
 
-	// TODO: Need to change to passed targetgroupid
 	q := storage.ListCachedTargetGroupResourceForTargetGroupAndResourceType{
 		TargetGroupID: id,
 		ResourceType:  resourceType,
@@ -44,7 +43,6 @@ func (a *API) AdminFilterTargetGroupResources(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	// TODO: Need to change to passed targetgroupid
 	q := storage.ListCachedTargetGroupResourceForTargetGroupAndResourceType{
 		TargetGroupID: id,
 		ResourceType:  resourceType,
