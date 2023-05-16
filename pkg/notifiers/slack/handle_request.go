@@ -151,11 +151,6 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 					}
 					wg.Wait()
 
-					// @TODO: I think we leave this out for DEV
-					// Notify requestor per PENDING group
-					// ALSO notify per group automatic....
-					// todo: reviewer specific handling
-
 					if len(group.Group.RequestReviewers) == 0 {
 						requestorMessage = fmt.Sprintf("Your request to access *%s* will be automatically approved.", group.Group.AccessRuleSnapshot.Name)
 						requestorMessageFallback = fmt.Sprintf("Your request to access %s will be automatically approved.", group.Group.AccessRuleSnapshot.Name)

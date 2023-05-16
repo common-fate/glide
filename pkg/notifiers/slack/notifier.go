@@ -69,9 +69,9 @@ func (n *SlackNotifier) HandleEvent(ctx context.Context, event events.CloudWatch
 			err := n.HandleAccessGroupEvent(ctx, log, event)
 			if err != nil {
 				return err
-			} else {
-				log.Info("ignoring unhandled event type")
 			}
+		} else {
+			log.Info("ignoring unhandled event type")
 		}
 	}
 	return nil

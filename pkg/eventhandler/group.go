@@ -22,11 +22,8 @@ func (n *EventHandler) HandleAccessGroupEvents(ctx context.Context, log *zap.Sug
 	case gevent.AccessGroupReviewedType:
 		return n.handleReviewEvent(ctx, event.Detail)
 	case gevent.AccessGroupApprovedType:
-		// do a message for approved
-		// do a message or auto-approved (aka this event type will be triggered as well; dual purpose)
 		return n.handleAccessGroupApprovedEvent(ctx, event.Detail)
 	case gevent.AccessGroupDeclinedType:
-		// do a message for declined
 		return n.handleAccessGroupDeclinedDeclinedEvent(ctx, event.Detail)
 	}
 	return nil
@@ -214,7 +211,7 @@ func (n *EventHandler) handleAccessGroupOverlap(ctx context.Context, event geven
 	for _, target := range event.AccessGroup.Targets {
 
 		// send a failed grant event for targets in overlapping group.
-		n.Eventbus.Put(ctx, gevent.GrantFailed{
+		return n.Eventbus.Put(ctx, gevent.GrantFailed{
 			Grant:  target,
 			Reason: "a request including this grant already exists",
 		})

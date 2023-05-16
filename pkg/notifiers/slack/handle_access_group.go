@@ -156,9 +156,6 @@ func (n *SlackNotifier) sendAccessGroupUpdatesReviewer(ctx context.Context, log 
 				continue
 			}
 
-			// 🚨🚨 TODO: may need to pass in reqReviewer.Result.Notifications.SlackMessageID
-			// 🚨🚨 TODO: this must change to UpdateMessageBlockForReviewer 🚨🚨
-			// Ensure necessary opts are being passed in here
 			if OVERRIDE_DEV {
 				reviewerUserObj.Result.Email = OVERRIDE_EMAIL
 			}
