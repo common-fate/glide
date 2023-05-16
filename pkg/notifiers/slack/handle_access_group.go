@@ -66,6 +66,12 @@ func (n *SlackNotifier) sendAccessGroupDetailsMessageRequestor(ctx context.Conte
 	var HAS_SLACK_CLIENT = n.directMessageClient != nil
 	var HAS_SLACK_WEBHOOKS = len(n.webhooks) > 0
 
+	// This is used for dev testing puprposes only,
+	// this allows the requestor to act as a reviewer so you can test both,
+	// notification types in one go.
+	var OVERRIDE_DEV = false
+	var OVERRIDE_EMAIL = "jordi@commonfate.io"
+
 	requestor := accessGroup.Group.RequestedBy
 
 	if HAS_SLACK_CLIENT {
@@ -74,9 +80,8 @@ func (n *SlackNotifier) sendAccessGroupDetailsMessageRequestor(ctx context.Conte
 			HeadingMessage: headingMsg,
 		})
 
-		OVERRIDE_DEV := true
 		if OVERRIDE_DEV {
-			requestor.Email = "jordi@commonfate.io"
+			requestor.Email = OVERRIDE_EMAIL
 		}
 
 		_, err := SendMessageBlocks(ctx, n.directMessageClient.client, requestor.Email, msg, summary)
@@ -110,6 +115,7 @@ func (n *SlackNotifier) sendAccessGroupUpdatesReviewer(ctx context.Context, log 
 	// this allows the requestor to act as a reviewer so you can test both,
 	// notification types in one go.
 	var OVERRIDE_DEV = false
+	var OVERRIDE_EMAIL = "jordi@commonfate.io"
 
 	requestor := accessGroup.Group.RequestedBy
 
@@ -154,7 +160,7 @@ func (n *SlackNotifier) sendAccessGroupUpdatesReviewer(ctx context.Context, log 
 			// 🚨🚨 TODO: this must change to UpdateMessageBlockForReviewer 🚨🚨
 			// Ensure necessary opts are being passed in here
 			if OVERRIDE_DEV {
-				reviewerUserObj.Result.Email = "jordi@commonfate.io"
+				reviewerUserObj.Result.Email = OVERRIDE_EMAIL
 			}
 
 			_, slackMsg := BuildRequestReviewMessage(RequestMessageOpts{
@@ -163,6 +169,7 @@ func (n *SlackNotifier) sendAccessGroupUpdatesReviewer(ctx context.Context, log 
 				RequestReviewer:  reviewerUserObj.Result,
 				RequestorEmail:   requestor.Email,
 				RequestorSlackID: slackUserID,
+				WasReviewed:      true,
 			})
 
 			err = n.UpdateMessageBlockForReviewer(ctx, *reqReviewer.Result, slackMsg)
@@ -174,10 +181,10 @@ func (n *SlackNotifier) sendAccessGroupUpdatesReviewer(ctx context.Context, log 
 
 	}
 
-	// TODO
+	// 🚨🚨 TODO
 	//
 	// Decide on level of noise,
-	// Deo we want slack webhooks to trigger on every access group review?
+	// Do we want slack webhooks to trigger on every access group review?
 
 	// if HAS_SLACK_WEBHOOKS {
 	// Note: propably don't need webhook alerts here...

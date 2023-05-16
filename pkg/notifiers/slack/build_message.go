@@ -57,15 +57,11 @@ func BuildRequestReviewMessage(o RequestMessageOpts) (summary string, msg slack.
 		requestor = fmt.Sprintf("<@%s>", o.RequestorSlackID)
 	}
 
-	/**
-	In this scenario we want to override the request review status when,
-	The parent request has been:
-	- cancelled or
-	- revoked
-	*/
 	status := string(group.Status)
 	isCancelledOrRevoked := group.RequestStatus == types.CANCELLED || group.RequestStatus == types.REVOKED
 
+	// In this scenario we want to override the request review status when,
+	// The parent request has been: cancelled or revoked
 	if isCancelledOrRevoked {
 		status = string(o.Group.RequestStatus)
 	}
@@ -106,7 +102,6 @@ func BuildRequestReviewMessage(o RequestMessageOpts) (summary string, msg slack.
 	// }
 
 	// Only show the Request reason if it is not empty
-
 	if group.RequestPurposeReason != "" {
 		requestDetails = append(requestDetails, &slack.TextBlockObject{
 			Type: "mrkdwn",
