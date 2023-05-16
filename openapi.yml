@@ -1652,6 +1652,8 @@ components:
           format: time
         status:
           $ref: "#/components/schemas/RequestStatus"
+        targetCount:
+          type: integer
       required:
         - id
         - purpose
@@ -1659,6 +1661,7 @@ components:
         - requestedBy
         - requestedAt
         - status
+        - targetCount
     RequestRequestedBy:
       title: Request Requested By
       type: object

@@ -20,4 +20,5 @@ export interface Request {
   requestedBy: RequestRequestedBy;
   requestedAt: string;
   status: RequestStatus;
+  targetCount: number;
 }
