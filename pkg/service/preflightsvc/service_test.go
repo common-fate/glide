@@ -94,7 +94,12 @@ func TestGroupTargets(t *testing.T) {
 		{
 			name:    "multiple targets with diff access rules creates multiple groups",
 			targets: []cache.Target{target1, target2},
-			user:    identity.User{ID: "usr_123"},
+			user: identity.User{
+				ID: "usr_123",
+				Groups: []string{
+					"string",
+				},
+			},
 			AccessGroups: []access.PreflightAccessGroup{
 				{
 					Targets: []access.PreflightAccessGroupTarget{{Target: target1, TargetGroupID: "aws"}},
@@ -141,20 +146,17 @@ func TestGroupTargets(t *testing.T) {
 					TimeConstraints: types.AccessRuleTimeConstraints{MaxDurationSeconds: 3600},
 				},
 			},
-			mockGetGroups: []identity.Group{
-				{
-					Users: []string{"usr_123"},
-				},
-				{
-					Users: []string{"usr_123"},
-				},
-			},
 		},
 		{
 			//two access rules, one requires approval and one without. User has access to the one with requires approval. should return correct grouping
 			name:    "user with access to one of two rules gets the correct rule",
 			targets: []cache.Target{target1},
-			user:    identity.User{ID: "usr_123"},
+			user: identity.User{
+				ID: "usr_123",
+				Groups: []string{
+					"reqApproval",
+				},
+			},
 
 			AccessGroups: []access.PreflightAccessGroup{
 				{
@@ -192,14 +194,7 @@ func TestGroupTargets(t *testing.T) {
 					TimeConstraints: types.AccessRuleTimeConstraints{MaxDurationSeconds: 3600},
 				},
 			},
-			mockGetGroups: []identity.Group{
-				{
-					Users: []string{"usr_123"},
-				},
-				{
-					Users: []string{},
-				},
-			},
+
 			wantErr: false,
 		},
 	}
@@ -219,11 +214,11 @@ func TestGroupTargets(t *testing.T) {
 				)
 			}
 
-			for i := range tt.mockGetGroups {
-				db.MockQueries(
-					&storage.GetGroup{Result: &tt.mockGetGroups[i]},
-				)
-			}
+			// for i := range tt.mockGetGroups {
+			// 	db.MockQueries(
+			// 		&storage.GetGroup{Result: &tt.mockGetGroups[i]},
+			// 	)
+			// }
 
 			s := &Service{
 				DB:    db,

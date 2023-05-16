@@ -98,21 +98,19 @@ func (s *Service) ProcessPreflight(ctx context.Context, user identity.User, pref
 	return &preflight, nil
 }
 
-func (s *Service) UserCanAccessRule(ctx context.Context, userId string, a rule.AccessRule) (bool, error) {
+func (s *Service) UserCanAccessRule(ctx context.Context, user identity.User, a rule.AccessRule) (bool, error) {
 
+	userGroups := map[string]string{}
+
+	for _, group := range user.Groups {
+		userGroups[group] = group
+	}
 	for _, groupId := range a.Groups {
-		getGroup := storage.GetGroup{ID: groupId}
-		_, err := s.DB.Query(ctx, &getGroup)
-		if err != nil {
-			return false, err
-		}
-
-		for _, u := range getGroup.Result.Users {
-			if u == userId {
-				return true, nil
-			}
+		if _, ok := userGroups[groupId]; ok {
+			return true, nil
 		}
 	}
+
 	return false, nil
 }
 
@@ -135,7 +133,7 @@ func (s *Service) GroupTargets(ctx context.Context, targets []cache.Target, user
 				return nil, err
 			}
 			//check if user has access to this rule
-			canAccess, err := s.UserCanAccessRule(ctx, user.ID, *ar.Result)
+			canAccess, err := s.UserCanAccessRule(ctx, user, *ar.Result)
 			if err != nil {
 				return nil, err
 			}
