@@ -251,8 +251,6 @@ github.com/common-fate/cloudform v0.6.0 h1:VDme3jSJAltnF8OlSdqxjHn8YnvIoknARvISN
 github.com/common-fate/cloudform v0.6.0/go.mod h1:lWkYU3gfk0ohl66sdML9qCYxe5nSdbcqS6U9j/ewmjw=
 github.com/common-fate/ddb v0.15.1-0.20230424033643-2558c36a3a5e h1:UF6bcAPtqLg0ds02s28X28aUm67X+NAPsWJjiCfjjbQ=
 github.com/common-fate/ddb v0.15.1-0.20230424033643-2558c36a3a5e/go.mod h1:f4DsPkqiZrFLuN8RC9ta5n6LS2GbaXraWlpzNDdYHDI=
-github.com/common-fate/iso8601 v1.1.1-0.20230512011954-20fc40c53efc h1:hGN8l8L8GvhsCOYEtZPMbwm8E9gH2WaP6vhVHpi4c4Y=
-github.com/common-fate/iso8601 v1.1.1-0.20230512011954-20fc40c53efc/go.mod h1:OHz9nvJN4s3x69rlImm8pkVXL/leyDqs5jdKUtLk5ZQ=
 github.com/common-fate/iso8601 v1.1.1 h1:IRl4ZRFM6wfPD+YKcjrtFh6Wlr4pkiPb3VCgcT8bmpY=
 github.com/common-fate/iso8601 v1.1.1/go.mod h1:OHz9nvJN4s3x69rlImm8pkVXL/leyDqs5jdKUtLk5ZQ=
 github.com/common-fate/provider-registry-sdk-go v0.17.1 h1:pzF/xeODk1/lJcAmy75vvj3zP39vj1H2eKs+2nRdxy4=

@@ -92,6 +92,7 @@ func (r *RequestWithGroupsWithTargets) ToAPI() types.Request {
 		// @TODO denormalise the user onto the request
 		RequestedBy:  types.RequestRequestedBy(r.Request.RequestedBy),
 		AccessGroups: []types.RequestAccessGroup{},
+		TargetCount:  r.Request.GroupTargetCount,
 	}
 	for _, group := range r.Groups {
 		out.AccessGroups = append(out.AccessGroups, group.ToAPI())
