@@ -16,6 +16,36 @@ import (
 func (n *SlackNotifier) HandleAccessGroupEvent(ctx context.Context, log *zap.SugaredLogger, event events.CloudWatchEvent) error {
 
 	switch event.DetailType {
+
+	// 🚨🚨
+	//
+	// We probably don't want to fire a messages here because the outcome we care about is
+	// Whether it has been Approved/Declined (which we have handling for)
+	// Then RequestCreated handles any create events (and also has support for auto-approving)
+
+	// case gevent.AccessGroupReviewedType:
+
+	// 	var accessGroupEvent gevent.AccessGroupReviewed
+	// 	err := json.Unmarshal(event.Detail, &accessGroupEvent)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	accessGroup := accessGroupEvent.AccessGroup
+
+	// accessGroupEvent.ApprovalMethod == types.AUTOMATIC
+
+	// REQUESTOR Message:
+	// "your access to X no. of resources for Y access rule has been approved"
+	// msg := fmt.Sprintf(":white_check_mark: Your request to access *%s* has been automatically approved.", accessGroup.Group.AccessRuleSnapshot.Name)
+	// fallback := fmt.Sprintf("Your request to access %s has been automatically approved.", accessGroup.Group.AccessRuleSnapshot.Name)
+	// n.sendAccessGroupDetailsMessageRequestor(ctx, log, accessGroup, msg, fallback)
+
+	// REVIEWER Message Update:
+	//
+	// Other contextual data needed for the slack request
+	// When | Duration | Status | Requestor | Resources | Slack Message IDs + The reviewers to update
+	// n.sendAccessGroupUpdatesReviewer(ctx, log, accessGroup)
+
 	case gevent.AccessGroupApprovedType:
 
 		var accessGroupEvent gevent.AccessGroupApproved
@@ -76,6 +106,11 @@ func (n *SlackNotifier) sendAccessGroupDetailsMessageRequestor(ctx context.Conte
 			HeadingMessage: headingMsg,
 		})
 
+		OVERRIDE_DEV := true
+		if OVERRIDE_DEV {
+			requestor.Email = "jordi@commonfate.io"
+		}
+
 		_, err := SendMessageBlocks(ctx, n.directMessageClient.client, requestor.Email, msg, summary)
 
 		if err != nil {
@@ -85,7 +120,6 @@ func (n *SlackNotifier) sendAccessGroupDetailsMessageRequestor(ctx context.Conte
 
 	if HAS_SLACK_WEBHOOKS {
 		for _, webhook := range n.webhooks {
-
 			_, msg := BuildRequestDetailMessage(RequestDetailMessageOpts{
 				Request:        accessGroup,
 				HeadingMessage: headingMsg,
@@ -103,6 +137,11 @@ func (n *SlackNotifier) sendAccessGroupUpdatesReviewer(ctx context.Context, log 
 
 	var HAS_SLACK_CLIENT = n.directMessageClient != nil
 	// var HAS_SLACK_WEBHOOKS = len(n.webhooks) > 0
+
+	// This is used for dev testing puprposes only,
+	// this allows the requestor to act as a reviewer so you can test both,
+	// notification types in one go.
+	var OVERRIDE_DEV = false
 
 	requestor := accessGroup.Group.RequestedBy
 
@@ -127,6 +166,18 @@ func (n *SlackNotifier) sendAccessGroupUpdatesReviewer(ctx context.Context, log 
 				return
 			}
 
+
+			var slackUserID string				
+			slackRequestor, err := n.directMessageClient.client.GetUserByEmailContext(ctx, requestor.Email)
+			if err != nil {
+				zap.S().Infow("couldn't get slack user from requestor - falling back to email address", "requestor.id", requestor.Email, zap.Error(err))
+			}
+			if slackRequestor != nil {
+				slackUserID = slackRequestor.ID
+			}
+
+
+
 			reviewerUserObj := storage.GetUser{ID: reviewer}
 			_, err = n.DB.Query(ctx, &reviewerUserObj)
 			if err != nil {
@@ -137,11 +188,17 @@ func (n *SlackNotifier) sendAccessGroupUpdatesReviewer(ctx context.Context, log 
 			// 🚨🚨 TODO: may need to pass in reqReviewer.Result.Notifications.SlackMessageID
 			// 🚨🚨 TODO: this must change to UpdateMessageBlockForReviewer 🚨🚨
 			// Ensure necessary opts are being passed in here
+			if OVERRIDE_DEV {
+				reviewerUserObj.Result.Email = "jordi@commonfate.io"
+			}
 
 			_, slackMsg := BuildRequestReviewMessage(RequestMessageOpts{
 				Group:           accessGroup.Group,
 				ReviewURLs:      reviewURL,
 				RequestReviewer: reviewerUserObj.Result,
+				RequestorEmail:  requestor.Email,
+				RequestorSlackID: ,
+				// RequestorEmail: string,
 			})
 
 			// _, err = SendMessageBlocks(ctx, n.directMessageClient.client, requestor.Email, slackMsg, summary)

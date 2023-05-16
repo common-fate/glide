@@ -112,25 +112,12 @@ func (n *EventHandler) handleRequestCancelInitiated(ctx context.Context, detail 
 
 	items := requestEvent.Request.DBItems()
 
-	// for _, group := range requestEvent.Request.Groups {
-	// 	for _, target := range group.Targets {
-	// 		target.RequestStatus = types.CANCELLED
-	// 		items = append(items, &target)
-	// 	}
-	// }
-
-	// 🚨🚨
-	//
-	// This batch write is failing here....
-	//
-	//
 	err = n.DB.PutBatch(ctx, items...)
 	if err != nil {
 		return err
 	}
 
 	//after cancelling has finished emit a cancel event where the notification will be sent out
-
 	err = n.Eventbus.Put(ctx, &gevent.RequestCancelled{
 		Request: requestEvent.Request,
 	})

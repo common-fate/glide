@@ -22,6 +22,11 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 	var HAS_SLACK_CLIENT = n.directMessageClient != nil
 	var HAS_SLACK_WEBHOOKS = len(n.webhooks) > 0
 
+	// This is used for dev testing puprposes only,
+	// this allows the requestor to act as a reviewer so you can test both,
+	// notification types in one go.
+	var OVERRIDE_DEV = false
+
 	var requestorMessage string
 	var requestorEmail string
 	var requestorMessageFallback string
@@ -42,9 +47,6 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 
 		// REVIEWERS: for each access group run notification logic...
 		for _, group := range req.Groups {
-
-			// 🚨🚨🚨 I don't think we actually need any additional request type handling here,
-			// bc the request should only be in PendingApproval state when requested.... 🚨🚨🚨
 
 			// if the group is pending approval, notify approvers
 			if group.Group.Status == types.RequestAccessGroupStatusPENDINGAPPROVAL {
@@ -98,8 +100,6 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 						RequestorEmail:   requestorEmail,
 					})
 
-					// Should be able to do a RequestReviewers lookup and find the user
-
 					reviewersQuery := storage.ListRequestReviewers{
 						RequestId: group.Group.RequestID,
 					}
@@ -151,9 +151,6 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 					// ALSO notify per group automatic....
 					// todo: reviewer specific handling
 
-					// 🚨🚨
-					// We don't yet have solid handling for Auto-Approvals, so we're going to base this notification off of `len(group[i].RequestReviewers) == 0`
-					// 🚨🚨
 					if len(group.Group.RequestReviewers) == 0 {
 						requestorMessage = fmt.Sprintf("Your request to access *%s* will be automatically approved.", group.Group.AccessRuleSnapshot.Name)
 						requestorMessageFallback = fmt.Sprintf("Your request to access %s will be automatically approved.", group.Group.AccessRuleSnapshot.Name)
@@ -168,15 +165,6 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 
 			}
 
-			// 🚨🚨🚨 I don't think we actually need any additional request type handling here,
-			// bc the request should only be in PendingApproval state when requested.... 🚨🚨🚨
-
-			// if group.Group.ApprovalMethod == types.RequestAccessGroupStatusAPPROVED {
-			// 	if HAS_SLACK_CLIENT {
-			// 		//  run update for requestor
-			// 		//  run updates for reviewers
-			// 	}
-			// }
 		}
 		// REQUESTOR: no-message; sent when approved
 
@@ -229,14 +217,12 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 		n.sendRequestUpdatesReviewer(ctx, log, requestEvent.Request)
 	}
 
-	REQUESTO_EMAIL_OVERRIDE_DEV := true
-	if REQUESTO_EMAIL_OVERRIDE_DEV {
+	if OVERRIDE_DEV {
 		requestorEmail = "jordi@commonfate.io"
 	}
 
 	if requestorMessage != "" {
 		_, err := SendMessage(ctx, n.directMessageClient.client, requestorEmail, requestorMessage, requestorMessageFallback, accessory)
-		// _, err := SendMessage(ctx, n.directMessageClient.client, "jordi@commonfate.io", requestorMessage, requestorMessageFallback, accessory)
 		return err
 	}
 
@@ -297,23 +283,6 @@ func (n *SlackNotifier) sendRequestUpdatesReviewer(ctx context.Context, log *zap
 	var HAS_SLACK_WEBHOOKS = len(n.webhooks) > 0
 
 	requestor := req.Request.RequestedBy
-
-	// requestorSlackId :=
-
-	// Request update requirements:
-	//
-	// To be sent when:
-	// 1. Request is completed; all reviews are marked as complete; actions voided
-	// 2. Request is revoked; all reviews are marked as complete; actions voided
-	// 3. Request is cancelled; all reviews are marked as complete; actions voided
-	//
-	// To mark off:
-	// We need to itterate over every single request group; every single request reviewer
-	//
-	// To send update to a reviewer:
-	// 1. the access.Reviewer object
-	// 2. send the message
-	// 3. update the access.Reviewer object with the new message ID
 
 	if HAS_SLACK_CLIENT {
 
