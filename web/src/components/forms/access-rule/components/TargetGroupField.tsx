@@ -342,7 +342,9 @@ export const TargetGroupField: React.FC<TargetGroupFieldProps> = (props) => {
   );
 };
 
-export const createResourceFilter = (
+// const FieldFilterView: React.FC<any> = ({ props }) => {};
+
+const createResourceFilter = (
   operation: TargetGroupFilterOperation
 ): ResourceFilter => {
   if (!operation.values?.length && operation.value == "") {
