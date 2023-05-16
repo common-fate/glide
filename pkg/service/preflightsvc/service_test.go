@@ -213,13 +213,13 @@ func TestGroupTargets(t *testing.T) {
 			// 	&storage.GetAccessRule{Result: &tt.mockGetAccessRules[0]},
 			// )
 
-			for i, _ := range tt.mockGetAccessRules {
+			for i := range tt.mockGetAccessRules {
 				db.MockQueries(
 					&storage.GetAccessRule{Result: &tt.mockGetAccessRules[i]},
 				)
 			}
 
-			for i, _ := range tt.mockGetGroups {
+			for i := range tt.mockGetGroups {
 				db.MockQueries(
 					&storage.GetGroup{Result: &tt.mockGetGroups[i]},
 				)
