@@ -181,8 +181,6 @@ func BuildRequestReviewMessage(o RequestMessageOpts) (summary string, msg slack.
 }
 
 type RequestDetailMessageOpts struct {
-	// 🚨🚨 If we want to add target fields to the slack message we should
-	// extract them from here... 🚨🚨
 	Request access.GroupWithTargets
 	// the message that renders in the header of the slack message
 	HeadingMessage string

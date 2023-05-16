@@ -111,10 +111,10 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 					var wg sync.WaitGroup
 					for _, usr := range reviewersQuery.Result {
 
-						// if usr.ReviewerID == req.Request.RequestedBy.ID {
-						// 	log.Infow("skipping sending approval message to requestor", "user.id", usr)
-						// 	continue
-						// }
+						if !OVERRIDE_DEV && usr.ReviewerID == req.Request.RequestedBy.ID {
+							log.Infow("skipping sending approval message to requestor", "user.id", usr)
+							continue
+						}
 						wg.Add(1)
 						go func(usr access.Reviewer) {
 							defer wg.Done()
@@ -175,14 +175,11 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 		if err != nil {
 			return err
 		}
-		// I'm firing, but there's no support for automaticaly approved notifications
 
 		// REQUESTOR Message:
 		requestorEmail = requestEvent.Request.Request.RequestedBy.Email
 		requestorMessage = fmt.Sprintf("Your access to *%d* Resources has now expired. If you still need access you can send another request using Common Fate.", len(requestEvent.Request.Groups))
 		requestorMessageFallback = fmt.Sprintf("Your access to *%d* Resources has now expired.", len(requestEvent.Request.Groups))
-
-		// @TODO: make me better support
 
 		// REVIEWER Message Update:
 		n.sendRequestUpdatesReviewer(ctx, log, requestEvent.Request)
@@ -240,7 +237,6 @@ func (n *SlackNotifier) sendRequestDetailsMessage(ctx context.Context, log *zap.
 		requestor := request.Request.RequestedBy
 
 		// 🚨🚨 `requestedRule.Name` references to -> a count of the Resource Gropus that the user is requesting access to
-
 		if n.directMessageClient != nil || len(n.webhooks) > 0 {
 			if n.directMessageClient != nil {
 				// 🚨🚨 TODO: I NEED FIXING INPUT PROPS 🚨🚨
@@ -260,7 +256,6 @@ func (n *SlackNotifier) sendRequestDetailsMessage(ctx context.Context, log *zap.
 		for _, webhook := range n.webhooks {
 			if !approvalRequired {
 				// headingMsg = fmt.Sprintf(":white_check_mark: %s's request to access *%s* has been automatically approved.\n", requestingUser.Email, requestedRule.Name)
-
 				// summary = fmt.Sprintf("%s's request to access %s has been automatically approved.", requestingUser.Email, requestedRule.Name)
 			}
 			_, msg := BuildRequestDetailMessage(RequestDetailMessageOpts{

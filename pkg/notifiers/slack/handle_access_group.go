@@ -17,35 +17,6 @@ func (n *SlackNotifier) HandleAccessGroupEvent(ctx context.Context, log *zap.Sug
 
 	switch event.DetailType {
 
-	// 🚨🚨
-	//
-	// We probably don't want to fire a messages here because the outcome we care about is
-	// Whether it has been Approved/Declined (which we have handling for)
-	// Then RequestCreated handles any create events (and also has support for auto-approving)
-
-	// case gevent.AccessGroupReviewedType:
-
-	// 	var accessGroupEvent gevent.AccessGroupReviewed
-	// 	err := json.Unmarshal(event.Detail, &accessGroupEvent)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// 	accessGroup := accessGroupEvent.AccessGroup
-
-	// accessGroupEvent.ApprovalMethod == types.AUTOMATIC
-
-	// REQUESTOR Message:
-	// "your access to X no. of resources for Y access rule has been approved"
-	// msg := fmt.Sprintf(":white_check_mark: Your request to access *%s* has been automatically approved.", accessGroup.Group.AccessRuleSnapshot.Name)
-	// fallback := fmt.Sprintf("Your request to access %s has been automatically approved.", accessGroup.Group.AccessRuleSnapshot.Name)
-	// n.sendAccessGroupDetailsMessageRequestor(ctx, log, accessGroup, msg, fallback)
-
-	// REVIEWER Message Update:
-	//
-	// Other contextual data needed for the slack request
-	// When | Duration | Status | Requestor | Resources | Slack Message IDs + The reviewers to update
-	// n.sendAccessGroupUpdatesReviewer(ctx, log, accessGroup)
-
 	case gevent.AccessGroupApprovedType:
 
 		var accessGroupEvent gevent.AccessGroupApproved
@@ -62,9 +33,6 @@ func (n *SlackNotifier) HandleAccessGroupEvent(ctx context.Context, log *zap.Sug
 		n.sendAccessGroupDetailsMessageRequestor(ctx, log, accessGroup, msg, fallback)
 
 		// REVIEWER Message Update:
-		//
-		// Other contextual data needed for the slack request
-		// When | Duration | Status | Requestor | Resources | Slack Message IDs + The reviewers to update
 		n.sendAccessGroupUpdatesReviewer(ctx, log, accessGroup)
 
 	case gevent.AccessGroupDeclinedType:
@@ -166,8 +134,7 @@ func (n *SlackNotifier) sendAccessGroupUpdatesReviewer(ctx context.Context, log 
 				return
 			}
 
-
-			var slackUserID string				
+			var slackUserID string
 			slackRequestor, err := n.directMessageClient.client.GetUserByEmailContext(ctx, requestor.Email)
 			if err != nil {
 				zap.S().Infow("couldn't get slack user from requestor - falling back to email address", "requestor.id", requestor.Email, zap.Error(err))
@@ -175,8 +142,6 @@ func (n *SlackNotifier) sendAccessGroupUpdatesReviewer(ctx context.Context, log 
 			if slackRequestor != nil {
 				slackUserID = slackRequestor.ID
 			}
-
-
 
 			reviewerUserObj := storage.GetUser{ID: reviewer}
 			_, err = n.DB.Query(ctx, &reviewerUserObj)
@@ -193,15 +158,13 @@ func (n *SlackNotifier) sendAccessGroupUpdatesReviewer(ctx context.Context, log 
 			}
 
 			_, slackMsg := BuildRequestReviewMessage(RequestMessageOpts{
-				Group:           accessGroup.Group,
-				ReviewURLs:      reviewURL,
-				RequestReviewer: reviewerUserObj.Result,
-				RequestorEmail:  requestor.Email,
-				RequestorSlackID: ,
-				// RequestorEmail: string,
+				Group:            accessGroup.Group,
+				ReviewURLs:       reviewURL,
+				RequestReviewer:  reviewerUserObj.Result,
+				RequestorEmail:   requestor.Email,
+				RequestorSlackID: slackUserID,
 			})
 
-			// _, err = SendMessageBlocks(ctx, n.directMessageClient.client, requestor.Email, slackMsg, summary)
 			err = n.UpdateMessageBlockForReviewer(ctx, *reqReviewer.Result, slackMsg)
 
 			if err != nil {
