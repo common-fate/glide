@@ -180,3 +180,51 @@ func (s *Service) CreateRequest(ctx context.Context, user identity.User, createR
 	return &out, nil
 
 }
+
+func (s *Service) CreateAccessTemplate(ctx context.Context, user identity.User, createRequest types.CreateAccessRequestRequest) (*access.AccessTemplate, error) {
+
+	preflightReq := storage.GetPreflight{
+		ID:     createRequest.PreflightId,
+		UserId: user.ID,
+	}
+	_, err := s.DB.Query(ctx, &preflightReq)
+	if err == ddb.ErrNoItems {
+		return nil, ErrPreflightNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	preflight := preflightReq.Result
+
+	now := s.Clock.Now()
+	tmp := access.AccessTemplate{
+		ID:        types.NewAccessTemplateID(),
+		CreatedBy: user.ID,
+		CreatedAt: now,
+		Name:      *createRequest.TemplateName,
+	}
+	for _, group := range preflight.AccessGroups {
+
+		accessGroup := access.AccessTemplateAccessGroup{
+			ID:              group.ID,
+			AccessRule:      group.AccessRule,
+			TimeConstraints: group.TimeConstraints,
+		}
+		for _, target := range group.Targets {
+			accessGroup.Targets = append(accessGroup.Targets, access.AccessTemplateAccessGroupTarget{
+				Target:        target.Target,
+				TargetGroupID: target.TargetGroupID,
+			})
+		}
+		tmp.AccessGroups = append(tmp.AccessGroups, accessGroup)
+
+	}
+
+	err = s.DB.Put(ctx, &tmp)
+	if err != nil {
+		return nil, err
+	}
+
+	return &tmp, nil
+}

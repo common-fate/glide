@@ -7,6 +7,7 @@ import {
   Button,
   ButtonGroup,
   Center,
+  Checkbox,
   Container,
   Flex,
   FormControl,
@@ -226,6 +227,26 @@ const Home = () => {
                     bg="neutrals.0"
                     {...methods.register("reason")}
                     onBlur={() => void methods.trigger("reason")}
+                  />
+                  {methods.formState.errors?.reason?.message && (
+                    <FormErrorMessage>
+                      {methods.formState.errors.reason?.message?.toString()}
+                    </FormErrorMessage>
+                  )}
+                  <Checkbox
+                    {...methods.register("createTemplate")}
+                    onBlur={() => void methods.trigger("createTemplate")}
+                  >
+                    Create Access Template
+                  </Checkbox>
+                  <FormLabel htmlFor="reason">
+                    <Text textStyle={"Body/Medium"}>Access Template Name</Text>
+                  </FormLabel>
+                  <Input
+                    placeholder="dev access items..."
+                    bg="neutrals.0"
+                    {...methods.register("templateName")}
+                    onBlur={() => void methods.trigger("templateName")}
                   />
                   {methods.formState.errors?.reason?.message && (
                     <FormErrorMessage>

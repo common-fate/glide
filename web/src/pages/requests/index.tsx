@@ -1,8 +1,9 @@
-import { Box, Flex, Stack } from "@chakra-ui/react";
+import { Box, Flex, Stack, Text } from "@chakra-ui/react";
 import { Helmet } from "react-helmet";
 import { EntitlementCheckout } from "../../components/EntitlementCheckout";
 import { UserLayout } from "../../components/Layout";
 import { RecentRequests } from "../../components/RecentRequests";
+import { AccessTemplateList } from "../../components/AccessTemplatesList";
 
 const Home = () => {
   return (
@@ -19,6 +20,9 @@ const Home = () => {
             justify={"center"}
             align={{ lg: "flex-start", md: "center", sm: "center" }}
           >
+            <Flex>
+              <AccessTemplateList />
+            </Flex>
             <Flex w={["770px"]}>
               <EntitlementCheckout />
             </Flex>

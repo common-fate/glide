@@ -87,6 +87,8 @@ type AccessService interface {
 	RevokeRequest(ctx context.Context, in access.RequestWithGroupsWithTargets) (*access.RequestWithGroupsWithTargets, error)
 	Review(ctx context.Context, user identity.User, isAdmin bool, requestID string, groupID string, in types.ReviewRequest) error
 	CancelRequest(ctx context.Context, opts accesssvc.CancelRequestOpts) error
+	CreateAccessTemplate(ctx context.Context, user identity.User, createRequest types.CreateAccessRequestRequest) (*access.AccessTemplate, error)
+
 	// CreateFavorite(ctx context.Context, in accesssvc.CreateFavoriteOpts) (*access.Favorite, error)
 	// UpdateFavorite(ctx context.Context, in accesssvc.UpdateFavoriteOpts) (*access.Favorite, error)
 }
