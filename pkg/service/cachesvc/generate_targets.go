@@ -2,11 +2,13 @@ package cachesvc
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/common-fate/common-fate/pkg/cache"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/target"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 )
 
@@ -108,22 +110,71 @@ func createResourceAccessRuleMapping(resources []cache.TargetGroupResource, acce
 			tgar[target.TargetGroup.ID] = append(tgar[target.TargetGroup.ID], ar)
 		}
 	}
-	// run matching on resources to filter rules on access rules
+
 	for _, resource := range resources {
 		accessrules, ok := tgar[resource.TargetGroupID]
 		if !ok {
 			continue
 		}
+
 		// for each access rule the resource is matched with, add it to the list it if matches the filter policy
 		// @TODO filter policies are not applied yet
 		for _, ar := range accessrules {
 
 			// a target may have multiple fields of teh same type, so be sure to apply matching for each of the fields on the target that match the type
 			// filter policy execution would go here, only append the resource if it matches
+
 			target := accessRuleMap[ar.ID][resource.TargetGroupID].targetGroup
-			for id, field := range target.Schema.Target.Properties {
-				if field.Resource != nil && *field.Resource == resource.ResourceType {
-					accessRuleMap[ar.ID][resource.TargetGroupID].fields[id] = append(accessRuleMap[ar.ID][resource.TargetGroupID].fields[id], resource.Resource)
+			// for id, field := range target.Schema.Target.Properties {
+			// 	if field.Resource != nil && *field.Resource == resource.ResourceType {
+			// 		accessRuleMap[ar.ID][resource.TargetGroupID].fields[id] = append(accessRuleMap[ar.ID][resource.TargetGroupID].fields[id], resource.Resource)
+			// 	}
+			// }
+
+			for _, t := range ar.Targets {
+				for id, field := range target.Schema.Target.Properties {
+					if field.Resource != nil && *field.Resource == resource.ResourceType {
+						operations := t.FieldFilterExpessions[id]
+
+						// if no filter operation then add all resources
+						if len(operations) == 0 {
+							accessRuleMap[ar.ID][resource.TargetGroupID].fields[id] = append(accessRuleMap[ar.ID][resource.TargetGroupID].fields[id], resource.Resource)
+
+							continue
+						}
+
+						res := types.Resource{
+							Id:   resource.Resource.ID,
+							Name: resource.Resource.Name,
+						}
+
+						res.Attributes = make(map[string]string)
+						res.Attributes["id"] = resource.Resource.ID
+						res.Attributes["name"] = resource.Resource.Name
+
+						// for now we will only filter string attributes
+						for k, v := range resource.Resource.Attributes {
+							if v != nil {
+								value, ok := v.(string)
+								if ok {
+									res.Attributes[k] = value
+								}
+							}
+						}
+
+						for _, op := range operations {
+							matched, err := op.Match(&res)
+							if err != nil {
+								return nil, err
+							}
+
+							if matched {
+								fmt.Println("matched")
+								accessRuleMap[ar.ID][resource.TargetGroupID].fields[id] = append(accessRuleMap[ar.ID][resource.TargetGroupID].fields[id], resource.Resource)
+							}
+						}
+					}
+
 				}
 			}
 		}

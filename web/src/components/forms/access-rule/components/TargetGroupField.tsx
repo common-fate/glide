@@ -56,15 +56,8 @@ export const TargetGroupField: React.FC<TargetGroupFieldProps> = (props) => {
   const { targetGroup, fieldSchema } = props;
   const [resources, setResources] = useState<TargetGroupResource[]>([]);
   const { isOpen, onToggle, onClose } = useDisclosure();
-  const [isLoading, setIsLoading] = useState<Boolean>(false);
 
-  const { watch, register, control, setValue } = useFormContext<any>();
-  const [targetGroupFilterOpts] = watch(["targetgroups"]);
-
-  const [operationType, setOperationType] =
-    useState<ResourceFilterOperationTypeEnum>(
-      ResourceFilterOperationTypeEnum.IN
-    );
+  const { setValue } = useFormContext<any>();
 
   const [filteredResources, setFilterResources] = useState<
     TargetGroupResource[]
@@ -80,60 +73,6 @@ export const TargetGroupField: React.FC<TargetGroupFieldProps> = (props) => {
     }
     onClose();
   }, [targetGroup]);
-
-  const fetchFilterResources = async () => {
-    const resourceFilter = createResourceFilter(
-      targetGroupFilterOpts[targetGroup.id][fieldSchema.id]
-    );
-
-    if (!resourceFilter || !fieldSchema.resource) {
-      return;
-    }
-
-    setIsLoading(true);
-    adminFilterTargetGroupResources(
-      targetGroup.id,
-      fieldSchema.resource,
-      resourceFilter
-    )
-      .then((data) => {
-        setFilterResources(data);
-        setIsLoading(false);
-      })
-      .catch(() => setIsLoading(false));
-  };
-
-  const createOptions = () => {
-    let defaultOptions = [
-      { value: "id", label: "Id" },
-      { value: "name", label: "Name" },
-    ];
-
-    if (fieldSchema.resourceSchema) {
-      const properties = fieldSchema.resourceSchema.properties;
-
-      if (properties?.data) {
-        let out = Object.entries(
-          properties.data as Map<string, ResourceSchemaProperty>
-        )
-          .filter(([k, v]) => v.type === "string")
-          .map(([k, v]) => ({ value: k, label: v.title }));
-
-        defaultOptions.push(...out);
-      }
-    }
-
-    return defaultOptions;
-  };
-
-  const createFilterOperationOptions = () => {
-    return Object.entries(ResourceFilterOperationTypeEnum).map(
-      ([value, label]) => ({
-        value,
-        label: label.toLowerCase(),
-      })
-    );
-  };
 
   return (
     <Box>
@@ -151,198 +90,287 @@ export const TargetGroupField: React.FC<TargetGroupFieldProps> = (props) => {
         bgColor={"white"}
         borderColor="gray.300"
       >
-        {false ? (
-          <Spinner />
-        ) : (
-          <>
-            {!isOpen && (
-              <Box>
-                <Text
-                  textStyle={"Body/Medium"}
-                  color="neutrals.500"
-                  pl={4}
-                  pb={2}
-                  pt={2}
-                >
-                  Available {fieldSchema.title}s
-                </Text>
-                {resources.length!! ? (
-                  <Box height={"200px"} overflow={"hidden"}>
-                    <Wrap>
-                      {resources.map((opt) => {
-                        return (
-                          <DynamicOption
-                            key={"cp-" + opt.resource.id}
-                            label={opt.resource.name}
-                            value={opt.resource.id}
-                          />
-                        );
-                      })}
-                    </Wrap>
-                  </Box>
-                ) : (
-                  <Alert status="warning">
-                    <AlertIcon />
-                    <AlertTitle>No resources synced!</AlertTitle>
-                    <AlertDescription>
-                      You can manually sync your target resources by running
-                      cache sync command
-                    </AlertDescription>
-                  </Alert>
-                )}
-              </Box>
-            )}
-            <Box p={4}>
-              <Collapse in={isOpen} animateOpacity>
-                <HStack>
-                  <Text color={"black"}> Where</Text>
-                  <Controller
-                    name={`targetgroups.${targetGroup.id}.${fieldSchema.id}.attribute`}
-                    control={control}
-                    defaultValue={"id"}
-                    render={({ field: { value, ref, name, onChange } }) => (
-                      <ReactSelect
-                        ref={ref}
-                        styles={{
-                          control: (provided, state) => ({
-                            ...provided,
-                            width: 120,
-                          }),
-                        }}
-                        options={createOptions()}
-                        onChange={(val: any) => {
-                          onChange(val?.value);
-                        }}
-                        value={createOptions().find((c) => c.value === value)}
-                      />
-                    )}
-                  />
-                  <Controller
-                    name={`targetgroups.${targetGroup.id}.${fieldSchema.id}.operationType`}
-                    control={control}
-                    defaultValue={"IN"}
-                    render={({ field: { value, ref, name, onChange } }) => (
-                      <ReactSelect
-                        ref={ref}
-                        styles={{
-                          control: (provided, state) => ({
-                            ...provided,
-                            width: 120,
-                          }),
-                        }}
-                        value={createFilterOperationOptions().find((c) => {
-                          return c.value === value;
-                        })}
-                        options={createFilterOperationOptions()}
-                        onChange={(val) => {
-                          onChange(val?.value);
-                          setOperationType(
-                            val?.value as ResourceFilterOperationTypeEnum
+        {
+          // TODO: Add API loading logic here
+          false ? (
+            <Spinner />
+          ) : (
+            <>
+              {!isOpen && (
+                <Box>
+                  <Text
+                    textStyle={"Body/Medium"}
+                    color="neutrals.500"
+                    pl={4}
+                    pb={2}
+                    pt={2}
+                  >
+                    Available {fieldSchema.title}s
+                  </Text>
+                  {resources.length!! ? (
+                    <Box height={"200px"} overflow={"hidden"}>
+                      <Wrap>
+                        {resources.map((opt) => {
+                          return (
+                            <DynamicOption
+                              key={"cp-" + opt.resource.id}
+                              label={opt.resource.name}
+                              value={opt.resource.id}
+                            />
                           );
-                        }}
-                      />
-                    )}
-                  />
-                  {operationType === ResourceFilterOperationTypeEnum.IN ? (
-                    <MultiSelect
-                      options={resources.map((r) => {
-                        return { label: r.resource.name, value: r.resource.id };
-                      })}
-                      fieldName={`targetgroups.${targetGroup.id}.${fieldSchema.id}.values`}
-                      onBlurSecondaryAction={() => fetchFilterResources()}
-                    />
+                        })}
+                      </Wrap>
+                    </Box>
                   ) : (
-                    <FormControl>
-                      <Input
-                        {...register(
-                          `targetgroups.${targetGroup.id}.${fieldSchema.id}.value`
-                        )}
-                        onBlur={() => fetchFilterResources()}
-                      />
-                    </FormControl>
+                    <Alert status="warning">
+                      <AlertIcon />
+                      <AlertTitle>No resources synced!</AlertTitle>
+                      <AlertDescription>
+                        You can manually sync your target resources by running
+                        cache sync command
+                      </AlertDescription>
+                    </Alert>
                   )}
-                </HStack>
-                <Box overflow="auto" h="200px" pt={4}>
-                  <Text>Preview</Text>
-                  {isLoading && <Spinner />}
-                  {filteredResources.map((r) => {
-                    return (
-                      <DynamicOption
-                        key={"cp-preview-" + r.resource.id}
-                        label={r.resource.name}
-                        value={r.resource.id}
-                      />
-                    );
-                  })}
                 </Box>
-              </Collapse>
-              <Box>
-                <Flex justifyContent={"space-between"}></Flex>
-              </Box>
-            </Box>
-            <Flex
-              justifyContent={"space-between"}
-              alignItems={"flex-start"}
-              pt={"4px"}
-              pb={"4px"}
-            >
-              <Text>{0} Filters Applied</Text>
-              <div>
-                {!isOpen ? (
-                  <Button
-                    leftIcon={<FilterIcon />}
-                    size="m"
-                    variant="ghost"
-                    onClick={onToggle}
-                  >
-                    Apply Filter
-                  </Button>
-                ) : (
-                  <Button
-                    leftIcon={<CloseIcon boxSize={2} />}
-                    size="m"
-                    color="red.400"
-                    variant="ghost"
-                    onClick={() => {
-                      onToggle();
+              )}
+              <FieldFilterView
+                isOpen={isOpen}
+                targetGroup={targetGroup}
+                fieldSchema={fieldSchema}
+                resources={resources}
+                filteredResources={filteredResources}
+                setFilteredResources={setFilterResources}
+              />
+              <Flex
+                justifyContent={"space-between"}
+                alignItems={"flex-start"}
+                pt={"4px"}
+                pb={"4px"}
+              >
+                <Text>{0} Filters Applied</Text>
+                <div>
+                  {!isOpen ? (
+                    <Button
+                      leftIcon={<FilterIcon />}
+                      size="m"
+                      variant="ghost"
+                      onClick={onToggle}
+                    >
+                      Apply Filter
+                    </Button>
+                  ) : (
+                    <Button
+                      leftIcon={<CloseIcon boxSize={2} />}
+                      size="m"
+                      color="red.400"
+                      variant="ghost"
+                      onClick={() => {
+                        onToggle();
 
-                      setValue(
-                        `targetgroups.${targetGroup.id}.${fieldSchema.id}.attribute`,
-                        "id"
-                      );
+                        setValue(
+                          `targetgroups.${targetGroup.id}.${fieldSchema.id}.attribute`,
+                          "id"
+                        );
 
-                      setValue(
-                        `targetgroups.${targetGroup.id}.${fieldSchema.id}.values`,
-                        []
-                      );
+                        setValue(
+                          `targetgroups.${targetGroup.id}.${fieldSchema.id}.values`,
+                          []
+                        );
 
-                      setValue(
-                        `targetgroups.${targetGroup.id}.${fieldSchema.id}.operationType`,
-                        ResourceFilterOperationTypeEnum.IN
-                      );
+                        setValue(
+                          `targetgroups.${targetGroup.id}.${fieldSchema.id}.operationType`,
+                          ResourceFilterOperationTypeEnum.IN
+                        );
 
-                      setValue(
-                        `targetgroups.${targetGroup.id}.${fieldSchema.id}.value`,
-                        ""
-                      );
+                        setValue(
+                          `targetgroups.${targetGroup.id}.${fieldSchema.id}.value`,
+                          ""
+                        );
 
-                      setFilterResources([]);
-                    }}
-                    ml="60%"
-                  >
-                    Remove Filter
-                  </Button>
-                )}
-              </div>
-            </Flex>
-          </>
-        )}
+                        setFilterResources([]);
+                      }}
+                      ml="60%"
+                    >
+                      Remove Filter
+                    </Button>
+                  )}
+                </div>
+              </Flex>
+            </>
+          )
+        }
       </VStack>
     </Box>
   );
 };
 
-// const FieldFilterView: React.FC<any> = ({ props }) => {};
+const createFilterOperationOptions = () => {
+  return Object.entries(ResourceFilterOperationTypeEnum).map(
+    ([value, label]) => ({
+      value,
+      label: label.toLowerCase(),
+    })
+  );
+};
+
+interface FieldFilterViewProps {
+  isOpen: boolean;
+  targetGroup: TargetGroup;
+  fieldSchema: TargetGroupSchemaArgument;
+  resources: TargetGroupResource[];
+  filteredResources: TargetGroupResource[];
+  setFilteredResources: (data: TargetGroupResource[]) => void;
+}
+
+const FieldFilterView: React.FC<FieldFilterViewProps> = (props) => {
+  const { isOpen, targetGroup, fieldSchema, resources, filteredResources } =
+    props;
+
+  const { watch, register, control, setValue } = useFormContext<any>();
+  const [targetGroupFilterOpts] = watch(["targetgroups"]);
+
+  const [isLoading, setIsLoading] = useState<Boolean>(false);
+
+  const [operationType, setOperationType] =
+    useState<ResourceFilterOperationTypeEnum>(
+      ResourceFilterOperationTypeEnum.IN
+    );
+
+  const createOptions = () => {
+    let defaultOptions = [
+      { value: "id", label: "Id" },
+      { value: "name", label: "Name" },
+    ];
+
+    if (fieldSchema.resourceSchema) {
+      const properties = fieldSchema.resourceSchema.properties;
+
+      if (properties?.data) {
+        let out = Object.entries(
+          properties.data as Map<string, ResourceSchemaProperty>
+        )
+          // Only attibutes of type string is shown as backend only supports
+          // filtering string values currently.
+          .filter(([k, v]) => v.type === "string")
+          .map(([k, v]) => ({ value: k, label: v.title }));
+
+        defaultOptions.push(...out);
+      }
+    }
+
+    return defaultOptions;
+  };
+
+  const fetchFilterResources = async () => {
+    const resourceFilter = createResourceFilter(
+      targetGroupFilterOpts[targetGroup.id][fieldSchema.id]
+    );
+
+    if (!resourceFilter || !fieldSchema.resource) {
+      return;
+    }
+
+    setIsLoading(true);
+    adminFilterTargetGroupResources(
+      targetGroup.id,
+      fieldSchema.resource,
+      resourceFilter
+    )
+      .then((data) => {
+        props.setFilteredResources(data);
+        setIsLoading(false);
+      })
+      .catch(() => setIsLoading(false));
+  };
+
+  return (
+    <Box p={4}>
+      <Collapse in={isOpen} animateOpacity>
+        <HStack>
+          <Text color={"black"}> Where</Text>
+          <Controller
+            name={`targetgroups.${targetGroup.id}.${fieldSchema.id}.attribute`}
+            control={control}
+            defaultValue={"id"}
+            render={({ field: { value, ref, name, onChange } }) => (
+              <ReactSelect
+                ref={ref}
+                styles={{
+                  control: (provided, state) => ({
+                    ...provided,
+                    width: 120,
+                  }),
+                }}
+                options={createOptions()}
+                onChange={(val: any) => {
+                  onChange(val?.value);
+                }}
+                value={createOptions().find((c) => c.value === value)}
+              />
+            )}
+          />
+          <Controller
+            name={`targetgroups.${targetGroup.id}.${fieldSchema.id}.operationType`}
+            control={control}
+            defaultValue={"IN"}
+            render={({ field: { value, ref, name, onChange } }) => (
+              <ReactSelect
+                ref={ref}
+                styles={{
+                  control: (provided, state) => ({
+                    ...provided,
+                    width: 120,
+                  }),
+                }}
+                value={createFilterOperationOptions().find((c) => {
+                  return c.value === value;
+                })}
+                options={createFilterOperationOptions()}
+                onChange={(val) => {
+                  onChange(val?.value);
+                  setOperationType(
+                    val?.value as ResourceFilterOperationTypeEnum
+                  );
+                }}
+              />
+            )}
+          />
+          {operationType === ResourceFilterOperationTypeEnum.IN ? (
+            <MultiSelect
+              options={resources.map((r) => {
+                return { label: r.resource.name, value: r.resource.id };
+              })}
+              fieldName={`targetgroups.${targetGroup.id}.${fieldSchema.id}.values`}
+              onBlurSecondaryAction={() => fetchFilterResources()}
+            />
+          ) : (
+            <FormControl>
+              <Input
+                {...register(
+                  `targetgroups.${targetGroup.id}.${fieldSchema.id}.value`
+                )}
+                onBlur={() => fetchFilterResources()}
+              />
+            </FormControl>
+          )}
+        </HStack>
+        <Box overflow="auto" h="200px" pt={4}>
+          <Text>Preview</Text>
+          {isLoading && <Spinner />}
+          {filteredResources.map((r) => {
+            return (
+              <DynamicOption
+                key={"cp-preview-" + r.resource.id}
+                label={r.resource.name}
+                value={r.resource.id}
+              />
+            );
+          })}
+        </Box>
+      </Collapse>
+    </Box>
+  );
+};
 
 const createResourceFilter = (
   operation: TargetGroupFilterOperation

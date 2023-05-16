@@ -1,4 +1,3 @@
-import { CheckCircleIcon } from "@chakra-ui/icons";
 import {
   Accordion,
   AccordionButton,
@@ -7,38 +6,23 @@ import {
   AccordionPanel,
   Box,
   Button,
-  HStack,
-  RadioProps,
   Spinner,
-  useRadioGroup,
-  UseRadioGroupProps,
   VStack,
 } from "@chakra-ui/react";
 import React, { useState, useEffect } from "react";
 
 import { ProviderIcon, ShortTypes } from "../../../icons/providerIcon";
 
+import { TargetGroup } from "../../../../utils/backend-client/types";
 import {
-  AccessRuleTarget,
-  CreateAccessRuleTarget,
-  CreateAccessRuleTargetFieldFilterExpessions,
-  TargetGroup,
-} from "../../../../utils/backend-client/types";
-import {
-  ControllerRenderProps,
-  FieldValues,
   useFieldArray,
-  UseFieldArrayAppend,
   UseFieldArrayRemove,
   useFormContext,
-  useWatch,
 } from "react-hook-form";
-import { AccessRuleFormData } from "../CreateForm";
 import { useAdminListTargetGroups } from "../../../../utils/backend-client/admin/admin";
 import { TargetGroupField } from "./TargetGroupField";
 import ReactSelect from "react-select";
-import { SelectWithArrayAsValue, SelectWithTargetgroupAsValue } from "./Select";
-import Control from "react-select/dist/declarations/src/components/Control";
+import { AccessRuleFormData } from "../CreateForm";
 
 interface TargetGroupDropdownProps {
   item: Record<"id", string>;
@@ -51,10 +35,14 @@ const TargetGroupDropdown: React.FC<TargetGroupDropdownProps> = (props) => {
   const { remove, item, index } = props;
   const [selectedTargetgroup, setSelectedTargetgroup] = useState<TargetGroup>();
 
-  const createOptions = (excludingItems: CreateAccessRuleTarget[] = []) => {
-    const excludingItemTargetgroupIds = excludingItems
-      .filter((e) => e)
-      .map((i) => i.targetGroupId);
+  const methods = useFormContext<AccessRuleFormData>();
+  const targetgroups = methods.watch("targetgroups");
+
+  // CreateOption will exclude already selected targetgroups from new targetgroup dropdown.
+  const createOptions = () => {
+    const excludingItemTargetgroupIds = targetgroups
+      ? Object.keys(targetgroups).filter((e) => e)
+      : [];
 
     const excludedList = props.targetGroups.filter(
       (t) => !excludingItemTargetgroupIds.includes(t.id)

@@ -8,6 +8,7 @@ import {
   CreateAccessRuleRequestBody,
   CreateAccessRuleTarget,
   Operation,
+  ResourceFilter,
   ResourceFilterOperationTypeEnum,
 } from "../../../utils/backend-client/types";
 import { ApprovalStep } from "./steps/Approval";
@@ -32,12 +33,15 @@ type TargetGroups = {
 export interface AccessRuleFormData extends CreateAccessRuleRequestBody {
   approval: { required: boolean; users: string[]; groups: string[] };
   targetgroups: TargetGroups;
+  // contains informatation related to how many targets are selected.
+  // this is irrelevant information for CreateAccessRuleRequestBody.
+  targetFieldMap: Map<string, ResourceFilter>;
 }
 
 export const accessRuleFormDataToApi = (
   formData: AccessRuleFormData
 ): CreateAccessRuleRequestBody => {
-  const { approval, targetgroups, ...d } = formData;
+  const { approval, targetgroups, targetFieldMap, ...d } = formData;
 
   const ruleData: CreateAccessRuleRequestBody = {
     approval: { users: [], groups: [] },
@@ -46,41 +50,43 @@ export const accessRuleFormDataToApi = (
 
   const targets: Map<string, CreateAccessRuleTarget> = new Map();
 
+  // TODO: Check for condition where there is no targetgroups.
   if (targetgroups) {
     Object.entries(targetgroups).map(([k, v]) => {
-      let selectedTarget = d.targets.find((t) => t.targetGroupId === k);
+      let target: CreateAccessRuleTarget = {
+        targetGroupId: k,
+        fieldFilterExpessions: {},
+      };
 
-      if (selectedTarget) {
-        Object.entries(v).map(([k, v]) => {
-          if (selectedTarget) {
-            if (v.value == "" && v.values.length === 0) {
-              selectedTarget.fieldFilterExpessions[k] = [];
-            } else {
-              const filterOperation: Operation = {
-                operationType:
-                  v.operationType as ResourceFilterOperationTypeEnum,
-                attribute: v.attribute,
-                ...(v.value != ""
-                  ? {
-                      value: v.value,
-                    }
-                  : null),
-                ...(v.values.length !== 0
-                  ? {
-                      values: v.values,
-                    }
-                  : null),
-              };
+      let targetFields = targetgroups[k];
 
-              // NOTE: once multi-operations feature is supported. we need to update this
-              // to add operations value as well.
-              selectedTarget.fieldFilterExpessions[k] = [filterOperation];
-            }
+      Object.entries(targetFields).map(([k, v]) => {
+        // if no filter selected then we will return empty array which signifies to select everything
+        if (
+          v.operationType === ResourceFilterOperationTypeEnum.IN &&
+          v.values.length === 0
+        ) {
+          target.fieldFilterExpessions[k] = [];
+        } else {
+          const filterOperation: Operation = {
+            operationType: v.operationType as ResourceFilterOperationTypeEnum,
+            attribute: v.attribute,
+            ...(v.value != ""
+              ? {
+                  value: v.value,
+                }
+              : null),
+            ...(v.values.length !== 0
+              ? {
+                  values: v.values,
+                }
+              : null),
+          };
+          target.fieldFilterExpessions[k] = [filterOperation];
+        }
+      });
 
-            targets.set(selectedTarget.targetGroupId, selectedTarget);
-          }
-        });
-      }
+      targets.set(k, target);
     });
 
     ruleData.targets = Array.from(targets.values());
@@ -148,7 +154,6 @@ const CreateAccessRuleForm = () => {
             <StepsProvider>
               <GeneralStep />
               <TargetStep />
-              {/* <FieldStep /> */}
               <TimeStep />
               <RequestsStep />
               <ApprovalStep />
