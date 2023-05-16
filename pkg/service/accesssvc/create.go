@@ -74,15 +74,16 @@ func (s *Service) CreateRequest(ctx context.Context, user identity.User, createR
 
 		//create accessgroup object
 		accessGroup := access.Group{
-			ID:                 types.NewAccessGroupID(),
-			RequestID:          request.ID,
-			AccessRuleSnapshot: *ar.Result,
-			RequestedTiming:    access.TimingFromRequestTiming(createRequest.GroupOptions[i].Timing),
-			RequestedBy:        request.RequestedBy,
-			CreatedAt:          now,
-			UpdatedAt:          now,
-			Status:             types.RequestAccessGroupStatusPENDINGAPPROVAL,
-			RequestStatus:      request.RequestStatus,
+			ID:                   types.NewAccessGroupID(),
+			RequestID:            request.ID,
+			AccessRuleSnapshot:   *ar.Result,
+			RequestedTiming:      access.TimingFromRequestTiming(createRequest.GroupOptions[i].Timing),
+			RequestedBy:          request.RequestedBy,
+			CreatedAt:            now,
+			UpdatedAt:            now,
+			Status:               types.RequestAccessGroupStatusPENDINGAPPROVAL,
+			RequestStatus:        request.RequestStatus,
+			RequestPurposeReason: *request.Purpose.Reason,
 		}
 
 		approvers, err := s.Rules.GetApprovers(ctx, *ar.Result)

@@ -39,8 +39,10 @@ func SendMessageBlocks(ctx context.Context, slackClient *slack.Client, userEmail
 //
 // The message may be markdown formatted. The summary must be plaintext and is used as the fallback
 // message in Slack notifications.
-func SendMessage(ctx context.Context, slackClient *slack.Client, userID, message, summary string, accessory *slack.Accessory) (timestamp string, error error) {
-	u, err := slackClient.GetUserByEmailContext(ctx, userID)
+// Used for brief messages to requestors like:
+// `Your access to *%s* has now expired. If you still need access you can send another request using Common Fate`
+func SendMessage(ctx context.Context, slackClient *slack.Client, userEmail, message, summary string, accessory *slack.Accessory) (timestamp string, error error) {
+	u, err := slackClient.GetUserByEmailContext(ctx, userEmail)
 	if err != nil {
 		return "", err
 	}

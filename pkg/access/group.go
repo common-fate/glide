@@ -22,16 +22,17 @@ type Group struct {
 	Status             types.RequestAccessGroupStatus          `json:"status" dynamodbav:"status"`
 	ApprovalMethod     *types.RequestAccessGroupApprovalMethod `json:"approvalMethod" dynamodbav:"approvalMethod"`
 	// Also denormalised across all the request items
-	RequestStatus   types.RequestStatus `json:"requestStatus" dynamodbav:"requestStatus"`
-	RequestedTiming Timing              `json:"requestedTiming" dynamodbav:"requestedTiming"`
-	FinalTiming     *FinalTiming        `json:"finalTiming" dynamodbav:"finalTiming"`
-	OverrideTiming  *Timing             `json:"overrideTimings,omitempty" dynamodbav:"overrideTimings,omitempty"`
-	RequestedBy     RequestedBy         `json:"requestedBy" dynamodbav:"requestedBy"`
-	CreatedAt       time.Time           `json:"createdAt" dynamodbav:"createdAt"`
-	UpdatedAt       time.Time           `json:"updatedAt" dynamodbav:"updatedAt"`
+	RequestPurposeReason string              `json:"requestPurposeReason" dynamodbav:"requestPurposeReason"`
+	RequestStatus        types.RequestStatus `json:"requestStatus" dynamodbav:"requestStatus"`
+	RequestedTiming      Timing              `json:"requestedTiming" dynamodbav:"requestedTiming"`
+	FinalTiming          *FinalTiming        `json:"finalTiming" dynamodbav:"finalTiming"`
+	OverrideTiming       *Timing             `json:"overrideTimings,omitempty" dynamodbav:"overrideTimings,omitempty"`
+	RequestedBy          RequestedBy         `json:"requestedBy" dynamodbav:"requestedBy"`
+	CreatedAt            time.Time           `json:"createdAt" dynamodbav:"createdAt"`
+	UpdatedAt            time.Time           `json:"updatedAt" dynamodbav:"updatedAt"`
 	// request reviewers are users who have one or more groups to review on the request as a whole
 	RequestReviewers []string `json:"requestReviewers" dynamodbav:"requestReviewers, set"`
-	// groupReviewers are the users who are able to review this access group
+	// groupReviewers are the users who are able to review this access group; id = access.Reviewer.ID
 	GroupReviewers []string `json:"groupReviewers" dynamodbav:"groupReviewers, set"`
 }
 
