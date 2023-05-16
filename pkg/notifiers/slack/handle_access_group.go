@@ -69,8 +69,6 @@ func (n *SlackNotifier) sendAccessGroupDetailsMessageRequestor(ctx context.Conte
 	// This is used for dev testing puprposes only,
 	// this allows the requestor to act as a reviewer so you can test both,
 	// notification types in one go.
-	var OVERRIDE_DEV = false
-	var OVERRIDE_EMAIL = "jordi@commonfate.io"
 
 	requestor := accessGroup.Group.RequestedBy
 
@@ -79,10 +77,6 @@ func (n *SlackNotifier) sendAccessGroupDetailsMessageRequestor(ctx context.Conte
 			Request:        accessGroup,
 			HeadingMessage: headingMsg,
 		})
-
-		if OVERRIDE_DEV {
-			requestor.Email = OVERRIDE_EMAIL
-		}
 
 		_, err := SendMessageBlocks(ctx, n.directMessageClient.client, requestor.Email, msg, summary)
 
@@ -110,12 +104,6 @@ func (n *SlackNotifier) sendAccessGroupUpdatesReviewer(ctx context.Context, log 
 
 	var HAS_SLACK_CLIENT = n.directMessageClient != nil
 	// var HAS_SLACK_WEBHOOKS = len(n.webhooks) > 0
-
-	// This is used for dev testing puprposes only,
-	// this allows the requestor to act as a reviewer so you can test both,
-	// notification types in one go.
-	var OVERRIDE_DEV = false
-	var OVERRIDE_EMAIL = "jordi@commonfate.io"
 
 	requestor := accessGroup.Group.RequestedBy
 
@@ -154,10 +142,6 @@ func (n *SlackNotifier) sendAccessGroupUpdatesReviewer(ctx context.Context, log 
 			if err != nil {
 				log.Errorw("failed to get reviewer user", "error", err)
 				continue
-			}
-
-			if OVERRIDE_DEV {
-				reviewerUserObj.Result.Email = OVERRIDE_EMAIL
 			}
 
 			_, slackMsg := BuildRequestReviewMessage(RequestMessageOpts{

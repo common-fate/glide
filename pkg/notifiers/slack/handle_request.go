@@ -22,12 +22,6 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 	var HAS_SLACK_CLIENT = n.directMessageClient != nil
 	var HAS_SLACK_WEBHOOKS = len(n.webhooks) > 0
 
-	// This is used for dev testing puprposes only,
-	// this allows the requestor to act as a reviewer so you can test both,
-	// notification types in one go.
-	var OVERRIDE_DEV = false
-	var OVERRIDE_EMAIL = "jordi@commonfate.io"
-
 	var requestorMessage string
 	var requestorEmail string
 	var requestorMessageFallback string
@@ -54,10 +48,6 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 
 				// get the requestor's Slack user ID if it exists to render it nicely in the message to approvers.
 				var slackUserID string
-
-				if OVERRIDE_DEV {
-					requestor.Email = OVERRIDE_EMAIL
-				}
 
 				slackRequestor, err := n.directMessageClient.client.GetUserByEmailContext(ctx, requestor.Email)
 				if err != nil {
@@ -116,10 +106,6 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 					var wg sync.WaitGroup
 					for _, usr := range reviewersQuery.Result {
 
-						if !OVERRIDE_DEV && usr.ReviewerID == req.Request.RequestedBy.ID {
-							log.Infow("skipping sending approval message to requestor", "user.id", usr)
-							continue
-						}
 						wg.Add(1)
 						go func(usr access.Reviewer) {
 							defer wg.Done()
@@ -212,10 +198,6 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 
 		// REVIEWER Message Update:
 		n.sendRequestUpdatesReviewer(ctx, log, requestEvent.Request)
-	}
-
-	if OVERRIDE_DEV {
-		requestorEmail = OVERRIDE_EMAIL
 	}
 
 	if requestorMessage != "" {
