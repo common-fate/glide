@@ -529,11 +529,8 @@ export const ApproveRejectDuration = ({
               // @TODO: add in admin approval API methods
               userReviewRequest(group.requestId, group.id, {
                 decision: "APPROVED",
-<<<<<<< HEAD
               }).catch((e) => {
                 console.log(e);
-=======
->>>>>>> upstream/slack-notis
               });
             }}
           >
@@ -546,11 +543,8 @@ export const ApproveRejectDuration = ({
               // @TODO: add in admin approval API methods
               userReviewRequest(group.requestId, group.id, {
                 decision: "DECLINED",
-<<<<<<< HEAD
               }).catch((e) => {
                 console.log(e);
-=======
->>>>>>> upstream/slack-notis
               });
             }}
           >
