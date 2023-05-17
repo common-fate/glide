@@ -41,14 +41,25 @@ const ACTION_KEY_DEFAULT = ["Ctrl", "Control"];
 const ACTION_KEY_APPLE = ["⌘", "Command"];
 const StyledCommandList = chakra(CommandNew.List);
 
-export const EntitlementCheckout: React.FC = () => {
-  return <Search />;
+interface EntitlementCheckoutProps {
+  checked: Set<string>;
+  setChecked: React.Dispatch<React.SetStateAction<Set<string>>>;
+}
+
+export const EntitlementCheckout: React.FC<EntitlementCheckoutProps> = ({
+  checked,
+  setChecked,
+}) => {
+  return <Search checked={checked} setChecked={setChecked} />;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface SearchProps {}
-const Search: React.FC<SearchProps> = () => {
-  const [checked, setChecked] = useState<Set<string>>(new Set());
+interface SearchProps {
+  checked: Set<string>;
+  setChecked: React.Dispatch<React.SetStateAction<Set<string>>>;
+}
+const Search: React.FC<SearchProps> = ({ checked, setChecked }) => {
+  // const [checked, setChecked] = useState<Set<string>>(new Set());
   const [searchValue, setSearchValue] = useState<string>("");
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [actionKey] = useState<string[]>(
@@ -123,7 +134,7 @@ const Search: React.FC<SearchProps> = () => {
       }
       return true;
     });
-  }, [targets, searchValue]);
+  }, [targets, searchValue, checked]);
 
   const debouceSearchInput = debounce((value) => {
     if (value === SELECTED_KEY) {
@@ -146,6 +157,7 @@ const Search: React.FC<SearchProps> = () => {
     }
     debouceSearchInput(value);
   };
+  console.log(checked);
 
   return (
     <CommandNew

@@ -1,5 +1,6 @@
 import {
   Box,
+  Divider,
   Flex,
   Grid,
   HStack,
@@ -14,26 +15,51 @@ import {
 } from "@chakra-ui/react";
 import { useUserListAccessTemplates } from "../utils/backend-client/default/default";
 import { AccessTemplate } from "src/utils/backend-client/types";
-import { StatusCell } from "./StatusCell";
-import { ProviderIcon, ShortTypes } from "./icons/providerIcon";
-import { access } from "fs";
 
-// interface ListAccessTemplateProps {
-//   test: string;
-// }
-export const AccessTemplateList: React.FC = () => {
+interface ListAccessTemplateProps {
+  setChecked: React.Dispatch<React.SetStateAction<Set<string>>>;
+}
+export const AccessTemplateList: React.FC<ListAccessTemplateProps> = ({
+  setChecked,
+}) => {
   const { data } = useUserListAccessTemplates();
 
   if (data && data?.accessTemplates) {
     return (
-      <Flex direction="column">
+      <Flex
+        p={1}
+        rounded="lg"
+        bg="white"
+        // columns={2}
+        borderWidth={1}
+        borderColor="neutrals.300"
+        direction="column"
+        w="400px"
+        h="70vh"
+      >
         <Text pb="20px" textStyle="Heading/H4">
           Access Templates
         </Text>
 
-        <Grid templateColumns="repeat(2, 1fr)" gap={2}>
+        <Grid templateColumns="repeat(1, 1fr)" gap={2}>
           {data.accessTemplates.map((template) => {
-            return <AccessTemplateCard accessTemplate={template} />;
+            return (
+              <AccessTemplateCard
+                _hover={{ bg: "neutrals.100" }}
+                accessTemplate={template}
+                handleClick={() => {
+                  template.accessGroups.forEach((group) => {
+                    group.targets.forEach((target) => {
+                      setChecked((old) => {
+                        const newSet = new Set(old);
+                        newSet.add(target.id.toLowerCase());
+                        return newSet;
+                      });
+                    });
+                  });
+                }}
+              />
+            );
           })}
         </Grid>
       </Flex>
@@ -45,21 +71,14 @@ export const AccessTemplateList: React.FC = () => {
 const AccessTemplateCard: React.FC<
   {
     accessTemplate: AccessTemplate;
+    handleClick: React.MouseEventHandler<HTMLAnchorElement> | undefined;
   } & LinkBoxProps
-> = ({ accessTemplate, ...rest }) => {
+> = ({ accessTemplate, handleClick, ...rest }) => {
   return (
     <LinkBox {...rest}>
-      <Link /*to={"/requests/" + request.id}*/>
+      <Link onClick={handleClick}>
         <LinkOverlay>
-          <Box
-            rounded="lg"
-            bg="neutrals.100"
-            // columns={2}
-            borderWidth={1}
-            borderColor="neutrals.300"
-            w="100%"
-            h="100px"
-          >
+          <Box rounded="lg" w="100%" h="50px">
             <Flex px={1} align="center">
               <Text
                 textStyle="Body/Small"
@@ -70,6 +89,7 @@ const AccessTemplateCard: React.FC<
               </Text>
             </Flex>
           </Box>
+          {/* <Divider borderColor="neutrals.300" /> */}
         </LinkOverlay>
       </Link>
     </LinkBox>

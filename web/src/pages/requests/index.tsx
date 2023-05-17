@@ -4,8 +4,11 @@ import { EntitlementCheckout } from "../../components/EntitlementCheckout";
 import { UserLayout } from "../../components/Layout";
 import { RecentRequests } from "../../components/RecentRequests";
 import { AccessTemplateList } from "../../components/AccessTemplatesList";
+import { useState } from "react";
 
 const Home = () => {
+  const [checked, setChecked] = useState<Set<string>>(new Set());
+
   return (
     <>
       <UserLayout>
@@ -20,11 +23,11 @@ const Home = () => {
             justify={"center"}
             align={{ lg: "flex-start", md: "center", sm: "center" }}
           >
-            <Flex>
-              <AccessTemplateList />
+            <Flex w={["400"]}>
+              <AccessTemplateList setChecked={setChecked} />
             </Flex>
             <Flex w={["770px"]}>
-              <EntitlementCheckout />
+              <EntitlementCheckout checked={checked} setChecked={setChecked} />
             </Flex>
             <Flex w={["550px"]}>
               <RecentRequests />
