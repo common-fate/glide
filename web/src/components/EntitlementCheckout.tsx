@@ -157,7 +157,6 @@ const Search: React.FC<SearchProps> = ({ checked, setChecked }) => {
     }
     debouceSearchInput(value);
   };
-  console.log(checked);
 
   return (
     <CommandNew

@@ -205,7 +205,12 @@ func (s *Service) CreateAccessTemplate(ctx context.Context, user identity.User, 
 		Name:      *createRequest.TemplateName,
 	}
 	for _, group := range preflight.AccessGroups {
-
+		accessRule := storage.GetAccessRule{ID: group.AccessRule}
+		_, err = s.DB.Query(ctx, &accessRule)
+		if err != nil {
+			return nil, err
+		}
+		tmp.GroupsWithAccess = append(tmp.GroupsWithAccess, accessRule.Result.Groups...)
 		accessGroup := access.AccessTemplateAccessGroup{
 			ID:              group.ID,
 			AccessRule:      group.AccessRule,

@@ -1529,11 +1529,16 @@ components:
           x-go-type: time.Time
         name:
           type: string
+        groupsWithAccess:
+          type: array
+          items:
+            type: string
       required:
         - id
         - accessGroups
         - createdAt
         - name
+        - groupsWithAccess
     AccessTemplateAccessGroup:
       title: AccessTemplateAccessGroup
       type: object

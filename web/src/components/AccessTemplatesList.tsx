@@ -17,6 +17,11 @@ import { useUserListAccessTemplates } from "../utils/backend-client/default/defa
 import { AccessTemplate } from "src/utils/backend-client/types";
 import { ProviderIcon, ShortTypes } from "./icons/providerIcon";
 import { access } from "fs";
+import {
+  useUserGetMe,
+  userGetMe,
+  userGetUser,
+} from "../utils/backend-client/end-user/end-user";
 
 interface ListAccessTemplateProps {
   setChecked: React.Dispatch<React.SetStateAction<Set<string>>>;
@@ -78,13 +83,29 @@ export const AccessTemplateList: React.FC<ListAccessTemplateProps> = ({
 const AccessTemplateCard: React.FC<
   {
     accessTemplate: AccessTemplate;
-    handleClick: React.MouseEventHandler<HTMLAnchorElement> | undefined;
+    handleClick: React.MouseEventHandler<HTMLAnchorElement>;
   } & LinkBoxProps
 > = ({ accessTemplate, handleClick, ...rest }) => {
+  // const user = useUserGetMe();
+
+  // console.log(user);
+  const CanUseTemplate = () => {
+    // accessTemplate.accessGroups.map((g) => {
+
+    //   if (user && user.data && !user?.data.user.groups.includes(g)) {
+    //     console.log(g);
+    //     return false;
+    //   }
+    // });
+
+    return true;
+  };
   return (
     <LinkBox {...rest}>
       <Link
-        onClick={handleClick}
+        onClick={(e) =>
+          CanUseTemplate() ? handleClick(e) : e.preventDefault()
+        }
         textDecoration="none"
         _hover={{ textDecoration: "none" }}
       >

@@ -12,11 +12,11 @@ import (
 //AccessTemplate holds all state for a request. This includes all access groups and all grants\
 
 type AccessTemplate struct {
-	ID           string                      `json:"id" dynamodbav:"id"`
-	CreatedBy    string                      `json:"createdBy" dynamodbav:"createdBy"`
-	Name         string                      `json:"name" dynamodbav:"name"`
-	AccessGroups []AccessTemplateAccessGroup `json:"accessGroups" dynamodbav:"accessGroups"`
-
+	ID               string                      `json:"id" dynamodbav:"id"`
+	CreatedBy        string                      `json:"createdBy" dynamodbav:"createdBy"`
+	Name             string                      `json:"name" dynamodbav:"name"`
+	AccessGroups     []AccessTemplateAccessGroup `json:"accessGroups" dynamodbav:"accessGroups"`
+	GroupsWithAccess []string                    `json:"groupsWithAccess" dynamodbav:"groupsWithAccess"`
 	// CreatedAt is a read-only field after the request has been created.
 	CreatedAt time.Time `json:"createdAt" dynamodbav:"createdAt"`
 }
@@ -53,10 +53,11 @@ func (i *AccessTemplateAccessGroup) ToAPI() types.AccessTemplateAccessGroup {
 
 func (i *AccessTemplate) ToAPI() types.AccessTemplate {
 	out := types.AccessTemplate{
-		Id:           i.ID,
-		AccessGroups: []types.AccessTemplateAccessGroup{},
-		CreatedAt:    i.CreatedAt,
-		Name:         i.Name,
+		Id:               i.ID,
+		AccessGroups:     []types.AccessTemplateAccessGroup{},
+		CreatedAt:        i.CreatedAt,
+		Name:             i.Name,
+		GroupsWithAccess: i.GroupsWithAccess,
 	}
 	for _, accessgroup := range i.AccessGroups {
 		out.AccessGroups = append(out.AccessGroups, accessgroup.ToAPI())

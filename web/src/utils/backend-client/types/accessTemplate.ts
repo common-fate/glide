@@ -12,4 +12,5 @@ export interface AccessTemplate {
   accessGroups: AccessTemplateAccessGroup[];
   createdAt: string;
   name: string;
+  groupsWithAccess: string[];
 }
