@@ -92,6 +92,7 @@ importers:
       openapi-client-axios-typegen: ^5.0.2
       orval: ^6.7.1
       playwright: ^1.33.0
+      prettier: ^2.8.8
       react: ^18
       react-confetti: ^6.1.0
       react-dom: ^18
@@ -162,11 +163,12 @@ importers:
       dotenv: 16.0.3
       eslint: 8.13.0
       eslint-config-prettier: 8.5.0_eslint@8.13.0
-      eslint-plugin-prettier: 4.2.1_vyq77qlfwyijisbn35utc2xrra
+      eslint-plugin-prettier: 4.2.1_o2luztfry75pjul2ul4xjwildy
       msw: 0.39.2
       openapi-client-axios-typegen: 5.3.1_js-yaml@4.1.0
       orval: 6.10.3_igdub2yvzfucmdgbrfwrs2okuq
       playwright: 1.33.0
+      prettier: 2.8.8
       rollup-plugin-node-polyfills: 0.2.1
       source-map-explorer: 2.5.3
       typescript: 4.9.4
@@ -8560,7 +8562,7 @@ packages:
       eslint: 8.13.0
     dev: true
 
-  /eslint-plugin-prettier/4.2.1_vyq77qlfwyijisbn35utc2xrra:
+  /eslint-plugin-prettier/4.2.1_o2luztfry75pjul2ul4xjwildy:
     resolution: {integrity: sha512-f/0rXLXUt0oFYs8ra4w49wYZBG5GKZpAYsJSm6rnYL5uVDjd+zowwMwVZHnAjf4edNrKpCDYfXDgmRE/Ak7QyQ==}
     engines: {node: '>=12.0.0'}
     peerDependencies:
@@ -8573,7 +8575,7 @@ packages:
     dependencies:
       eslint: 8.13.0
       eslint-config-prettier: 8.5.0_eslint@8.13.0
-      prettier: 2.7.1
+      prettier: 2.8.8
       prettier-linter-helpers: 1.0.0
     dev: true
 
@@ -12460,8 +12462,8 @@ packages:
       fast-diff: 1.2.0
     dev: true
 
-  /prettier/2.7.1:
-    resolution: {integrity: sha512-ujppO+MkdPqoVINuDFDRLClm7D78qbDt0/NR+wp5FqEZOoTNAjPHWj17QRhu7geIHJfcNhRk1XVQmF8Bp3ye+g==}
+  /prettier/2.8.8:
+    resolution: {integrity: sha512-tdN8qQGvNjw4CHbY+XXk0JgCXn9QiF21a55rBe5LJAU+kDyC4WQn4+awm2Xfk2lQMk5fKup9XgzTZtGkjBdP9Q==}
     engines: {node: '>=10.13.0'}
     hasBin: true
     dev: true
