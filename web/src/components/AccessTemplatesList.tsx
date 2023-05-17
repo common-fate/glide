@@ -98,7 +98,7 @@ const AccessTemplateCard: React.FC<
     //   }
     // });
 
-    return true;
+    return false;
   };
   return (
     <LinkBox {...rest}>
@@ -107,7 +107,10 @@ const AccessTemplateCard: React.FC<
           CanUseTemplate() ? handleClick(e) : e.preventDefault()
         }
         textDecoration="none"
-        _hover={{ textDecoration: "none" }}
+        _hover={{
+          textDecoration: "none",
+          cursor: CanUseTemplate() ? "pointer" : "default",
+        }}
       >
         <LinkOverlay>
           <Box rounded="lg" w="100%" h="50px">
