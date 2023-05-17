@@ -35,7 +35,10 @@ export const UserReviewsTable = () => {
         ? (status.toUpperCase() as UserListReviewsStatus)
         : undefined,
     },
-    swrProps: { swr: { refreshInterval: 10000 } },
+    swrProps: {
+      // @ts-ignore; type discrepancy with latest SWR client
+      swr: { refreshInterval: 10000 },
+    },
   });
 
   const cols: Column<Request>[] = useMemo(

@@ -13,6 +13,7 @@ import { usePaginatorApi } from "../../utils/usePaginatorApi";
 import { CFAvatar } from "../CFAvatar";
 import { RequestsFilterMenu } from "./RequestsFilterMenu";
 import { TableRenderer } from "./TableRenderer";
+import { StatusCell } from "../StatusCell";
 
 type MyLocationGenerics = MakeGenerics<{
   Search: {
@@ -33,72 +34,74 @@ export const AdminRequestsTable = () => {
         ? (status.toUpperCase() as AdminListRequestsStatus)
         : undefined,
     },
-    swrProps: { swr: { refreshInterval: 10000 } },
+    swrProps: {
+      // @ts-ignore; type discrepancy with latest SWR client
+      swr: { refreshInterval: 10000 },
+    },
   });
 
   const cols: Column<Request>[] = useMemo(
     () => [
-      // {
-      //   accessor: "context",
-      //   Header: "Request",
-      //   // Cell: (props) => (
-      //   //   <Link to={"/requests/" + props.row.original.id}>
-      //   //     <RuleNameCell
-      //   //       accessRuleId={props.row.original.accessRuleId}
-      //   //       reason={props.value ?? ""}
-      //   //       as="a"
-      //   //       _hover={{
-      //   //         textDecor: "underline",
-      //   //       }}
-      //   //       adminRoute={false}
-      //   //     />
-      //   //   </Link>
-      //   // ),
-      // },
-      // {
-      //   accessor: "timing",
-      //   Header: "Duration",
-      //   Cell: ({ cell }) => (
-      //     <Flex textStyle="Body/Small">
-      //       {durationString(cell.value.durationSeconds)}
-      //     </Flex>
-      //   ),
-      // },
-      // {
-      //   accessor: "user",
-      //   Header: "Requested by",
-      //   Cell: ({ cell }) => (
-      //     <Flex textStyle="Body/Small">
-      //       <CFAvatar
-      //         textProps={{
-      //           maxW: "20ch",
-      //           noOfLines: 1,
-      //         }}
-      //         tooltip={true}
-      //         variant="withBorder"
-      //         mr={0}
-      //         size="xs"
-      //         userId={cell.value.id}
-      //       />
-      //     </Flex>
-      //   ),
-      // },
-      // {
-      //   accessor: "createdAt",
-      //   Header: "Date Requested",
-      //   Cell: ({ cell }) => (
-      //     <Flex textStyle="Body/Small">
-      //       {format(new Date(Date.parse(cell.value)), "p dd/M/yy")}
-      //     </Flex>
-      //   ),
-      // },
-      // {
-      //   accessor: "status",
-      //   Header: "Status",
-      //   Cell: (props) => {
-      //     return <RequestStatusDisplay request={props.row.original} />;
-      //   },
-      // },
+      {
+        accessor: "targetCount",
+        Header: "Number of targets",
+        Cell: ({ cell }) => <Flex textStyle="Body/Small">{cell.value}</Flex>,
+      },
+      {
+        accessor: "purpose",
+        Header: "Reason",
+        Cell: ({ cell }) => (
+          <Flex textStyle="Body/Small">{cell.value.reason}</Flex>
+        ),
+      },
+
+      {
+        accessor: "requestedBy",
+        Header: "Requested by",
+        Cell: ({ cell }) => (
+          <Flex textStyle="Body/Small">
+            <CFAvatar
+              textProps={{
+                maxW: "20ch",
+                noOfLines: 1,
+              }}
+              tooltip={true}
+              variant="withBorder"
+              mr={0}
+              size="xs"
+              userId={cell.value.id}
+            />
+          </Flex>
+        ),
+      },
+      {
+        accessor: "requestedAt",
+        Header: "Requested At",
+        Cell: ({ cell }) => (
+          // @NOTE: date resolution is currently not working, we can type these in OpenAPI, but ultimately it will come from BE
+          <Flex textStyle="Body/Small">
+            {format(new Date(Date.parse(cell.value)), "p dd/M/yy")}
+          </Flex>
+        ),
+      },
+      {
+        accessor: "status",
+        Header: "Status",
+        Cell: ({ cell }) => (
+          <StatusCell
+            sx={{
+              span: {
+                textStyle: "Body/Small",
+              },
+            }}
+            value={cell.value}
+            replaceValue={cell.value.toLowerCase()}
+            success={["COMPLETE", "ACTIVE"]}
+            warning={["PENDING", "REVOKING"]}
+            danger={["REVOKED", "CANCELLED"]}
+          />
+        ),
+      },
     ],
     []
   );
@@ -128,3 +131,39 @@ export const AdminRequestsTable = () => {
     </>
   );
 };
+
+// export const RequestStatusDisplay: React.FC<{
+//   request: Request | undefined;
+// }> = ({ request }) => {
+//   const activeTimeString =
+//     request?.grant && request?.grant.status === "ACTIVE"
+//       ? "Active for the next " +
+//         durationStringHoursMinutes(
+//           intervalToDuration({
+//             start: new Date(),
+//             end: new Date(Date.parse(request.grant.end)),
+//           })
+//         )
+//       : undefined;
+
+//   const status = getStatus(request, activeTimeString);
+
+//   return (
+//     <StatusCell
+//       value={status}
+//       success={[
+//         activeTimeString ?? "",
+//         GrantStatus.ACTIVE,
+//         "Automatically approved",
+//       ]}
+//       info={[RequestStatus.APPROVED]}
+//       danger={[
+//         RequestStatus.DECLINED,
+//         RequestStatus.CANCELLED,
+//         GrantStatus.REVOKED,
+//       ]}
+//       warning={RequestStatus.PENDING}
+//       textStyle="Body/Small"
+//     />
+//   );
+// };

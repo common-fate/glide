@@ -101,7 +101,7 @@ func TestGetGroup(t *testing.T) {
 				Description: "hello",
 				Users:       []string{"one", "two", "three"},
 			},
-			wantBody: `{"description":"hello","id":"123","memberCount":3,"name":"Test"}`,
+			wantBody: `{"description":"hello","id":"123","memberCount":3,"members":["one","two","three"],"name":"Test","source":""}`,
 		},
 		{
 			name:     "group not found",

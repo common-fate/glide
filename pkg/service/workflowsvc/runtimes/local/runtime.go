@@ -66,7 +66,7 @@ func (r *Runtime) Grant(ctx context.Context, grant access.GroupTarget) error {
 	go func() {
 		// wait for start
 		if grant.Grant.Start.After(time.Now()) {
-			time.Sleep(time.Until(grant.Grant.Start))
+			time.Sleep(time.Until(grant.Grant.Start.Time))
 		}
 
 		state, err := r.Granter.HandleRequest(ctx, targetgroupgranter.InputEvent{
@@ -83,7 +83,7 @@ func (r *Runtime) Grant(ctx context.Context, grant access.GroupTarget) error {
 
 		// wait for end or cancellation
 		select {
-		case <-time.After(time.Until(grant.Grant.End)):
+		case <-time.After(time.Until(grant.Grant.End.Time)):
 			// grant ended, deactivate it
 			state, err = r.Granter.HandleRequest(ctx, targetgroupgranter.InputEvent{
 				Action:                   targetgroupgranter.DEACTIVATE,

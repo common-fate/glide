@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-types */
 // @ts-ignore
 // @ts-nocheck
 import * as RadixDialog from "@radix-ui/react-dialog";
@@ -596,39 +597,41 @@ const Command = React.forwardRef<HTMLDivElement, CommandProps>(
                 last();
                 break;
               }
-              case "Enter": {
-                // Trigger item onSelect
-                e.preventDefault();
-                const item = getSelectedItem();
+              case "Enter":
+                {
+                  // Trigger item onSelect
+                  e.preventDefault();
+                  const item = getSelectedItem();
 
-                if (item) {
-                  const event = new Event(SELECT_EVENT);
-                  item.dispatchEvent(event);
+                  if (item) {
+                    const event = new Event(SELECT_EVENT);
+                    item.dispatchEvent(event);
 
-                  // console.log(store.checked);
-                  // console.log(store);
+                    // console.log(store.checked);
+                    // console.log(store);
 
-                  // add checkbox state handling, add/remove
-                  const selected = getSelectedItem();
-                  const value = selected?.getAttribute(VALUE_ATTR);
+                    // add checkbox state handling, add/remove
+                    const selected = getSelectedItem();
+                    const value = selected?.getAttribute(VALUE_ATTR);
 
-                  if (typeof value == "string") {
-                    // add checked
-                    if (props.checked.has(value)) {
-                      console.log(
-                        "called updateSelectedToCheckbox: found and removing"
-                      );
-                      props.uncheck(value);
-                    } else {
-                      console.log(
-                        "called updateSelectedToCheckbox: not found, appending"
-                      );
-                      props.check(value);
+                    if (typeof value == "string") {
+                      // add checked
+                      if (props.checked.has(value)) {
+                        console.log(
+                          "called updateSelectedToCheckbox: found and removing"
+                        );
+                        props.uncheck(value);
+                      } else {
+                        console.log(
+                          "called updateSelectedToCheckbox: not found, appending"
+                        );
+                        props.check(value);
+                      }
                     }
                   }
                 }
-              }
-              // space
+                // space
+                break;
               case " ": {
                 console.log("Space :)");
               }

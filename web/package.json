@@ -53,7 +53,6 @@
   },
   "devDependencies": {
     "@faker-js/faker": "^6.3.1",
-    "@openapi-integration/swr-request-generator": "^0.7.3",
     "@playwright/experimental-ct-react": "^1.27.1",
     "@playwright/test": "^1.27.1",
     "@types/json-schema": "^7.0.11",

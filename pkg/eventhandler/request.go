@@ -118,6 +118,7 @@ func (n *EventHandler) handleRequestCancelInitiated(ctx context.Context, detail 
 	}
 
 	//after cancelling has finished emit a cancel event where the notification will be sent out
+
 	err = n.Eventbus.Put(ctx, &gevent.RequestCancelled{
 		Request: requestEvent.Request,
 	})
@@ -134,7 +135,7 @@ func (n *EventHandler) handleRequestRevokeInitiated(ctx context.Context, detail 
 	}
 
 	items := []ddb.Keyer{}
-
+	zap.S().Infow("revoking all groups in request")
 	for _, group := range requestEvent.Request.Groups {
 		err := n.Workflow.Revoke(ctx, group.Group.RequestID, group.Group.ID, requestEvent.Revoker.ID, requestEvent.Revoker.Email)
 		if err != nil {

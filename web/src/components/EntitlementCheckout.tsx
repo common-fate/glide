@@ -45,6 +45,7 @@ export const EntitlementCheckout: React.FC = () => {
   return <Search />;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface SearchProps {}
 const Search: React.FC<SearchProps> = () => {
   const [checked, setChecked] = useState<Set<string>>(new Set());

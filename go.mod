@@ -9,7 +9,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.18.15
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.11.22
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.22.2
-	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.15.11
+	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.19.7
 	github.com/aws/aws-sdk-go-v2/service/identitystore v1.15.5
 	github.com/aws/aws-sdk-go-v2/service/route53 v1.21.5
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.28.0
@@ -41,7 +41,7 @@ require (
 	github.com/TylerBrock/colorjson v0.0.0-20200706003622-8a50f05110d2 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.3 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.0.7 // indirect
-	github.com/aws/aws-sdk-go-v2/service/dynamodbstreams v1.13.12 // indirect
+	github.com/aws/aws-sdk-go-v2/service/dynamodbstreams v1.14.11 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.1.11 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.13.10 // indirect
 	github.com/aws/aws-sdk-go-v2/service/kms v1.17.4 // indirect
@@ -85,12 +85,12 @@ require (
 	github.com/xo/terminfo v0.0.0-20210125001918-ca9a967f8778 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	go.opencensus.io v0.24.0 // indirect
-	golang.org/x/mod v0.7.0 // indirect
-	golang.org/x/net v0.7.0 // indirect
-	golang.org/x/sys v0.5.0 // indirect
-	golang.org/x/term v0.5.0 // indirect
-	golang.org/x/text v0.7.0 // indirect
-	golang.org/x/tools v0.3.0 // indirect
+	golang.org/x/mod v0.8.0 // indirect
+	golang.org/x/net v0.8.0 // indirect
+	golang.org/x/sys v0.6.0 // indirect
+	golang.org/x/term v0.6.0 // indirect
+	golang.org/x/text v0.8.0 // indirect
+	golang.org/x/tools v0.6.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20221027153422-115e99e71e1c // indirect
 	google.golang.org/grpc v1.50.1 // indirect
@@ -105,8 +105,8 @@ require (
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.33 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.27 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.30 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.9.3 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery v1.7.10 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.9.11 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery v1.7.27 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.23 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.12.4 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.18.5
@@ -137,7 +137,7 @@ require (
 	github.com/TylerBrock/saw v0.2.2
 	github.com/aws-cloudformation/rain v1.2.0 // indirect
 	github.com/aws/aws-lambda-go v1.32.0
-	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.9.6
+	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.10.25
 	github.com/aws/aws-sdk-go-v2/service/cloudfront v1.18.2
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.10
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.15.4
@@ -149,6 +149,7 @@ require (
 	github.com/common-fate/analytics-go v0.2.0
 	github.com/common-fate/clio v1.1.0
 	github.com/common-fate/ddb v0.15.1-0.20230424033643-2558c36a3a5e
+	github.com/common-fate/iso8601 v1.1.1
 	github.com/common-fate/provider-registry-sdk-go v0.17.1
 	github.com/fatih/color v1.13.0
 	github.com/go-chi/cors v1.2.1

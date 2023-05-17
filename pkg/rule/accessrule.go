@@ -59,14 +59,14 @@ type Target struct {
 // // ised for admin apis, this contains the access rule target in a format for updating the access rule provider target
 func (a AccessRule) ToAPI() types.AccessRule {
 	approval := types.AccessRuleApproverConfig{
-		Groups: []string{},
-		Users:  []string{},
+		Groups: &[]string{},
+		Users:  &[]string{},
 	}
 	if a.Approval.Groups != nil {
-		approval.Groups = a.Approval.Groups
+		approval.Groups = &a.Approval.Groups
 	}
 	if a.Approval.Users != nil {
-		approval.Users = a.Approval.Users
+		approval.Users = &a.Approval.Users
 	}
 
 	targets := []types.AccessRuleTarget{}

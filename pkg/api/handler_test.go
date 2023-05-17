@@ -296,7 +296,7 @@ func TestGetHandler(t *testing.T) {
 			name:                          "ok",
 			wantCode:                      http.StatusOK,
 			mockGetTargetGroupDepResponse: handler.Handler{ID: "123"},
-			want:                          `{"icon":"","id":"123","targetDeployments":null,"targetSchema":{"From":"","Schema":{}}}`,
+			want:                          `{"awsAccount":"","awsRegion":"","diagnostics":[],"functionArn":"arn:aws:lambda:::function:123","healthy":false,"id":"123","runtime":""}`,
 		},
 		{
 			name:                     "deployment not found",

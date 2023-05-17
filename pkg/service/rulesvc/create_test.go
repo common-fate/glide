@@ -29,10 +29,7 @@ func TestCreateAccessRule(t *testing.T) {
 	}
 
 	in := types.CreateAccessRuleRequest{
-		Approval: types.AccessRuleApproverConfig{
-			Groups: []string{"test"},
-			Users:  []string{"test"},
-		},
+		Approval:        types.AccessRuleApproverConfig{},
 		Description:     "test",
 		Name:            "test",
 		Groups:          []string{"group_a"},
@@ -55,7 +52,6 @@ func TestCreateAccessRule(t *testing.T) {
 
 	mockRule := rule.AccessRule{
 		ID:          ruleID,
-		Approval:    rule.Approval(in.Approval),
 		Description: in.Description,
 		Name:        in.Name,
 		Groups:      in.Groups,

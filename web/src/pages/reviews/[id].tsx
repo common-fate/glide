@@ -88,6 +88,7 @@ const Home = () => {
   } = useMatch();
 
   const request = useUserGetRequest(requestId, {
+    // @ts-ignore; type discrepancy with latest SWR client
     swr: { refreshInterval: 10000 },
   });
 
@@ -386,7 +387,7 @@ type ApproveRejectDurationProps = {
 export const ApproveRejectDuration = ({
   group,
 }: ApproveRejectDurationProps) => {
-  const isReviewer = true;
+  const isReviewer = false;
 
   const handleClickMax = () => {
     setDurationSeconds(group.accessRule.timeConstraints.maxDurationSeconds);
@@ -529,6 +530,8 @@ export const ApproveRejectDuration = ({
               // @TODO: add in admin approval API methods
               userReviewRequest(group.requestId, group.id, {
                 decision: "APPROVED",
+              }).catch((e) => {
+                console.log(e);
               });
             }}
           >
@@ -541,6 +544,8 @@ export const ApproveRejectDuration = ({
               // @TODO: add in admin approval API methods
               userReviewRequest(group.requestId, group.id, {
                 decision: "DECLINED",
+              }).catch((e) => {
+                console.log(e);
               });
             }}
           >

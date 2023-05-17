@@ -64,6 +64,19 @@ const UpdateAccessRuleForm = ({ data }: Props) => {
     if (data !== undefined) {
       //set accessRuleTargetData from rule details from api
 
+      let approvalRequired = false;
+      if (data.approval.users) {
+        if (data.approval.users.length > 0) {
+          approvalRequired = true;
+        }
+      }
+
+      if (data.approval.groups) {
+        if (data.approval.groups.length > 0) {
+          approvalRequired = true;
+        }
+      }
+
       const f: AccessRuleFormData = {
         description: data.description,
         groups: data.groups,
@@ -72,10 +85,9 @@ const UpdateAccessRuleForm = ({ data }: Props) => {
           maxDurationSeconds: data.timeConstraints.maxDurationSeconds,
         },
         approval: {
-          required:
-            data.approval.users.length > 0 || data.approval.groups?.length > 0,
-          users: data.approval.users,
-          groups: data.approval.groups,
+          required: approvalRequired,
+          users: data.approval.users ? data.approval.users : [],
+          groups: data.approval.groups ? data.approval.groups : [],
         },
         targets: [],
         priority: data.priority,

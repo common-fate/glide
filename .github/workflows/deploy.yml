@@ -1,51 +1,51 @@
-# name: Deploy
+name: Deploy
 
-# on:
-#   push:
-#     branches:
-#       - main
+on:
+  push:
+    branches:
+      - main
 
-# jobs:
-#   release:
-#     name: Release
-#     runs-on: ubuntu-20.04
-#     permissions:
-#       id-token: write
-#       contents: write
-#     steps:
-#       - name: Checkout
-#         uses: actions/checkout@v1
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-20.04
+    permissions:
+      id-token: write
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
 
-#       - name: Setup pnpm
-#         uses: pnpm/action-setup@v2
-#         with:
-#           version: 7.1.5
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 7.1.5
 
-#       - name: Setup NodeJS
-#         uses: actions/setup-node@v3
-#         with:
-#           node-version: "16"
-#           cache: "pnpm"
+      - name: Setup NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+          cache: "pnpm"
 
-#       - name: Setup Go
-#         uses: actions/setup-go@v3
-#         with:
-#           go-version: "1.19.0"
-#           cache: true
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: "1.19.6"
+          cache: true
 
-#       - name: Install NodeJS dependencies
-#         run: pnpm install
+      - name: Install NodeJS dependencies
+        run: pnpm install
 
-#       - name: Create empty aws-exports.js
-#         run: echo 'export default {};' > ./web/src/utils/aws-exports.js
+      - name: Create empty aws-exports.js
+        run: echo 'export default {};' > ./web/src/utils/aws-exports.js
 
-#       - name: Configure AWS Credentials
-#         uses: aws-actions/configure-aws-credentials@v1
-#         with:
-#           aws-region: us-west-2
-#           role-to-assume: "${{ secrets.AWS_TESTING_ROLE_ARN }}"
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: us-west-2
+          role-to-assume: "${{ secrets.AWS_TESTING_ROLE_ARN }}"
 
-#       - name: Release CloudFormation
-#         run: go run mage.go -v release:production granted-test-releases-us-west-2 dev/${{ github.sha }}
-#         env:
-#           COMMONFATE_RELEASE: main-${{ github.sha }}
+      - name: Release CloudFormation
+        run: go run mage.go -v release:production granted-test-releases-us-west-2 dev/${{ github.sha }}
+        env:
+          COMMONFATE_RELEASE: main-${{ github.sha }}

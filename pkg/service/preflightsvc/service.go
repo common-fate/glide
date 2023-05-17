@@ -77,7 +77,7 @@ func (s *Service) ProcessPreflight(ctx context.Context, user identity.User, pref
 	}
 	// group the targets
 
-	accessGroups, err := s.GroupTargets(ctx, targets)
+	accessGroups, err := s.GroupTargets(ctx, targets, user)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +98,23 @@ func (s *Service) ProcessPreflight(ctx context.Context, user identity.User, pref
 	return &preflight, nil
 }
 
-func (s *Service) GroupTargets(ctx context.Context, targets []cache.Target) ([]access.PreflightAccessGroup, error) {
+func (s *Service) UserCanAccessRule(ctx context.Context, user identity.User, a rule.AccessRule) (bool, error) {
+
+	userGroups := map[string]string{}
+
+	for _, group := range user.Groups {
+		userGroups[group] = group
+	}
+	for _, groupId := range a.Groups {
+		if _, ok := userGroups[groupId]; ok {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
+func (s *Service) GroupTargets(ctx context.Context, targets []cache.Target, user identity.User) ([]access.PreflightAccessGroup, error) {
 	//goal of the group targets method is to get an unsorted list of targets and return the targets grouped into access groups
 	//the method of grouping is subject for change/options going forward
 
@@ -109,13 +125,21 @@ func (s *Service) GroupTargets(ctx context.Context, targets []cache.Target) ([]a
 	for _, target := range targets {
 
 		bestAccessRule := rule.AccessRule{}
-		for id, _ := range target.AccessRules {
+		for id := range target.AccessRules {
+
 			ar := storage.GetAccessRule{ID: id}
 			_, err := s.DB.Query(ctx, &ar)
 			if err != nil {
 				return nil, err
 			}
-			bestAccessRule = CompareAccessRules(bestAccessRule, *ar.Result)
+			//check if user has access to this rule
+			canAccess, err := s.UserCanAccessRule(ctx, user, *ar.Result)
+			if err != nil {
+				return nil, err
+			}
+			if canAccess {
+				bestAccessRule = CompareAccessRules(bestAccessRule, *ar.Result)
+			}
 
 		}
 

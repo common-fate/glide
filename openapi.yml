@@ -1314,9 +1314,6 @@ components:
           type: array
           items:
             type: string
-      required:
-        - users
-        - groups
       x-stoplight:
         id: 4f87f733cb70f
     AccessRuleTimeConstraints:
@@ -1714,6 +1711,8 @@ components:
           format: time
         status:
           $ref: "#/components/schemas/RequestStatus"
+        targetCount:
+          type: integer
       required:
         - id
         - purpose
@@ -1721,6 +1720,7 @@ components:
         - requestedBy
         - requestedAt
         - status
+        - targetCount
     RequestRequestedBy:
       title: Request Requested By
       type: object

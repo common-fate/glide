@@ -86,13 +86,20 @@ func TestGroupTargets(t *testing.T) {
 		targets            []cache.Target
 		AccessGroups       []access.PreflightAccessGroup
 		wantErr            bool
-		mockGetAccessRule1 rule.AccessRule
-		mockGetAccessRule2 rule.AccessRule
+		user               identity.User
+		mockGetAccessRules []rule.AccessRule
+		mockGetGroups      []identity.Group
 	}{
 
 		{
 			name:    "multiple targets with diff access rules creates multiple groups",
 			targets: []cache.Target{target1, target2},
+			user: identity.User{
+				ID: "usr_123",
+				Groups: []string{
+					"string",
+				},
+			},
 			AccessGroups: []access.PreflightAccessGroup{
 				{
 					Targets: []access.PreflightAccessGroupTarget{{Target: target1, TargetGroupID: "aws"}},
@@ -111,30 +118,83 @@ func TestGroupTargets(t *testing.T) {
 					RequiresApproval: true,
 				},
 			},
-			mockGetAccessRule1: rule.AccessRule{
-				ID:          "rule1",
-				Description: "string",
-				Name:        "string",
-				Groups:      []string{"string"},
 
-				Approval: rule.Approval{
-					Groups: []string{"a"},
-					Users:  []string{"b"},
-				},
-				TimeConstraints: types.AccessRuleTimeConstraints{MaxDurationSeconds: 3600},
-			},
-			mockGetAccessRule2: rule.AccessRule{
-				ID:          "rule2",
-				Description: "string",
-				Name:        "string",
-				Groups:      []string{"string"},
+			wantErr: false,
+			mockGetAccessRules: []rule.AccessRule{
+				{
+					ID:          "rule1",
+					Description: "string",
+					Name:        "string",
+					Groups:      []string{"string"},
 
-				Approval: rule.Approval{
-					Groups: []string{"a"},
-					Users:  []string{"b"},
+					Approval: rule.Approval{
+						Groups: []string{"a"},
+						Users:  []string{"b"},
+					},
+					TimeConstraints: types.AccessRuleTimeConstraints{MaxDurationSeconds: 3600},
 				},
-				TimeConstraints: types.AccessRuleTimeConstraints{MaxDurationSeconds: 3600},
+				{
+					ID:          "rule2",
+					Description: "string",
+					Name:        "string",
+					Groups:      []string{"string"},
+
+					Approval: rule.Approval{
+						Groups: []string{"a"},
+						Users:  []string{"b"},
+					},
+					TimeConstraints: types.AccessRuleTimeConstraints{MaxDurationSeconds: 3600},
+				},
 			},
+		},
+		{
+			//two access rules, one requires approval and one without. User has access to the one with requires approval. should return correct grouping
+			name:    "user with access to one of two rules gets the correct rule",
+			targets: []cache.Target{target1},
+			user: identity.User{
+				ID: "usr_123",
+				Groups: []string{
+					"reqApproval",
+				},
+			},
+
+			AccessGroups: []access.PreflightAccessGroup{
+				{
+					Targets: []access.PreflightAccessGroupTarget{{Target: target1, TargetGroupID: "aws"}},
+					TimeConstraints: types.AccessRuleTimeConstraints{
+						MaxDurationSeconds: 3600,
+					},
+					AccessRule:       "rule1",
+					RequiresApproval: true,
+				},
+			},
+			mockGetAccessRules: []rule.AccessRule{
+				{
+					ID:          "rule1",
+					Description: "string",
+					Name:        "string",
+					Groups:      []string{"reqApproval"},
+
+					Approval: rule.Approval{
+						Groups: []string{},
+						Users:  []string{"usr_123"},
+					},
+					TimeConstraints: types.AccessRuleTimeConstraints{MaxDurationSeconds: 3600},
+				},
+				{
+					ID:          "rule2",
+					Description: "string",
+					Name:        "string",
+					Groups:      []string{"noApprovalNeeded"},
+
+					Approval: rule.Approval{
+						Groups: []string{},
+						Users:  []string{},
+					},
+					TimeConstraints: types.AccessRuleTimeConstraints{MaxDurationSeconds: 3600},
+				},
+			},
+
 			wantErr: false,
 		},
 	}
@@ -143,20 +203,32 @@ func TestGroupTargets(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			db := ddbmock.New(t)
 
-			db.MockQueries(
-				&storage.GetAccessRule{Result: &tt.mockGetAccessRule1},
-				&storage.GetAccessRule{Result: &tt.mockGetAccessRule2},
-			)
+			// db.MockQueries(
+			// 	&storage.GetAccessRule{Result: &tt.mockGetAccessRules[1]},
+			// 	&storage.GetAccessRule{Result: &tt.mockGetAccessRules[0]},
+			// )
+
+			for i := range tt.mockGetAccessRules {
+				db.MockQueries(
+					&storage.GetAccessRule{Result: &tt.mockGetAccessRules[i]},
+				)
+			}
+
+			// for i := range tt.mockGetGroups {
+			// 	db.MockQueries(
+			// 		&storage.GetGroup{Result: &tt.mockGetGroups[i]},
+			// 	)
+			// }
 
 			s := &Service{
 				DB:    db,
 				Clock: clk,
 			}
 
-			got, _ := s.GroupTargets(context.Background(), tt.targets)
+			got, _ := s.GroupTargets(context.Background(), tt.targets, tt.user)
 
 			//override ids
-			for i, _ := range tt.AccessGroups {
+			for i := range tt.AccessGroups {
 				tt.AccessGroups[i].ID = got[i].ID
 			}
 
