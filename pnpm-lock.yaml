@@ -132,7 +132,6 @@ importers:
       framer-motion: 6.5.1_biqbaboplfbrettd7655fr4n2y
       lodash.debounce: 4.0.8
       match-sorter: 6.3.1
-      playwright: 1.33.0
       react: 18.2.0
       react-confetti: 6.1.0_react@18.2.0
       react-dom: 18.2.0_react@18.2.0
@@ -167,6 +166,7 @@ importers:
       msw: 0.39.2
       openapi-client-axios-typegen: 5.3.1_js-yaml@4.1.0
       orval: 6.10.3_igdub2yvzfucmdgbrfwrs2okuq
+      playwright: 1.33.0
       rollup-plugin-node-polyfills: 0.2.1
       source-map-explorer: 2.5.3
       typescript: 4.9.4
@@ -12396,7 +12396,7 @@ packages:
     resolution: {integrity: sha512-aizyPE1Cj62vAECdph1iaMILpT0WUDCq3E6rW6I+dleSbBoGbktvJtzS6VHkZ4DKNEOG9qJpiom/ZxO+S15LAw==}
     engines: {node: '>=14'}
     hasBin: true
-    dev: false
+    dev: true
 
   /playwright/1.33.0:
     resolution: {integrity: sha512-+zzU3V2TslRX2ETBRgQKsKytYBkJeLZ2xzUj4JohnZnxQnivoUvOvNbRBYWSYykQTO0Y4zb8NwZTYFUO+EpPBQ==}
@@ -12405,7 +12405,7 @@ packages:
     requiresBuild: true
     dependencies:
       playwright-core: 1.33.0
-    dev: false
+    dev: true
 
   /pony-cause/1.1.1:
     resolution: {integrity: sha512-PxkIc/2ZpLiEzQXu5YRDOUgBlfGYBY8156HY5ZcRAwwonMk5W/MrJP2LLkG/hF7GEQzaHo2aS7ho6ZLCOvf+6g==}
