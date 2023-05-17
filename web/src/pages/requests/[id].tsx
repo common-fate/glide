@@ -421,8 +421,10 @@ export const HeaderStatusCell = ({ group }: AccessGroupProps) => {
 };
 
 export const AccessGroupItem = ({ group }: AccessGroupProps) => {
-  const [selectedGrant, setSelectedGrant] =
-    useState<RequestAccessGroupTarget>();
+  const [
+    selectedGrant,
+    setSelectedGrant,
+  ] = useState<RequestAccessGroupTarget>();
   const grantModalState = useDisclosure();
 
   const handleGrantClick = (grant: RequestAccessGroupTarget) => {
@@ -471,7 +473,7 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
             bg="white"
             p={0}
           >
-            <Stack spacing={2} p={2}>
+            <Stack spacing={2} p={2} w="100%">
               {group.targets.map((target) => (
                 <Flex
                   w="100%"
