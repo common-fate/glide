@@ -99,6 +99,8 @@ const Home = () => {
     }
   };
 
+  // const accessTemplateSelected = watch("createTemplate", false);
+
   return (
     <div>
       <UserLayout>
@@ -236,6 +238,7 @@ const Home = () => {
                   <Checkbox
                     {...methods.register("createTemplate")}
                     onBlur={() => void methods.trigger("createTemplate")}
+                    my="20px"
                   >
                     Create Access Template
                   </Checkbox>
@@ -243,7 +246,8 @@ const Home = () => {
                     <Text textStyle={"Body/Medium"}>Access Template Name</Text>
                   </FormLabel>
                   <Input
-                    placeholder="dev access items..."
+                    disabled={!methods.watch("createTemplate", false)}
+                    placeholder="Template Name"
                     bg="neutrals.0"
                     {...methods.register("templateName")}
                     onBlur={() => void methods.trigger("templateName")}
