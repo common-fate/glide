@@ -83,7 +83,7 @@ func (s *Service) CreateRequest(ctx context.Context, user identity.User, createR
 			UpdatedAt:            now,
 			Status:               types.RequestAccessGroupStatusPENDINGAPPROVAL,
 			RequestStatus:        request.RequestStatus,
-			RequestPurposeReason: *request.Purpose.Reason,
+			RequestPurposeReason: *createRequest.Reason,
 		}
 
 		approvers, err := s.Rules.GetApprovers(ctx, *ar.Result)
