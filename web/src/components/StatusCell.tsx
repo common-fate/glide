@@ -77,7 +77,7 @@ export const StatusCell = <T,>({
           as="span"
           css={{ ":first-letter": { textTransform: "uppercase" } }}
         >
-          {replaceValue ? replaceValue : value.toLowerCase()}
+          {replaceValue ? replaceValue : (value as string).toLowerCase()}
         </Text>
       </Flex>
     );
@@ -114,7 +114,7 @@ export const StatusCell = <T,>({
         {/* <SkeletonCircle endColor={statusColor} size="8px" mr={2} />{" "} */}
       </Center>
       <Text as="span" css={{ ":first-letter": { textTransform: "uppercase" } }}>
-        {replaceValue ? replaceValue : value.toLowerCase()}
+        {replaceValue ? replaceValue : (value as string).toLowerCase()}
       </Text>
     </Flex>
   );

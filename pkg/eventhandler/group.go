@@ -211,7 +211,7 @@ func (n *EventHandler) handleAccessGroupOverlap(ctx context.Context, event geven
 	for _, target := range event.AccessGroup.Targets {
 
 		// send a failed grant event for targets in overlapping group.
-		n.Eventbus.Put(ctx, gevent.GrantFailed{
+		return n.Eventbus.Put(ctx, gevent.GrantFailed{
 			Grant:  target,
 			Reason: "a request including this grant already exists",
 		})

@@ -386,7 +386,7 @@ type ApproveRejectDurationProps = {
 export const ApproveRejectDuration = ({
   group,
 }: ApproveRejectDurationProps) => {
-  const isReviewer = false;
+  const isReviewer = true;
 
   const handleClickMax = () => {
     setDurationSeconds(group.accessRule.timeConstraints.maxDurationSeconds);
