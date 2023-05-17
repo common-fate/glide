@@ -23,7 +23,7 @@ const Home = () => {
             justify={"center"}
             align={{ lg: "flex-start", md: "center", sm: "center" }}
           >
-            <Flex w={["400"]}>
+            <Flex w={["350px"]}>
               <AccessTemplateList setChecked={setChecked} />
             </Flex>
             <Flex w={["770px"]}>

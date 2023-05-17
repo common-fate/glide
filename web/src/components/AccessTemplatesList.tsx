@@ -15,6 +15,8 @@ import {
 } from "@chakra-ui/react";
 import { useUserListAccessTemplates } from "../utils/backend-client/default/default";
 import { AccessTemplate } from "src/utils/backend-client/types";
+import { ProviderIcon, ShortTypes } from "./icons/providerIcon";
+import { access } from "fs";
 
 interface ListAccessTemplateProps {
   setChecked: React.Dispatch<React.SetStateAction<Set<string>>>;
@@ -27,9 +29,6 @@ export const AccessTemplateList: React.FC<ListAccessTemplateProps> = ({
   if (data && data?.accessTemplates) {
     return (
       <Stack>
-        <Text as="h4" textStyle="Heading/H4">
-          Access Templates
-        </Text>
         <Flex
           p={1}
           rounded="lg"
@@ -38,14 +37,21 @@ export const AccessTemplateList: React.FC<ListAccessTemplateProps> = ({
           borderWidth={1}
           borderColor="neutrals.300"
           direction="column"
-          w="400px"
+          w="350px"
           h="70vh"
         >
+          <Text as="h4" textStyle="Heading/H4" my="10px" pl="5px">
+            Access Templates
+          </Text>
           <Grid templateColumns="repeat(1, 1fr)" gap={2}>
             {data.accessTemplates.map((template) => {
               return (
                 <AccessTemplateCard
-                  _hover={{ bg: "neutrals.100", rounded: "lg" }}
+                  _hover={{
+                    bg: "neutrals.100",
+                    rounded: "lg",
+                    textDecoration: "none",
+                  }}
                   accessTemplate={template}
                   handleClick={() => {
                     template.accessGroups.forEach((group) => {
@@ -77,17 +83,33 @@ const AccessTemplateCard: React.FC<
 > = ({ accessTemplate, handleClick, ...rest }) => {
   return (
     <LinkBox {...rest}>
-      <Link onClick={handleClick}>
+      <Link
+        onClick={handleClick}
+        textDecoration="none"
+        _hover={{ textDecoration: "none" }}
+      >
         <LinkOverlay>
           <Box rounded="lg" w="100%" h="50px">
-            <Flex px={1}>
-              <Text
-                textStyle="Body/medium"
-                color="neutrals.700"
-                decoration="none"
-              >
-                {accessTemplate.name}
-              </Text>
+            <Flex px={3} py={2}>
+              <HStack>
+                <Text
+                  textStyle="Body/medium"
+                  color="neutrals.700"
+                  decoration="none"
+                >
+                  {accessTemplate.name}
+                </Text>
+                {accessTemplate.accessGroups.map((group) => {
+                  return (
+                    <ProviderIcon
+                      h="18px"
+                      w="18px"
+                      shortType={group.targets[0].kind.name as ShortTypes}
+                      mr={2}
+                    />
+                  );
+                })}
+              </HStack>
             </Flex>
           </Box>
           {/* <Divider borderColor="neutrals.300" /> */}
