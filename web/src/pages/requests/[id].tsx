@@ -421,10 +421,8 @@ export const HeaderStatusCell = ({ group }: AccessGroupProps) => {
 };
 
 export const AccessGroupItem = ({ group }: AccessGroupProps) => {
-  const [
-    selectedGrant,
-    setSelectedGrant,
-  ] = useState<RequestAccessGroupTarget>();
+  const [selectedGrant, setSelectedGrant] =
+    useState<RequestAccessGroupTarget>();
   const grantModalState = useDisclosure();
 
   const handleGrantClick = (grant: RequestAccessGroupTarget) => {
