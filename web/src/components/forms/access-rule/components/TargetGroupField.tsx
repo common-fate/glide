@@ -107,7 +107,7 @@ export const TargetGroupField: React.FC<TargetGroupFieldProps> = (props) => {
                   >
                     Available {fieldSchema.title}s
                   </Text>
-                  {resources.length!! ? (
+                  {resources.length! ? (
                     <Box height={"200px"} overflow={"hidden"}>
                       <Wrap>
                         {resources.map((opt) => {
@@ -229,7 +229,7 @@ const FieldFilterView: React.FC<FieldFilterViewProps> = (props) => {
   const { watch, register, control, setValue } = useFormContext<any>();
   const [targetGroupFilterOpts] = watch(["targetgroups"]);
 
-  const [isLoading, setIsLoading] = useState<Boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const [operationType, setOperationType] =
     useState<ResourceFilterOperationTypeEnum>(
@@ -237,7 +237,7 @@ const FieldFilterView: React.FC<FieldFilterViewProps> = (props) => {
     );
 
   const createOptions = () => {
-    let defaultOptions = [
+    const defaultOptions = [
       { value: "id", label: "Id" },
       { value: "name", label: "Name" },
     ];
@@ -246,7 +246,7 @@ const FieldFilterView: React.FC<FieldFilterViewProps> = (props) => {
       const properties = fieldSchema.resourceSchema.properties;
 
       if (properties?.data) {
-        let out = Object.entries(
+        const out = Object.entries(
           properties.data as Map<string, ResourceSchemaProperty>
         )
           // Only attibutes of type string is shown as backend only supports
