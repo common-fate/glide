@@ -122,6 +122,11 @@ interface NewRequestFormData extends Omit<CreateRequestRequestBody, "with"> {
   with: FormCreateRequestWith[];
 }
 
+interface CreateRequestValidationError {
+  field: string;
+  error: string;
+}
+
 /**
  * returns helper text to be used below form fields for selecting when
  * access should be activated.
@@ -352,18 +357,34 @@ const AccessRequestForm = (props: AccessRequestProps) => {
       .catch((e: any) => {
         setLoading(false);
         let description: string | undefined;
+        let fields: any;
         if (axios.isAxiosError(e)) {
           description = (e as AxiosError<{ error: string }>)?.response?.data
             .error;
+          fields = (
+            e as AxiosError<{
+              error: string;
+              fields: CreateRequestValidationError[];
+            }>
+          )?.response?.data.fields;
         }
         toast({
           title: "Request failed",
           status: "error",
           duration: 5000,
           description: (
-            <Text color={"white"} whiteSpace={"pre"}>
-              {description}
-            </Text>
+            <>
+              <Text color={"white"} whiteSpace={"pre"}>
+                {description}
+              </Text>
+              {fields.map((f: CreateRequestValidationError) => {
+                return (
+                  <Text color={"white"} whiteSpace={"pre"}>
+                    {f.error}
+                  </Text>
+                );
+              })}
+            </>
           ),
           isClosable: true,
         });

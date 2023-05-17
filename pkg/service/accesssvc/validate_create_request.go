@@ -7,10 +7,12 @@ import (
 	"net/http"
 
 	"github.com/common-fate/apikit/apio"
+	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
+	"go.uber.org/zap"
 )
 
 type validateCreateRequestsResponse struct {
@@ -49,13 +51,14 @@ func (s *Service) validateCreateRequests(ctx context.Context, in CreateRequestsO
 	}
 	// validate all the requests for basic errors before attempting to create grants or object in the DB
 	for _, combinationToCreate := range combinationsToCreate {
-		err = validateCreateRequest(CreateRequest{
+		err = validateCreateRequest(ctx, CreateRequest{
 			AccessRuleId: in.Create.AccessRuleId,
 			Reason:       in.Create.Reason,
 			Timing:       in.Create.Timing,
 			With:         combinationToCreate,
 		}, rule, requestArguments)
 		if err != nil {
+
 			return nil, err
 		}
 	}
@@ -108,8 +111,9 @@ func (cro CreateRequestsOpts) argumentCombinations() (types.RequestArgumentCombi
 
 // requestIsValid checks that the request meets the constraints of the rule
 // Add additional constraint checks here in this method.
-func validateCreateRequest(request CreateRequest, rule rule.AccessRule, requestArguments map[string]types.RequestArgument) error {
+func validateCreateRequest(ctx context.Context, request CreateRequest, rule rule.AccessRule, requestArguments map[string]types.RequestArgument) error {
 	if request.Timing.DurationSeconds > rule.TimeConstraints.MaxDurationSeconds {
+		logger.Get(ctx).Errorw("error validating request", zap.Error(fmt.Errorf(fmt.Sprintf("durationSeconds: %d exceeds the maximum duration seconds: %d", request.Timing.DurationSeconds, rule.TimeConstraints.MaxDurationSeconds))))
 		return &apio.APIError{
 			Err:    errors.New("request validation failed"),
 			Status: http.StatusBadRequest,
@@ -142,6 +146,8 @@ func validateCreateRequest(request CreateRequest, rule rule.AccessRule, requestA
 	// assert they are the same length.
 	// the user provided the expected number of values based on the requestArguments
 	if len(given) != len(expected) {
+		logger.Get(ctx).Errorw("error validating request", zap.Error(fmt.Errorf("unexpected number of arguments in 'with' field")))
+
 		return &apio.APIError{
 			Err:    errors.New("request validation failed"),
 			Status: http.StatusBadRequest,
@@ -157,6 +163,8 @@ func validateCreateRequest(request CreateRequest, rule rule.AccessRule, requestA
 	for argumentId, allowedValues := range expected {
 		givenArgumentValue, ok := given[argumentId]
 		if !ok || !contains(allowedValues, givenArgumentValue) {
+			logger.Get(ctx).Errorw("error validating request", zap.Error(fmt.Errorf(fmt.Sprintf("unexpected value given for argument %s in with field", argumentId))))
+
 			return &apio.APIError{
 				Err:    errors.New("request validation failed"),
 				Status: http.StatusBadRequest,
