@@ -145,7 +145,6 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 					}
 
 					requestorEmail = requestEvent.Request.Request.RequestedBy.Email
-
 				}
 
 			}
@@ -192,8 +191,8 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 
 		// REQUESTOR Message:
 		requestorEmail = requestEvent.Request.Request.RequestedBy.Email
-		requestorMessage = fmt.Sprintf("Your access to *%d* Resources has been cancelled by your administrator. Please contact your cloud administrator for more information.", len(requestEvent.Request.Groups))
-		requestorMessageFallback = fmt.Sprintf("Your access to *%d* Resources has been cancelled by your administrator.", len(requestEvent.Request.Groups))
+		requestorMessage = fmt.Sprintf("Your access to *%d* Resources has now been revoked. Please contact your cloud administrator for more information.", requestEvent.Request.ToAPI().TargetCount)
+		requestorMessageFallback = fmt.Sprintf("Your access to *%d* Resources has now been revoked.", len(requestEvent.Request.Groups))
 
 		// REVIEWER Message Update:
 		n.sendRequestUpdatesReviewer(ctx, log, requestEvent.Request)
@@ -201,7 +200,9 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 
 	if requestorMessage != "" {
 		_, err := SendMessage(ctx, n.directMessageClient.client, requestorEmail, requestorMessage, requestorMessageFallback, accessory)
-		return err
+		if err != nil {
+			log.Errorw("failed to send requestor message", "error", err)
+		}
 	}
 
 	return nil

@@ -104,6 +104,8 @@ const Home = () => {
   });
   const toast = useToast();
 
+  const [cancelLoading, setCancelLoading] = useState(false);
+
   return (
     <div>
       <UserLayout>
@@ -222,16 +224,22 @@ const Home = () => {
                             <ButtonGroup variant="brandSecondary">
                               <Button
                                 size="sm"
+                                isLoading={cancelLoading}
+                                loadingText="Cancelling..."
                                 onClick={() => {
-                                  console.log("cancel");
-                                  //@ts-ignore
-                                  userCancelRequest(request.data?.id)
-                                    .then((e) => {
-                                      console.log(e);
-                                    })
-                                    .catch((e) => {
-                                      console.log(e);
-                                    });
+                                  if (request.data) {
+                                    setCancelLoading(true);
+                                    userCancelRequest(request.data?.id)
+                                      .then((e) => {
+                                        console.log(e);
+                                      })
+                                      .catch((e) => {
+                                        console.log(e);
+                                      })
+                                      .finally(() => {
+                                        setCancelLoading(false);
+                                      });
+                                  }
                                 }}
                               >
                                 Cancel
@@ -413,8 +421,10 @@ export const HeaderStatusCell = ({ group }: AccessGroupProps) => {
 };
 
 export const AccessGroupItem = ({ group }: AccessGroupProps) => {
-  const [selectedGrant, setSelectedGrant] =
-    useState<RequestAccessGroupTarget>();
+  const [
+    selectedGrant,
+    setSelectedGrant,
+  ] = useState<RequestAccessGroupTarget>();
   const grantModalState = useDisclosure();
 
   const handleGrantClick = (grant: RequestAccessGroupTarget) => {
