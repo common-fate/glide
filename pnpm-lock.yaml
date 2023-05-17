@@ -91,7 +91,6 @@ importers:
       msw: ^0.39.2
       openapi-client-axios-typegen: ^5.0.2
       orval: ^6.7.1
-      playwright: ^1.33.0
       prettier: ^2.8.8
       react: ^18
       react-confetti: ^6.1.0
@@ -167,7 +166,6 @@ importers:
       msw: 0.39.2
       openapi-client-axios-typegen: 5.3.1_js-yaml@4.1.0
       orval: 6.10.3_igdub2yvzfucmdgbrfwrs2okuq
-      playwright: 1.33.0
       prettier: 2.8.8
       rollup-plugin-node-polyfills: 0.2.1
       source-map-explorer: 2.5.3
@@ -12392,21 +12390,6 @@ packages:
     resolution: {integrity: sha512-nJLknd28kPBiCNTbqpu6Wmkrh63OEqJSFw9xOfL9qxfNwody7h6/L3O2dZoWQ6Oxcm0VOHjWmGiCUGkc0X3VZA==}
     engines: {node: '>=14'}
     hasBin: true
-    dev: true
-
-  /playwright-core/1.33.0:
-    resolution: {integrity: sha512-aizyPE1Cj62vAECdph1iaMILpT0WUDCq3E6rW6I+dleSbBoGbktvJtzS6VHkZ4DKNEOG9qJpiom/ZxO+S15LAw==}
-    engines: {node: '>=14'}
-    hasBin: true
-    dev: true
-
-  /playwright/1.33.0:
-    resolution: {integrity: sha512-+zzU3V2TslRX2ETBRgQKsKytYBkJeLZ2xzUj4JohnZnxQnivoUvOvNbRBYWSYykQTO0Y4zb8NwZTYFUO+EpPBQ==}
-    engines: {node: '>=14'}
-    hasBin: true
-    requiresBuild: true
-    dependencies:
-      playwright-core: 1.33.0
     dev: true
 
   /pony-cause/1.1.1:
