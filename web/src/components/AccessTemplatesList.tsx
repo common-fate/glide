@@ -26,43 +26,44 @@ export const AccessTemplateList: React.FC<ListAccessTemplateProps> = ({
 
   if (data && data?.accessTemplates) {
     return (
-      <Flex
-        p={1}
-        rounded="lg"
-        bg="white"
-        // columns={2}
-        borderWidth={1}
-        borderColor="neutrals.300"
-        direction="column"
-        w="400px"
-        h="70vh"
-      >
-        <Text pb="20px" textStyle="Heading/H4">
+      <Stack>
+        <Text as="h4" textStyle="Heading/H4">
           Access Templates
         </Text>
-
-        <Grid templateColumns="repeat(1, 1fr)" gap={2}>
-          {data.accessTemplates.map((template) => {
-            return (
-              <AccessTemplateCard
-                _hover={{ bg: "neutrals.100" }}
-                accessTemplate={template}
-                handleClick={() => {
-                  template.accessGroups.forEach((group) => {
-                    group.targets.forEach((target) => {
-                      setChecked((old) => {
-                        const newSet = new Set(old);
-                        newSet.add(target.id.toLowerCase());
-                        return newSet;
+        <Flex
+          p={1}
+          rounded="lg"
+          bg="white"
+          // columns={2}
+          borderWidth={1}
+          borderColor="neutrals.300"
+          direction="column"
+          w="400px"
+          h="70vh"
+        >
+          <Grid templateColumns="repeat(1, 1fr)" gap={2}>
+            {data.accessTemplates.map((template) => {
+              return (
+                <AccessTemplateCard
+                  _hover={{ bg: "neutrals.100", rounded: "lg" }}
+                  accessTemplate={template}
+                  handleClick={() => {
+                    template.accessGroups.forEach((group) => {
+                      group.targets.forEach((target) => {
+                        setChecked((old) => {
+                          const newSet = new Set(old);
+                          newSet.add(target.id.toLowerCase());
+                          return newSet;
+                        });
                       });
                     });
-                  });
-                }}
-              />
-            );
-          })}
-        </Grid>
-      </Flex>
+                  }}
+                />
+              );
+            })}
+          </Grid>
+        </Flex>
+      </Stack>
     );
   }
   return <></>;
@@ -79,10 +80,10 @@ const AccessTemplateCard: React.FC<
       <Link onClick={handleClick}>
         <LinkOverlay>
           <Box rounded="lg" w="100%" h="50px">
-            <Flex px={1} align="center">
+            <Flex px={1}>
               <Text
-                textStyle="Body/Small"
-                color="neutrals.800"
+                textStyle="Body/medium"
+                color="neutrals.700"
                 decoration="none"
               >
                 {accessTemplate.name}
