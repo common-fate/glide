@@ -256,6 +256,7 @@ export const _AuditLog: React.FC<{ request?: Request }> = ({ request }) => {
 
 export const AuditLog: React.FC<{ request?: Request }> = ({ request }) => {
   const { data } = useUserListRequestEvents(request?.id || "", {
+    // @ts-ignore; type discrepancy with latest SWR client
     swr: {
       refreshInterval: 5000,
     },

@@ -88,6 +88,7 @@ const Home = () => {
   } = useMatch();
 
   const request = useUserGetRequest(requestId, {
+    // @ts-ignore; type discrepancy with latest SWR client
     swr: { refreshInterval: 10000 },
   });
 

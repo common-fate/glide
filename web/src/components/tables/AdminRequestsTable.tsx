@@ -34,7 +34,10 @@ export const AdminRequestsTable = () => {
         ? (status.toUpperCase() as AdminListRequestsStatus)
         : undefined,
     },
-    swrProps: { swr: { refreshInterval: 10000 } },
+    swrProps: {
+      // @ts-ignore; type discrepancy with latest SWR client
+      swr: { refreshInterval: 10000 },
+    },
   });
 
   const cols: Column<Request>[] = useMemo(
