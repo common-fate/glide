@@ -48,8 +48,8 @@ func (n *EventHandler) handleRequestCreated(ctx context.Context, detail json.Raw
 			if err != nil {
 				return err
 			}
+			// Automatically Approve any groups that don't require approval
 			err = n.Eventbus.Put(ctx, gevent.AccessGroupReviewed{
-
 				AccessGroup: group,
 				Review: types.ReviewRequest{
 					Decision: types.ReviewDecisionAPPROVED,
@@ -112,13 +112,6 @@ func (n *EventHandler) handleRequestCancelInitiated(ctx context.Context, detail 
 
 	items := requestEvent.Request.DBItems()
 
-	for _, group := range requestEvent.Request.Groups {
-		for _, target := range group.Targets {
-			target.RequestStatus = types.CANCELLED
-			items = append(items, &target)
-		}
-	}
-
 	err = n.DB.PutBatch(ctx, items...)
 	if err != nil {
 		return err
@@ -142,7 +135,7 @@ func (n *EventHandler) handleRequestRevokeInitiated(ctx context.Context, detail 
 	}
 
 	items := []ddb.Keyer{}
-
+	zap.S().Infow("revoking all groups in request")
 	for _, group := range requestEvent.Request.Groups {
 		err := n.Workflow.Revoke(ctx, group.Group.RequestID, group.Group.ID, requestEvent.Revoker.ID, requestEvent.Revoker.Email)
 		if err != nil {

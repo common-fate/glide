@@ -11,6 +11,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/config"
 	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/common-fate/common-fate/pkg/gevent"
+	"github.com/common-fate/common-fate/pkg/handler"
 	slacknotifier "github.com/common-fate/common-fate/pkg/notifiers/slack"
 	"github.com/common-fate/common-fate/pkg/service/requestroutersvc"
 	"github.com/common-fate/common-fate/pkg/service/workflowsvc"
@@ -19,10 +20,18 @@ import (
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/targetgroupgranter"
 	"github.com/common-fate/ddb"
+	"github.com/common-fate/provider-registry-sdk-go/pkg/handlerclient"
 	"github.com/joho/godotenv"
 	"github.com/sethvargo/go-envconfig"
 	"go.uber.org/zap"
 )
+
+type DefaultGetter struct {
+}
+
+func (DefaultGetter) GetRuntime(ctx context.Context, h handler.Handler) (*handlerclient.Client, error) {
+	return handler.GetRuntime(ctx, h)
+}
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/eventputter.go -package=mocks . EventPutter
 type EventPutter interface {
@@ -108,6 +117,7 @@ func NewLocalDevEventHandler(ctx context.Context, db ddb.Storage, clk clock.Cloc
 			RequestRouter: &requestroutersvc.Service{
 				DB: db,
 			},
+			RuntimeGetter: DefaultGetter{},
 		}, &requestroutersvc.Service{
 			DB: db,
 		})

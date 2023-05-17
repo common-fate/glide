@@ -1,104 +1,144 @@
-import { CheckCircleIcon } from "@chakra-ui/icons";
 import {
+  Accordion,
+  AccordionButton,
+  AccordionIcon,
+  AccordionItem,
+  AccordionPanel,
   Box,
-  HStack,
-  RadioProps,
+  Button,
   Spinner,
-  Text,
-  Tooltip,
-  useRadio,
-  useRadioGroup,
-  UseRadioGroupProps,
-  Wrap,
-  WrapItem,
+  VStack,
 } from "@chakra-ui/react";
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 import { ProviderIcon, ShortTypes } from "../../../icons/providerIcon";
 
+import { TargetGroup } from "../../../../utils/backend-client/types";
 import {
-  CreateAccessRuleTargetFieldFilterExpessions,
-  TargetGroup,
-} from "../../../../utils/backend-client/types";
-import { useFormContext } from "react-hook-form";
-import { AccessRuleFormData } from "../CreateForm";
+  useFieldArray,
+  UseFieldArrayRemove,
+  useFormContext,
+} from "react-hook-form";
 import { useAdminListTargetGroups } from "../../../../utils/backend-client/admin/admin";
+import { TargetGroupField } from "./TargetGroupField";
+import ReactSelect from "react-select";
+import { AccessRuleFormData } from "../CreateForm";
 
-interface TargetGroupRadioProps extends RadioProps {
-  targetGroup: TargetGroup;
+interface TargetGroupDropdownProps {
+  item: Record<"id", string>;
+  targetGroups: TargetGroup[];
+  remove: UseFieldArrayRemove;
+  index: number;
 }
-const TargetGroupRadio: React.FC<TargetGroupRadioProps> = (props) => {
-  const { getInputProps, getCheckboxProps } = useRadio(props);
 
-  const input = getInputProps();
-  const checkbox = getCheckboxProps();
+const TargetGroupDropdown: React.FC<TargetGroupDropdownProps> = (props) => {
+  const { remove, item, index } = props;
+  const [selectedTargetgroup, setSelectedTargetgroup] = useState<TargetGroup>();
+
+  const methods = useFormContext<AccessRuleFormData>();
+  const targetgroups = methods.watch("targetgroups");
+
+  // CreateOption will exclude already selected targetgroups from new targetgroup dropdown.
+  const createOptions = () => {
+    const excludingItemTargetgroupIds = targetgroups
+      ? Object.keys(targetgroups).filter((e) => e)
+      : [];
+
+    const excludedList = props.targetGroups.filter(
+      (t) => !excludingItemTargetgroupIds.includes(t.id)
+    );
+
+    return excludedList.map((t) => ({
+      value: t.id,
+      label: t.id,
+    }));
+  };
 
   return (
-    <Box as="label">
-      <input {...input} />
-      <Box
-        {...checkbox}
-        bg="white"
-        cursor="pointer"
-        borderWidth="1px"
-        borderRadius="md"
-        m="1px"
-        _checked={{
-          m: "0px",
-          borderColor: "brandBlue.300",
-          borderWidth: "2px",
-        }}
-        _hover={{
-          boxShadow: `0px 0px 0px 1px #2e7fff`,
-        }}
-        px={6}
-        py={5}
-        position="relative"
-        data-testid={"targetGroup-selector-" + props.targetGroup.id}
-      >
-        {/* @ts-ignore */}
-        {checkbox?.["data-checked"] !== undefined && (
-          <CheckCircleIcon
-            position="absolute"
-            top={2}
-            right={2}
-            h="12px"
-            w="12px"
-            color={"brandBlue.300"}
-          />
-        )}
-        <HStack>
-          <ProviderIcon shortType={props.targetGroup.icon as ShortTypes} />
-
-          <Text textStyle={"Body/Medium"} color={"neutrals.800"}>
-            {props.targetGroup.id}
-          </Text>
-        </HStack>
-      </Box>
-    </Box>
+    <>
+      <Accordion defaultIndex={[0]} allowMultiple>
+        <AccordionItem key={item.id}>
+          <AccordionButton>
+            <ReactSelect
+              styles={{
+                control: (provided, state) => ({
+                  ...provided,
+                  width: 420,
+                }),
+              }}
+              options={createOptions()}
+              onChange={(val) => {
+                setSelectedTargetgroup(
+                  props.targetGroups.find((t) => t.id === val?.value)
+                );
+              }}
+            />
+            {index != 0 && (
+              <Button onClick={() => remove(index)}>Delete </Button>
+            )}
+            <AccordionIcon />
+          </AccordionButton>
+          <AccordionPanel>
+            <VStack>
+              <Box>
+                {!!selectedTargetgroup?.schema &&
+                  Object.values(selectedTargetgroup.schema).map((schema) => {
+                    return (
+                      <TargetGroupField
+                        targetGroup={selectedTargetgroup}
+                        fieldSchema={schema}
+                      />
+                    );
+                  })}
+              </Box>
+            </VStack>
+          </AccordionPanel>
+        </AccordionItem>
+      </Accordion>
+    </>
   );
 };
 
-export const TargetGroupRadioSelector: React.FC<UseRadioGroupProps> = (
-  props
-) => {
+interface MultiTargetGroupSelectorProps {
+  // field: ControllerRenderProps<AccessRuleFormData, any>;
+  // control: Control<AccessRuleFormData, any>;
+  field: any;
+  control: any;
+}
+
+export const MultiTargetGroupSelector: React.FC<
+  MultiTargetGroupSelectorProps
+> = (props) => {
   const { data } = useAdminListTargetGroups();
-  const { getRootProps, getRadioProps } = useRadioGroup(props);
-  const group = getRootProps();
+
+  const { fields, append, remove, insert } = useFieldArray({
+    control: props.control,
+    name: "targetFieldMap",
+  });
+
+  useEffect(() => {
+    if (!fields.length) {
+      insert(0, { targetGroupId: "" });
+    }
+  }, []);
+
   if (!data) {
     return <Spinner />;
   }
 
   return (
-    <Wrap {...group}>
-      {data?.targetGroups.map((p) => {
-        const radio = getRadioProps({ value: p.id });
-        return (
-          <WrapItem key={p.id}>
-            <TargetGroupRadio targetGroup={p} {...radio} />
-          </WrapItem>
-        );
-      })}
-    </Wrap>
+    <>
+      {fields.map((item, index) => (
+        <TargetGroupDropdown
+          item={item}
+          index={index}
+          remove={remove}
+          targetGroups={data.targetGroups}
+        />
+      ))}
+      <Button type="button" onClick={() => append({})}>
+        + Target
+      </Button>
+    </>
   );
 };

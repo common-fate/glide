@@ -40,7 +40,10 @@ export const RecentRequests: React.FC = () => {
   } = useInfiniteScrollApi<typeof useUserListRequests>({
     swrHook: useUserListRequests,
     hookProps: { filter: "UPCOMING" },
-    swrProps: { swr: { refreshInterval: 10000 } },
+    swrProps: {
+      // @ts-ignore; type discrepancy with latest SWR client
+      swr: { refreshInterval: 10000 },
+    },
     listObjKey: "requests",
   });
 

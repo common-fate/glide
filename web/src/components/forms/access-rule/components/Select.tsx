@@ -161,6 +161,7 @@ export const GroupSelect: React.FC<GroupSelectProps> = (props) => {
 type MultiSelectRules = Partial<{
   required: boolean;
   minLength: number;
+  // @ts-ignore; the CI has randomly started throwing an error here despite typings being fine in IDE, CI may be using an incorrect version of react-hook-form
   validate: Validate<any> | Record<string, Validate<any>> | undefined;
 }>;
 

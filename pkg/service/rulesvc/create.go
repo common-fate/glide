@@ -28,9 +28,14 @@ func (s *Service) ProcessTargets(ctx context.Context, in []types.CreateAccessRul
 				return nil, err
 			}
 
+			filters := make(map[string]types.ResourceFilter)
+			for k, v := range targetGroup.FieldFilterExpessions.AdditionalProperties {
+				filters[k] = v
+			}
+
 			deduplicateTargets[targetGroupQ.Result.ID] = rule.Target{
 				TargetGroup:           *targetGroupQ.Result,
-				FieldFilterExpessions: map[string]rule.FieldFilterExpessions{},
+				FieldFilterExpessions: filters,
 			}
 		} else {
 			//do we want to error out here or just deduplicate it automatically?

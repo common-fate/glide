@@ -35,6 +35,7 @@ export const TargetDetail: React.FC<TargetDetailProps> = ({
       position="relative"
       p={2}
       rounded="md"
+      w="100%"
       {...rest}
     >
       <CheckCircleIcon

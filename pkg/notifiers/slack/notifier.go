@@ -56,10 +56,23 @@ func (n *SlackNotifier) Init(ctx context.Context, config *deploy.Notifications) 
 func (n *SlackNotifier) HandleEvent(ctx context.Context, event events.CloudWatchEvent) (err error) {
 	log := zap.S().With("slack", event)
 	log.Info("received event from eventbridge")
-	if strings.HasPrefix(event.DetailType, "request") {
-		log.Info("request event type")
-	} else {
-		log.Info("ignoring unhandled event type")
+	if n.directMessageClient != nil {
+		if strings.HasPrefix(event.DetailType, "request") {
+			log.Info("request event type")
+
+			err := n.HandleRequestEvent(ctx, log, event)
+			if err != nil {
+				return err
+			}
+		} else if strings.HasPrefix(event.DetailType, "accessGroup") {
+			log.Info("accessGroup event type")
+			err := n.HandleAccessGroupEvent(ctx, log, event)
+			if err != nil {
+				return err
+			}
+		} else {
+			log.Info("ignoring unhandled event type")
+		}
 	}
 	return nil
 }

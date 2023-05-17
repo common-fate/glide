@@ -7,7 +7,6 @@ import (
 	"github.com/common-fate/common-fate/pkg/cache"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/target"
-	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -33,10 +32,12 @@ func TestSync(t *testing.T) {
 				accessRules: []rule.AccessRule{
 					{ID: "accessRule_1", Targets: []rule.Target{
 						{
-							TargetGroup: target.Group{ID: "targetgroup_1", Schema: providerregistrysdk.Target{
-								Properties: map[string]providerregistrysdk.TargetField{
-									"accountId":        {Resource: aws.String("Account")},
-									"permissionSetArn": {Resource: aws.String("PermissionSet")},
+							TargetGroup: target.Group{ID: "targetgroup_1", Schema: target.GroupSchema{
+								Target: target.TargetSchema{
+									Properties: map[string]target.TargetField{
+										"accountId":        {Resource: aws.String("Account")},
+										"permissionSetArn": {Resource: aws.String("PermissionSet")},
+									},
 								},
 							}},
 						},
@@ -109,17 +110,22 @@ func TestGenerateDistinctTargets(t *testing.T) {
 				},
 				acessRules: []rule.AccessRule{
 					{ID: "accessRule_1", Groups: []string{"group_1", "group_2"},
-						Targets: []rule.Target{{TargetGroup: target.Group{ID: "targetgroup_1", Schema: providerregistrysdk.Target{
-							Properties: map[string]providerregistrysdk.TargetField{
-								"accountId":        {Title: aws.String("AWS Account")},
-								"permissionSetArn": {Title: aws.String("AWS Permission Set"), Description: aws.String("a permission set field description")},
+						Targets: []rule.Target{{TargetGroup: target.Group{ID: "targetgroup_1", Schema: target.GroupSchema{
+							Target: target.TargetSchema{
+								Properties: map[string]target.TargetField{
+									"accountId":        {Title: aws.String("AWS Account")},
+									"permissionSetArn": {Title: aws.String("AWS Permission Set"), Description: aws.String("a permission set field description")},
+								},
 							},
-						}}}}},
+						},
+						}}}},
 					{ID: "accessRule_2", Groups: []string{"group_3", "group_4"},
-						Targets: []rule.Target{{TargetGroup: target.Group{ID: "targetgroup_1", Schema: providerregistrysdk.Target{
-							Properties: map[string]providerregistrysdk.TargetField{
-								"accountId":        {Title: aws.String("AWS Account")},
-								"permissionSetArn": {Title: aws.String("AWS Permission Set"), Description: aws.String("a permission set field description")},
+						Targets: []rule.Target{{TargetGroup: target.Group{ID: "targetgroup_1", Schema: target.GroupSchema{
+							Target: target.TargetSchema{
+								Properties: map[string]target.TargetField{
+									"accountId":        {Title: aws.String("AWS Account")},
+									"permissionSetArn": {Title: aws.String("AWS Permission Set"), Description: aws.String("a permission set field description")},
+								},
 							},
 						}}}}},
 				},

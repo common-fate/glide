@@ -4,27 +4,94 @@ import { FormProvider, useForm } from "react-hook-form";
 import { useNavigate } from "react-location";
 import { adminCreateAccessRule } from "../../../utils/backend-client/admin/admin";
 
-import { CreateAccessRuleRequestBody } from "../../../utils/backend-client/types";
+import {
+  CreateAccessRuleRequestBody,
+  CreateAccessRuleTarget,
+  Operation,
+  ResourceFilter,
+  ResourceFilterOperationTypeEnum,
+} from "../../../utils/backend-client/types";
 import { ApprovalStep } from "./steps/Approval";
 import { GeneralStep } from "./steps/General";
 import { TargetStep } from "./steps/Provider";
 import { RequestsStep } from "./steps/Request";
 import { TimeStep } from "./steps/Time";
 import { StepsProvider } from "./StepsContext";
+import { FieldStep } from "./steps/Field";
+
+interface TargetGroupFilterOperation {
+  attribute: string;
+  values: string[];
+  value: string;
+  operationType: string;
+}
+
+type TargetGroups = {
+  [key: string]: Record<string, TargetGroupFilterOperation>;
+};
 
 export interface AccessRuleFormData extends CreateAccessRuleRequestBody {
   approval: { required: boolean; users: string[]; groups: string[] };
+  targetgroups: TargetGroups;
+  // contains informatation related to how many targets are selected.
+  // this is irrelevant information for CreateAccessRuleRequestBody.
+  targetFieldMap: Map<string, ResourceFilter>;
 }
 
 export const accessRuleFormDataToApi = (
   formData: AccessRuleFormData
 ): CreateAccessRuleRequestBody => {
-  const { approval, ...d } = formData;
+  const { approval, targetgroups, targetFieldMap, ...d } = formData;
 
   const ruleData: CreateAccessRuleRequestBody = {
     approval: { users: [], groups: [] },
     ...d,
   };
+
+  const targets: Map<string, CreateAccessRuleTarget> = new Map();
+
+  // TODO: Check for condition where there is no targetgroups.
+  if (targetgroups) {
+    Object.entries(targetgroups).map(([k, v]) => {
+      let target: CreateAccessRuleTarget = {
+        targetGroupId: k,
+        fieldFilterExpessions: {},
+      };
+
+      let targetFields = targetgroups[k];
+
+      Object.entries(targetFields).map(([k, v]) => {
+        // if no filter selected then we will return empty array which signifies to select everything
+        if (
+          v.operationType === ResourceFilterOperationTypeEnum.IN &&
+          v.values.length === 0
+        ) {
+          target.fieldFilterExpessions[k] = [];
+        } else {
+          const filterOperation: Operation = {
+            operationType: v.operationType as ResourceFilterOperationTypeEnum,
+            attribute: v.attribute,
+            ...(v.value != ""
+              ? {
+                  value: v.value,
+                }
+              : null),
+            ...(v.values.length !== 0
+              ? {
+                  values: v.values,
+                }
+              : null),
+          };
+          target.fieldFilterExpessions[k] = [filterOperation];
+        }
+      });
+
+      targets.set(k, target);
+    });
+
+    ruleData.targets = Array.from(targets.values());
+  }
+
   // only apply these fields if approval is enabled
   if (approval.required) {
     ruleData["approval"].users = approval.users;
@@ -32,6 +99,7 @@ export const accessRuleFormDataToApi = (
   } else {
     ruleData["approval"].users = [];
   }
+
   return ruleData;
 };
 

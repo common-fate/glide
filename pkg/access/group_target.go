@@ -7,6 +7,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
+	"github.com/common-fate/iso8601"
 )
 
 type GroupTarget struct {
@@ -44,10 +45,9 @@ type Grant struct {
 	Subject string                               `json:"subject" dynamodbav:"subject"`
 	Status  types.RequestAccessGroupTargetStatus `json:"status" dynamodbav:"status"`
 	//the time which the grant starts
-	Start time.Time `json:"start" dynamodbav:"start"`
+	Start iso8601.Time `json:"start" dynamodbav:"start"`
 	//the time the grant is scheduled to end
-	End          time.Time `json:"end" dynamodbav:"end"`
-	Instructions *string   `json:"instructions" dynamodbav:"instructions"`
+	End iso8601.Time `json:"end" dynamodbav:"end"`
 }
 type Field struct {
 	ID               string     `json:"id" dynamodbav:"id"`
