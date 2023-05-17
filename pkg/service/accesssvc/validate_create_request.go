@@ -113,7 +113,7 @@ func (cro CreateRequestsOpts) argumentCombinations() (types.RequestArgumentCombi
 // Add additional constraint checks here in this method.
 func validateCreateRequest(ctx context.Context, request CreateRequest, rule rule.AccessRule, requestArguments map[string]types.RequestArgument) error {
 	if request.Timing.DurationSeconds > rule.TimeConstraints.MaxDurationSeconds {
-		logger.Get(ctx).Errorw("error validating request", zap.Error(errors.New(fmt.Sprintf("durationSeconds: %d exceeds the maximum duration seconds: %d", request.Timing.DurationSeconds, rule.TimeConstraints.MaxDurationSeconds))))
+		logger.Get(ctx).Errorw("error validating request", zap.Error(fmt.Errorf(fmt.Sprintf("durationSeconds: %d exceeds the maximum duration seconds: %d", request.Timing.DurationSeconds, rule.TimeConstraints.MaxDurationSeconds))))
 		return &apio.APIError{
 			Err:    errors.New("request validation failed"),
 			Status: http.StatusBadRequest,
@@ -146,7 +146,7 @@ func validateCreateRequest(ctx context.Context, request CreateRequest, rule rule
 	// assert they are the same length.
 	// the user provided the expected number of values based on the requestArguments
 	if len(given) != len(expected) {
-		logger.Get(ctx).Errorw("error validating request", zap.Error(errors.New("unexpected number of arguments in 'with' field")))
+		logger.Get(ctx).Errorw("error validating request", zap.Error(fmt.Errorf("unexpected number of arguments in 'with' field")))
 
 		return &apio.APIError{
 			Err:    errors.New("request validation failed"),
@@ -163,7 +163,7 @@ func validateCreateRequest(ctx context.Context, request CreateRequest, rule rule
 	for argumentId, allowedValues := range expected {
 		givenArgumentValue, ok := given[argumentId]
 		if !ok || !contains(allowedValues, givenArgumentValue) {
-			logger.Get(ctx).Errorw("error validating request", zap.Error(errors.New(fmt.Sprintf("unexpected value given for argument %s in with field", argumentId))))
+			logger.Get(ctx).Errorw("error validating request", zap.Error(fmt.Errorf(fmt.Sprintf("unexpected value given for argument %s in with field", argumentId))))
 
 			return &apio.APIError{
 				Err:    errors.New("request validation failed"),
