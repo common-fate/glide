@@ -40,6 +40,46 @@ export type ShortTypes =
   | "jenkins"
   | "datadog";
 
+export const shortTypesArr: ShortTypes[] = [
+  "aws-sso",
+  "aws",
+  "okta",
+  "azure-ad",
+  "azure",
+  "aws-eks-roles-sso",
+  "ecs-exec-sso",
+  "flask",
+  "aws-cloudwatch",
+  "cloudwatch",
+  "google",
+  "gcp",
+  "1pass",
+  "github",
+  "snowflake",
+  "jira",
+  "okta",
+  "jenkins",
+  "datadog",
+];
+
+// use english title case
+export const shortTypeValues: { [key in ShortTypes]: string } = {
+  "aws": "AWS",
+  "okta": "Okta",
+  "azure": "Azure",
+  "1pass": "1Password",
+  "github": "GitHub",
+  "snowflake": "Snowflake",
+  "jira": "Jira",
+  "jenkins": "Jenkins",
+  "datadog": "Datadog",
+  "gcp": "Google Cloud",
+  "ecs-exec-sso": "ECS",
+  "aws-eks-roles-sso": "EKS",
+  "aws-cloudwatch": "Cloudwatch",
+  "flask": "Flask",
+};
+
 interface Props extends IconProps {
   /**
    * The short type of the provider,
