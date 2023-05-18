@@ -61,6 +61,11 @@ func (s *Service) UpdateRule(ctx context.Context, in *UpdateOpts) (*rule.AccessR
 		return nil, errors.New("access rule cannot be longer than 6 months")
 	}
 
+	// validate it is under 6 months
+	if in.UpdateRequest.TimeConstraints.DefaultDurationSeconds > 26*7*24*3600 {
+		return nil, errors.New("access rule cannot be longer than 6 months")
+	}
+
 	approvals := rule.Approval{}
 
 	if in.UpdateRequest.Approval.Groups != nil {
