@@ -146,7 +146,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.3
 	github.com/aws/aws-sdk-go-v2/service/sfn v1.17.10
 	github.com/briandowns/spinner v1.23.0
-	github.com/common-fate/analytics-go v0.2.1-0.20230517052548-6d828c441564
+	github.com/common-fate/analytics-go v0.2.1-0.20230518033720-a7a07a450325
 	github.com/common-fate/clio v1.1.0
 	github.com/common-fate/ddb v0.15.1-0.20230424033643-2558c36a3a5e
 	github.com/common-fate/iso8601 v1.1.1

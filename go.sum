@@ -245,6 +245,12 @@ github.com/common-fate/analytics-go v0.2.0 h1:XRVwgn8Hti9hPUsacRuUirD9trolDYVopA
 github.com/common-fate/analytics-go v0.2.0/go.mod h1:RmsNL2tYC00c7/pOzgHQYrTMRlY6tp201VFZbAqFCTE=
 github.com/common-fate/analytics-go v0.2.1-0.20230517052548-6d828c441564 h1:WkzVKWLzy5fDShpmkVrHysGz5hzcY1HH+nboT764ep4=
 github.com/common-fate/analytics-go v0.2.1-0.20230517052548-6d828c441564/go.mod h1:RmsNL2tYC00c7/pOzgHQYrTMRlY6tp201VFZbAqFCTE=
+github.com/common-fate/analytics-go v0.2.1-0.20230518030348-71171fa05c38 h1:Rq+2DwP5exMWcZzmke9OQkpR8QQK49/mAUs/pDtFfuo=
+github.com/common-fate/analytics-go v0.2.1-0.20230518030348-71171fa05c38/go.mod h1:RmsNL2tYC00c7/pOzgHQYrTMRlY6tp201VFZbAqFCTE=
+github.com/common-fate/analytics-go v0.2.1-0.20230518032535-55ddc67e9717 h1:BKZSW7/DGHivcYdf3355k2+65RYAocrmE2kxo4/0loU=
+github.com/common-fate/analytics-go v0.2.1-0.20230518032535-55ddc67e9717/go.mod h1:RmsNL2tYC00c7/pOzgHQYrTMRlY6tp201VFZbAqFCTE=
+github.com/common-fate/analytics-go v0.2.1-0.20230518033720-a7a07a450325 h1:BSpuj5lcLwb317UZIkN1dxYTyCBxoCeOsKfY3ztE2Tc=
+github.com/common-fate/analytics-go v0.2.1-0.20230518033720-a7a07a450325/go.mod h1:RmsNL2tYC00c7/pOzgHQYrTMRlY6tp201VFZbAqFCTE=
 github.com/common-fate/apikit v0.2.1-0.20220526131641-1d860b34f6ed h1:75bNrGY5m/CLnxt5IajGf424YiM2WO+5GRgTPvFcLVo=
 github.com/common-fate/apikit v0.2.1-0.20220526131641-1d860b34f6ed/go.mod h1:5WXBU3NBnQ6ZuqQyazwL5Ou6yT7UpC8c3yK8F9mGh9k=
 github.com/common-fate/clio v1.1.0 h1:M5fyMuYHjB+qODYbl0IGT28SBiokxsIlxluUVnD8cOQ=

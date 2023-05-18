@@ -181,13 +181,11 @@ func (s *Service) CreateRequest(ctx context.Context, user identity.User, createR
 
 	// analytics event
 	analytics.FromContext(ctx).Track(&analytics.RequestCreated{
-		RequestedBy: request.RequestedBy.ID,
-		// RequestID: request.ID,
-		RuleID:            "",
-		NumOfTargets:      request.GroupTargetCount,
-		NumOfAccessGroups: len(out.Groups),
+		RequestedBy:       request.RequestedBy.ID,
+		RequestID:         request.ID,
+		TargetsCount:      request.GroupTargetCount,
+		AccessGroupsCount: len(out.Groups),
 		HasReason:         request.Purpose.ToAnalytics(),
-		// RequiresApproval:  in.Rule.Approval.IsRequired(),
 	})
 
 	return &out, nil

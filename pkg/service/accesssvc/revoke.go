@@ -63,12 +63,13 @@ func (s *Service) RevokeRequest(ctx context.Context, in access.RequestWithGroups
 	}
 	user := auth.UserFromContext(ctx)
 
+	// analytics event
 	analytics.FromContext(ctx).Track(&analytics.RequestRevoked{
-		RequestedBy: in.Request.RequestedBy.ID,
-		// RevokedBy:   u.ID,
-		// RuleID:    req.Rule,
-		// Timing:    req.RequestedTiming.ToAnalytics(),
-		// HasReason: req.HasReason(),
+		RequestedBy:      in.Request.RequestedBy.ID,
+		RevokedBy:        user.ID,
+		RequestID:        in.Request.ID,
+		AccessGroupCount: len(in.Groups),
+		HasReason:        in.Request.Purpose.ToAnalytics(),
 	})
 
 	//emit request group revoke event

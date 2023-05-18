@@ -132,14 +132,24 @@ func (s *Service) CreateAccessRule(ctx context.Context, userID string, in types.
 		return nil, err
 	}
 
+	hasFilterExpression := false
+	selectedTargets := []string{}
+	for _, target := range in.Targets {
+		selectedTargets = append(selectedTargets, target.TargetGroupId)
+		if len(target.FieldFilterExpessions) > 0 {
+			hasFilterExpression = true
+		}
+	}
+
 	// analytics event Create Access Rule
 	analytics.FromContext(ctx).Track(&analytics.RuleCreated{
-		CreatedBy: userID,
-		RuleID:    rul.ID,
-		// Provider:           rul.Target.TargetGroupFrom.ToAnalytics(),
-		MaxDurationSeconds: in.TimeConstraints.MaxDurationSeconds,
-
-		RequiresApproval: rul.Approval.IsRequired(),
+		CreatedBy:           userID,
+		RuleID:              rul.ID,
+		RequiresApproval:    rul.Approval.IsRequired(),
+		HasFilterExpression: hasFilterExpression,
+		TargetsCount:        len(in.Targets),
+		Targets:             selectedTargets,
+		MaxDurationSeconds:  in.TimeConstraints.MaxDurationSeconds,
 	})
 
 	err = s.Cache.RefreshCachedTargets(ctx)
