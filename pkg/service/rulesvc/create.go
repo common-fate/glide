@@ -132,7 +132,7 @@ func (s *Service) CreateAccessRule(ctx context.Context, userID string, in types.
 		return nil, err
 	}
 
-	// analytics event
+	// analytics event Create Access Rule
 	analytics.FromContext(ctx).Track(&analytics.RuleCreated{
 		CreatedBy: userID,
 		RuleID:    rul.ID,

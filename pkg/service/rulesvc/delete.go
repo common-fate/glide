@@ -3,6 +3,7 @@ package rulesvc
 import (
 	"context"
 
+	"github.com/common-fate/analytics-go"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/ddb"
 )
@@ -20,5 +21,11 @@ func (s *Service) DeleteRule(ctx context.Context, id string) error {
 	if err != nil {
 		return err
 	}
+
+	// analytics event
+	analytics.FromContext(ctx).Track(&analytics.RuleArchived{
+		// ArchivedBy: userId,
+		// RuleID:     in.ID,
+	})
 	return s.Cache.RefreshCachedTargets(ctx)
 }

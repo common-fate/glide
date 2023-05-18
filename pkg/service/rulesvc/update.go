@@ -92,7 +92,7 @@ func (s *Service) UpdateRule(ctx context.Context, in *UpdateOpts) (*rule.AccessR
 		return nil, err
 	}
 
-	// analytics event
+	// analytics event Update access rule
 	analytics.FromContext(ctx).Track(&analytics.RuleUpdated{
 		UpdatedBy: in.UpdaterID,
 		RuleID:    in.Rule.ID,

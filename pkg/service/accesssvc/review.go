@@ -3,6 +3,7 @@ package accesssvc
 import (
 	"context"
 
+	"github.com/common-fate/analytics-go"
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/identity"
@@ -63,6 +64,23 @@ func (s *Service) Review(ctx context.Context, user identity.User, isAdmin bool, 
 	if overlaps {
 		return ErrGroupCannotBeApprovedBecauseItWillOverlapExistingGrants
 	}
+
+	// analytics event for request review
+	// analytics event
+	analytics.FromContext(ctx).Track(&analytics.RequestReviewed{
+		RequestedBy: group.Group.RequestedBy.ID,
+		ReviewedBy:  user.ID,
+		// PendingDurationSeconds: s.Clock.Since(request.CreatedAt).Seconds(),
+		// Review:                 string(r.Decision),
+		// OverrideTiming:         ot,
+		// PDKProvider:            opts.AccessRule.Target.IsForTargetGroup(),
+		// Provider:               opts.AccessRule.Target.TargetGroupFrom.ToAnalytics(),
+		// ReviewerIsAdmin:        opts.ReviewerIsAdmin,
+		// BuiltInProvider:        opts.AccessRule.Target.BuiltInProviderType,
+		// RuleID:                 request.Rule,
+		// Timing:                 request.RequestedTiming.ToAnalytics(),
+		// HasReason:              request.HasReason(),
+	})
 
 	// dispatch the reviewed event to be processed async
 	return s.EventPutter.Put(ctx, gevent.AccessGroupReviewed{
