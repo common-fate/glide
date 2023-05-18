@@ -153,7 +153,7 @@ func TestAdminUpdateAccessRule(t *testing.T) {
 				Priority: 4,
 			},
 			wantCode: http.StatusAccepted,
-			wantBody: `{"approval":{"groups":[],"users":[]},"description":"string","groups":["string"],"id":"rule1","metadata":{"createdAt":"0001-01-01T00:00:00Z","createdBy":"","updatedAt":"0001-01-01T00:00:00Z","updatedBy":""},"name":"string","priority":4,"targets":[{"fieldFilterExpessions":{},"targetGroup":{"createdAt":"0001-01-01T00:00:00Z","from":{"kind":"Account","name":"test","publisher":"commonfate","version":"v1.1.1"},"icon":"","id":"123","schema":{},"updatedAt":"0001-01-01T00:00:00Z"}}],"timeConstraints":{"maxDurationSeconds":0}}`,
+			wantBody: `{"approval":{"groups":[],"users":[]},"description":"string","groups":["string"],"id":"rule1","metadata":{"createdAt":"0001-01-01T00:00:00Z","createdBy":"","updatedAt":"0001-01-01T00:00:00Z","updatedBy":""},"name":"string","priority":4,"targets":[{"fieldFilterExpessions":{},"targetGroup":{"createdAt":"0001-01-01T00:00:00Z","from":{"kind":"Account","name":"test","publisher":"commonfate","version":"v1.1.1"},"icon":"","id":"123","schema":{},"updatedAt":"0001-01-01T00:00:00Z"}}],"timeConstraints":{"defaultDurationSeconds":0,"maxDurationSeconds":0}}`,
 		},
 
 		{
