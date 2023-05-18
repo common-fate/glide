@@ -81,14 +81,14 @@ export const TargetGroupField: React.FC<TargetGroupFieldProps> = (props) => {
         <Text size={"sm"}>{fieldSchema.description} </Text>
       </Box>
       <VStack
-        divider={<StackDivider borderColor="gray.200" />}
-        w="600px"
+        // divider={<StackDivider borderColor="neutrals.200" />}
+        w="100%"
         align={"flex-start"}
-        spacing={4}
+        spacing={0}
         rounded="md"
         border="1px solid"
         bgColor={"white"}
-        borderColor="gray.300"
+        borderColor="neutrals.300"
       >
         {
           // TODO: Add API loading logic here
@@ -109,8 +109,9 @@ export const TargetGroupField: React.FC<TargetGroupFieldProps> = (props) => {
                   </Text>
                   {resources.length! ? (
                     <Box height={"200px"} overflow={"hidden"}>
-                      <Wrap>
-                        {resources.map((opt) => {
+                      <Wrap spacing={1} position="relative" h="100%">
+                        {/* we slice this to not overpopulate the DOM */}
+                        {resources.slice(0, 24).map((opt) => {
                           return (
                             <DynamicOption
                               key={"cp-" + opt.resource.id}
@@ -119,6 +120,28 @@ export const TargetGroupField: React.FC<TargetGroupFieldProps> = (props) => {
                             />
                           );
                         })}
+
+                        {resources.length > 5 && [
+                          <Box
+                            position="absolute"
+                            bottom={0}
+                            left={0}
+                            right={0}
+                            h="100%"
+                            bg="linear-gradient(-15deg, rgba(255,255,255,1) 15%, rgba(255,255,255,0) 100%)"
+                            rounded="md"
+                            margin="0px !important"
+                          />,
+                          <Text
+                            textStyle="Body/Small"
+                            color="neutrals.500"
+                            position="absolute"
+                            bottom={2}
+                            right={2}
+                          >
+                            +{resources.length - 5} more
+                          </Text>,
+                        ]}
                       </Wrap>
                     </Box>
                   ) : (
@@ -143,58 +166,63 @@ export const TargetGroupField: React.FC<TargetGroupFieldProps> = (props) => {
               />
               <Flex
                 justifyContent={"space-between"}
-                alignItems={"flex-start"}
-                pt={"4px"}
-                pb={"4px"}
+                align="center"
+                flexGrow="1"
+                p={2}
+                w="100%"
               >
                 <Text>{0} Filters Applied</Text>
-                <div>
-                  {!isOpen ? (
-                    <Button
-                      leftIcon={<FilterIcon />}
-                      size="m"
-                      variant="ghost"
-                      onClick={onToggle}
-                    >
-                      Apply Filter
-                    </Button>
-                  ) : (
-                    <Button
-                      leftIcon={<CloseIcon boxSize={2} />}
-                      size="m"
-                      color="red.400"
-                      variant="ghost"
-                      onClick={() => {
-                        onToggle();
 
-                        setValue(
-                          `targetgroups.${targetGroup.id}.${fieldSchema.id}.attribute`,
-                          "id"
-                        );
+                {!isOpen ? (
+                  <Button
+                    rounded="full"
+                    variant="ghost"
+                    onClick={onToggle}
+                    leftIcon={<FilterIcon />}
+                  >
+                    Apply Filter
+                  </Button>
+                ) : (
+                  <Button
+                    leftIcon={<CloseIcon boxSize={2} />}
+                    rounded="full"
+                    color="red.400"
+                    variant="ghost"
+                    _hover={{
+                      bg: "actionDanger.100",
+                    }}
+                    _active={{
+                      bg: "actionDanger.100",
+                    }}
+                    onClick={() => {
+                      onToggle();
 
-                        setValue(
-                          `targetgroups.${targetGroup.id}.${fieldSchema.id}.values`,
-                          []
-                        );
+                      setValue(
+                        `targetgroups.${targetGroup.id}.${fieldSchema.id}.attribute`,
+                        "id"
+                      );
 
-                        setValue(
-                          `targetgroups.${targetGroup.id}.${fieldSchema.id}.operationType`,
-                          ResourceFilterOperationTypeEnum.IN
-                        );
+                      setValue(
+                        `targetgroups.${targetGroup.id}.${fieldSchema.id}.values`,
+                        []
+                      );
 
-                        setValue(
-                          `targetgroups.${targetGroup.id}.${fieldSchema.id}.value`,
-                          ""
-                        );
+                      setValue(
+                        `targetgroups.${targetGroup.id}.${fieldSchema.id}.operationType`,
+                        ResourceFilterOperationTypeEnum.IN
+                      );
 
-                        setFilterResources([]);
-                      }}
-                      ml="60%"
-                    >
-                      Remove Filter
-                    </Button>
-                  )}
-                </div>
+                      setValue(
+                        `targetgroups.${targetGroup.id}.${fieldSchema.id}.value`,
+                        ""
+                      );
+
+                      setFilterResources([]);
+                    }}
+                  >
+                    Remove Filter
+                  </Button>
+                )}
               </Flex>
             </>
           )
@@ -223,18 +251,25 @@ interface FieldFilterViewProps {
 }
 
 const FieldFilterView: React.FC<FieldFilterViewProps> = (props) => {
-  const { isOpen, targetGroup, fieldSchema, resources, filteredResources } =
-    props;
+  const {
+    isOpen,
+    targetGroup,
+    fieldSchema,
+    resources,
+    filteredResources,
+  } = props;
 
   const { watch, register, control, setValue } = useFormContext<any>();
   const [targetGroupFilterOpts] = watch(["targetgroups"]);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const [operationType, setOperationType] =
-    useState<ResourceFilterOperationTypeEnum>(
-      ResourceFilterOperationTypeEnum.IN
-    );
+  const [
+    operationType,
+    setOperationType,
+  ] = useState<ResourceFilterOperationTypeEnum>(
+    ResourceFilterOperationTypeEnum.IN
+  );
 
   const createOptions = () => {
     const defaultOptions = [
