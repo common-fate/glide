@@ -100,9 +100,12 @@ const Home = () => {
   } = useMatch();
 
   const request = useUserGetRequest(requestId, {
+    // @ts-ignore; type discrepancy with latest SWR client
     swr: { refreshInterval: 10000 },
   });
   const toast = useToast();
+
+  const [cancelLoading, setCancelLoading] = useState(false);
 
   return (
     <div>
@@ -222,16 +225,22 @@ const Home = () => {
                             <ButtonGroup variant="brandSecondary">
                               <Button
                                 size="sm"
+                                isLoading={cancelLoading}
+                                loadingText="Cancelling..."
                                 onClick={() => {
-                                  console.log("cancel");
-                                  //@ts-ignore
-                                  userCancelRequest(request.data?.id)
-                                    .then((e) => {
-                                      console.log(e);
-                                    })
-                                    .catch((e) => {
-                                      console.log(e);
-                                    });
+                                  if (request.data) {
+                                    setCancelLoading(true);
+                                    userCancelRequest(request.data?.id)
+                                      .then((e) => {
+                                        console.log(e);
+                                      })
+                                      .catch((e) => {
+                                        console.log(e);
+                                      })
+                                      .finally(() => {
+                                        setCancelLoading(false);
+                                      });
+                                  }
                                 }}
                               >
                                 Cancel

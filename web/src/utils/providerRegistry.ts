@@ -50,6 +50,6 @@ export const registeredProviders: RegisteredProvider[] = [
  * it is possible to strongly type the shortType key-values (could be beneficial)
  */
 export type RegisteredShortTypes =
-  typeof registeredProviders[number]["shortType"];
+  (typeof registeredProviders)[number]["shortType"];
 
-export type RegisteredTypes = typeof registeredProviders[number]["type"];
+export type RegisteredTypes = (typeof registeredProviders)[number]["type"];

@@ -60,7 +60,6 @@ func (r *Runtime) Grant(ctx context.Context, grant access.GroupTarget) error {
 
 }
 func (r *Runtime) Revoke(ctx context.Context, grantID string) error {
-
 	// we can grab all this from the execution input for the step function we will use this as the source of truth
 	c, err := aws_config.LoadDefaultConfig(ctx)
 	if err != nil {

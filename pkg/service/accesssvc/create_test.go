@@ -31,6 +31,8 @@ func TestCreateRequest(t *testing.T) {
 		wantErr                error
 	}
 
+	reason := "test_reason"
+
 	clk := clock.NewMock()
 	user := identity.User{
 		ID:        types.NewUserID(),
@@ -57,6 +59,7 @@ func TestCreateRequest(t *testing.T) {
 						},
 					},
 				},
+				Reason: &reason,
 			},
 			withMockPreflight: &access.Preflight{
 				AccessGroups: []access.PreflightAccessGroup{
@@ -88,6 +91,7 @@ func TestCreateRequest(t *testing.T) {
 					CreatedAt:        clk.Now(),
 					RequestStatus:    types.PENDING,
 					GroupTargetCount: 1,
+					Purpose:          access.Purpose{Reason: &reason},
 				},
 				Groups: []access.GroupWithTargets{
 					{
@@ -100,6 +104,7 @@ func TestCreateRequest(t *testing.T) {
 							RequestedTiming: access.Timing{
 								Duration: 3600 * time.Second,
 							},
+							RequestPurposeReason: reason,
 						},
 						Targets: []access.GroupTarget{
 							{
