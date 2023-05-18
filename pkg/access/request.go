@@ -78,6 +78,11 @@ type Purpose struct {
 	Reason *string `json:"reason" dynamodbav:"reason"`
 }
 
+// return true if reason field is not nil
+func (p Purpose) ToAnalytics() bool {
+	return p.Reason != nil
+}
+
 func (p Purpose) ToAPI() types.RequestPurpose {
 	return types.RequestPurpose{
 		Reason: p.Reason,
