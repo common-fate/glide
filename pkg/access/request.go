@@ -115,7 +115,7 @@ func (i *Request) DDBKeys() (ddb.Keys, error) {
 // RequestStatusToPastOrUpcoming processes teh request status and determines if the request is a past request or an upcoming request
 // The 2 statuses are used in dynamodb queries to serve the upcoming and past tabs/apis on the user homepage.
 func RequestStatusToPastOrUpcoming(status types.RequestStatus) keys.AccessRequestPastUpcoming {
-	if status == types.COMPLETE || status == types.REVOKED || status == types.CANCELLED {
+	if status == types.COMPLETE || status == types.REVOKED || status == types.CANCELLED || status == types.RequestStatus(types.ERROR) {
 		return keys.AccessRequestPastUpcomingPAST
 	}
 	return keys.AccessRequestPastUpcomingUPCOMING

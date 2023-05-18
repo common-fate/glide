@@ -200,8 +200,7 @@ func (n *EventHandler) handleRequestStatusChange(ctx context.Context, requestId 
 	for _, group := range request.Result.Groups {
 		for _, target := range group.Targets {
 			if target.Grant != nil {
-				if target.Grant.Status != types.RequestAccessGroupTargetStatusEXPIRED &&
-					target.Grant.Status != types.RequestAccessGroupTargetStatusERROR {
+				if target.Grant.Status != types.RequestAccessGroupTargetStatusEXPIRED {
 					allExpired = false
 					break
 				}
@@ -219,6 +218,46 @@ func (n *EventHandler) handleRequestStatusChange(ctx context.Context, requestId 
 		}
 		oldStatus := request.Result.Request.RequestStatus
 		request.Result.UpdateStatus(types.COMPLETE)
+
+		newStatus := request.Result.Request.RequestStatus
+
+		items := request.Result.DBItems()
+		err = n.DB.PutBatch(ctx, items...)
+		if err != nil {
+			return err
+		}
+
+		reqEvent := access.NewRequestStatusChangeEvent(request.Result.Request.ID, request.Result.Request.CreatedAt, &request.Result.Request.RequestedBy.ID, oldStatus, newStatus)
+
+		err = n.DB.Put(ctx, &reqEvent)
+		if err != nil {
+			return err
+		}
+
+	}
+
+	allError := true
+	for _, group := range request.Result.Groups {
+		for _, target := range group.Targets {
+			if target.Grant != nil {
+				if target.Grant.Status != types.RequestAccessGroupTargetStatusERROR {
+					allError = false
+					break
+				}
+			}
+
+		}
+	}
+	//if all grants are expired send out a request completed event
+	if allError {
+		err = n.Eventbus.Put(ctx, gevent.RequestCancelled{
+			Request: *request.Result,
+		})
+		if err != nil {
+			return err
+		}
+		oldStatus := request.Result.Request.RequestStatus
+		request.Result.UpdateStatus(types.RequestStatus(types.ERROR))
 
 		newStatus := request.Result.Request.RequestStatus
 
