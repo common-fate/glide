@@ -75,11 +75,23 @@ func (rf *ResourceFetcher) getResources(ctx context.Context, response msg.LoadRe
 
 		rf.resourcesMx.Lock()
 		for _, i := range response.Resources {
+
+			attributes := make(map[string]interface{})
+			if i.Data != nil && len(i.Data) > 0 {
+				for k, v := range i.Data {
+					attributes[k] = v
+				}
+			}
+
+			attributes["id"] = i.ID
+			attributes["name"] = i.Name
+
 			tgr := cache.TargetGroupResource{
 				ResourceType: i.Type,
 				Resource: cache.Resource{
-					ID:   i.ID,
-					Name: i.Name,
+					ID:         i.ID,
+					Name:       i.Name,
+					Attributes: attributes,
 				},
 				TargetGroupID: rf.targetGroupID,
 			}

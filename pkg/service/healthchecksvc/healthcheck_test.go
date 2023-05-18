@@ -19,17 +19,20 @@ import (
 func TestValidateProviderSchema(t *testing.T) {
 	type testcase struct {
 		name       string
-		schema1    map[string]providerregistrysdk.TargetField
+		schema1    target.GroupSchema
 		schema2    map[string]providerregistrysdk.TargetField
 		valid_want bool
 	}
+	ag := target.GroupSchema{Target: target.TargetSchema{Properties: map[string]target.TargetField{"1": {Resource: aws.String("abc")}}}}
+	// bg := target.GroupSchema{Target: target.TargetSchema{Properties: map[string]target.TargetField{"1": {Resource: aws.String("efg")}}}}
+	cg := target.GroupSchema{Target: target.TargetSchema{Properties: map[string]target.TargetField{"1": {Resource: nil}}}}
 	a := map[string]providerregistrysdk.TargetField{"1": {Resource: aws.String("abc")}}
 	b := map[string]providerregistrysdk.TargetField{"1": {Resource: aws.String("efg")}}
 	c := map[string]providerregistrysdk.TargetField{"1": {Resource: nil}}
 	testcases := []testcase{
-		{name: "identical-valid", schema1: a, schema2: a, valid_want: true},
-		{name: "different-invalid", schema1: a, schema2: b, valid_want: false},
-		{name: "resource-name-nil-valid", schema1: c, schema2: c, valid_want: true},
+		{name: "identical-valid", schema1: ag, schema2: a, valid_want: true},
+		{name: "different-invalid", schema1: ag, schema2: b, valid_want: false},
+		{name: "resource-name-nil-valid", schema1: cg, schema2: c, valid_want: true},
 	}
 	for _, tc := range testcases {
 		tc := tc

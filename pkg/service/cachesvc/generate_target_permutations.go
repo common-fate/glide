@@ -8,26 +8,26 @@ import (
 
 type Targets []map[string]cache.Resource
 
-// HasDuplicates compares all the combinations in the array
-// O = n*n*arguments
-func (c Targets) HasDuplicates() bool {
-	for i, combination := range c {
-	Filterloop:
-		for i2, combination2 := range c {
-			if i != i2 {
-				for k, v := range combination {
-					// if any fields dont match then this is a mismatching combination so go to the next combination
-					// in this context, all combinations should have the same keys so we don't check wether there are missing keys etc
-					if combination2[k] != v {
-						continue Filterloop
-					}
-				}
-				return true
-			}
-		}
-	}
-	return false
-}
+// // HasDuplicates compares all the combinations in the array
+// // O = n*n*arguments
+// func (c Targets) HasDuplicates() bool {
+// 	for i, combination := range c {
+// 	Filterloop:
+// 		for i2, combination2 := range c {
+// 			if i != i2 {
+// 				for k, v := range combination {
+// 					// if any fields dont match then this is a mismatching combination so go to the next combination
+// 					// in this context, all combinations should have the same keys so we don't check wether there are missing keys etc
+// 					if combination2[k] != v {
+// 						continue Filterloop
+// 					}
+// 				}
+// 				return true
+// 			}
+// 		}
+// 	}
+// 	return false
+// }
 
 // FieldHasNoValuesError is returned if any of the arguments in the fieldOptions have no values
 type FieldHasNoValuesError struct {

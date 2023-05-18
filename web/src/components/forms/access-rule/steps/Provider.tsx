@@ -7,43 +7,75 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import React from "react";
+import React, { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import { useAdminListTargetGroups } from "../../../../utils/backend-client/admin/admin";
 import { CreateAccessRuleTargetFieldFilterExpessions } from "../../../../utils/backend-client/types";
-import { TargetGroupRadioSelector } from "../components/TargetGroupRadio";
+import { MultiTargetGroupSelector } from "../components/TargetGroupRadio";
 
 import { AccessRuleFormData } from "../CreateForm";
 import { FormStep } from "./FormStep";
+import SelectMultiGeneric from "../../../SelectMultiGeneric";
+import {
+  ProviderIcon,
+  ShortTypes,
+  shortTypeValues,
+} from "../../../icons/providerIcon";
 
 export const TargetStep: React.FC = () => {
   const methods = useFormContext<AccessRuleFormData>();
-  const targets = methods.watch("targets");
-  const isFieldLoading = false; //(!provider && ivp) || (!providerArgs && ivpa);
+  const targets = methods.watch("targetgroups");
+
+  type MockProvider = {
+    name: string;
+    shortType: ShortTypes;
+  };
+
+  const [filteredInput, setFilteredInput] = useState<MockProvider[]>([]);
+
+  const [selectedProviders2, setSelectedProviders2] = useState<MockProvider[]>(
+    Object.entries(shortTypeValues).map(([shortType, name]) => ({
+      name: name,
+      shortType: shortType as ShortTypes,
+    }))
+  );
+
   return (
     <FormStep
       heading="Target"
       subHeading="The permissions that the rule gives access to"
-      fields={["targets", "target.providerId"]}
+      fields={["targetgroups", "targetFieldMap"]}
       // preview={<Preview target={target} provider={provider} />}
-      isFieldLoading={isFieldLoading}
+      isFieldLoading={false}
     >
       <>
         <FormControl isInvalid={false}>
           <FormLabel htmlFor="target.providerId">
             <Text textStyle={"Body/Medium"}>Target</Text>
           </FormLabel>
+          {/* <SelectMultiGeneric
+            keyUsedForFilter="name"
+            inputArray={selectedProviders2}
+            selectedItems={filteredInput}
+            setSelectedItems={setFilteredInput}
+            boxProps={{ mt: 4 }}
+            renderFnTag={(item) => [
+              <ProviderIcon shortType={item.shortType} />,
+              item.name,
+            ]}
+            renderFnMenuSelect={(item) => [
+              <ProviderIcon shortType={item.shortType} mr={2} />,
+              item.name,
+            ]}
+          /> */}
           <Controller
             control={methods.control}
             name={"targets"}
-            render={({ field: { ref, onChange, value, ...rest } }) => {
+            render={({ field }) => {
               return (
-                // The implemenbtation here is currently a reduced scope where only one target group can be selected for an access rule, and there are no resource filtering options
-                <TargetGroupRadioSelector
-                  value={value.length > 0 ? value[0].targetGroupId : undefined}
-                  onChange={(targetGroupId: string) => {
-                    onChange([{ targetGroupId, fieldFilterExpessions: {} }]);
-                  }}
+                <MultiTargetGroupSelector
+                  field={field}
+                  control={methods.control}
                 />
               );
             }}

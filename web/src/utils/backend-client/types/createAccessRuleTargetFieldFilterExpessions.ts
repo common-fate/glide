@@ -5,5 +5,6 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
+import type { ResourceFilter } from './resourceFilter';
 
-export type CreateAccessRuleTargetFieldFilterExpessions = { [key: string]: any };
+export type CreateAccessRuleTargetFieldFilterExpessions = {[key: string]: ResourceFilter};
