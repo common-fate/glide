@@ -32,7 +32,7 @@ func TestAdminCreateAccessRule(t *testing.T) {
 	testcases := []testcase{
 		{
 			name: "ok",
-			give: `{"priority":4,"approval":{"groups":["group1","group2"],"users":["user1","user2"]},"description":"Test Access Rule","groups":["group_a","group_b"],"name":"Test Access Rule","targets":[{"fieldFilterExpessions":{"field1":"value1","field2":"value2"},"targetGroupId":"target_group_id"}],"timeConstraints":{"maxDurationSeconds":3600}}`,
+			give: `{"priority":4,"approval":{"groups":["group1","group2"],"users":["user1","user2"]},"description":"Test Access Rule","groups":["group_a","group_b"],"name":"Test Access Rule","targets":[{"fieldFilterExpessions":{"field1":"value1","field2":"value2"},"targetGroupId":"target_group_id"}],"timeConstraints":{"maxDurationSeconds":3600, "defaultDurationSeconds":3600}}`,
 			mockCreate: &rule.AccessRule{
 				ID: "rule1",
 
@@ -61,11 +61,11 @@ func TestAdminCreateAccessRule(t *testing.T) {
 			// 	Email: "test@test.com",
 			// },
 
-			wantBody: `{"approval":{"groups":[],"users":[]},"description":"string","groups":["string"],"id":"rule1","metadata":{"createdAt":"0001-01-01T00:00:00Z","createdBy":"","updatedAt":"0001-01-01T00:00:00Z","updatedBy":""},"name":"string","priority":4,"targets":[{"fieldFilterExpessions":{},"targetGroup":{"createdAt":"0001-01-01T00:00:00Z","from":{"kind":"Account","name":"test","publisher":"commonfate","version":"v1.1.1"},"icon":"","id":"123","schema":{},"updatedAt":"0001-01-01T00:00:00Z"}}],"timeConstraints":{"maxDurationSeconds":0}}`,
+			wantBody: `{"approval":{"groups":[],"users":[]},"description":"string","groups":["string"],"id":"rule1","metadata":{"createdAt":"0001-01-01T00:00:00Z","createdBy":"","updatedAt":"0001-01-01T00:00:00Z","updatedBy":""},"name":"string","priority":4,"targets":[{"fieldFilterExpessions":{},"targetGroup":{"createdAt":"0001-01-01T00:00:00Z","from":{"kind":"Account","name":"test","publisher":"commonfate","version":"v1.1.1"},"icon":"","id":"123","schema":{},"updatedAt":"0001-01-01T00:00:00Z"}}],"timeConstraints":{"defaultDurationSeconds":0,"maxDurationSeconds":0}}`,
 		},
 		{
 			name:          "id already exists",
-			give:          `{"priority":4,"approval":{"groups":["group1","group2"],"users":["user1","user2"]},"description":"Test Access Rule","groups":["group_a","group_b"],"name":"Test Access Rule","targets":[{"fieldFilterExpessions":{"field1":"value1","field2":"value2"},"targetGroupId":"target_group_id"}],"timeConstraints":{"maxDurationSeconds":3600}}`,
+			give:          `{"priority":4,"approval":{"groups":["group1","group2"],"users":["user1","user2"]},"description":"Test Access Rule","groups":["group_a","group_b"],"name":"Test Access Rule","targets":[{"fieldFilterExpessions":{"field1":"value1","field2":"value2"},"targetGroupId":"target_group_id"}],"timeConstraints":{"maxDurationSeconds":3600, "defaultDurationSeconds":3600}}`,
 			mockCreateErr: rulesvc.ErrRuleIdAlreadyExists,
 			wantCode:      http.StatusBadRequest,
 			wantBody:      `{"error":"access rule id already exists"}`,
@@ -130,7 +130,7 @@ func TestAdminUpdateAccessRule(t *testing.T) {
 	testcases := []testcase{
 		{
 			name: "ok",
-			give: `{"priority":4,"approval":{"groups":["group1","group2"],"users":["user1","user2"]},"description":"Test Access Rule","groups":["group_a","group_b"],"name":"Test Access Rule","targets":[{"fieldFilterExpessions":{"field1":"value1","field2":"value2"},"targetGroupId":"target_group_id"}],"timeConstraints":{"maxDurationSeconds":3600}}`,
+			give: `{"priority":4,"approval":{"groups":["group1","group2"],"users":["user1","user2"]},"description":"Test Access Rule","groups":["group_a","group_b"],"name":"Test Access Rule","targets":[{"fieldFilterExpessions":{"field1":"value1","field2":"value2"},"targetGroupId":"target_group_id"}],"timeConstraints":{"maxDurationSeconds":3600, "defaultDurationSeconds":3600}}`,
 			mockCreate: &rule.AccessRule{
 				ID:          "rule1",
 				Description: "string",
