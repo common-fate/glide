@@ -219,10 +219,7 @@ func (s *Service) CreateAccessTemplate(ctx context.Context, user identity.User, 
 			TimeConstraints: group.TimeConstraints,
 		}
 		for _, target := range group.Targets {
-			accessGroup.Targets = append(accessGroup.Targets, access.AccessTemplateAccessGroupTarget{
-				Target:        target.Target,
-				TargetGroupID: target.TargetGroupID,
-			})
+			accessGroup.Targets = append(accessGroup.Targets, access.AccessTemplateAccessGroupTarget(target))
 		}
 		tmp.AccessGroups = append(tmp.AccessGroups, accessGroup)
 
