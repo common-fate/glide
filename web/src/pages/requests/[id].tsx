@@ -107,6 +107,55 @@ const Home = () => {
 
   const [cancelLoading, setCancelLoading] = useState(false);
 
+  const { user, isAdmin } = useUser();
+
+  // THIS MUST HAPPEN ACCESS GROUP LEVEL!
+  const isReviewer =
+    user && request?.data
+      ? !!request.data?.accessGroups.find((ag) => {
+          // look through groupReviewers
+          return ag.groupReviewers
+            ? ag.groupReviewers.find((gr) => {
+                return gr === user.id;
+              })
+            : false;
+        })
+      : false;
+
+  const [mutationLoading, setMutationLoading] = useState(false);
+
+  const requestIsActive = request?.data?.status === RequestStatus.ACTIVE;
+
+  // const buttonText = requestIsActive ? "Revoke" : "Cancel";
+
+  const handleRevoke = async () => {
+    setMutationLoading(true);
+    userRevokeRequest(requestId)
+      .then(() => {
+        request.mutate();
+      })
+      .catch((e) => {
+        console.log(e);
+      })
+      .finally(() => {
+        setMutationLoading(false);
+      });
+  };
+
+  const handleCancel = async () => {
+    setMutationLoading(true);
+    userCancelRequest(requestId)
+      .then(() => {
+        request.mutate();
+      })
+      .catch((e) => {
+        console.log(e);
+      })
+      .finally(() => {
+        setMutationLoading(false);
+      });
+  };
+
   return (
     <div>
       <UserLayout>
@@ -130,7 +179,8 @@ const Home = () => {
             Request details
           </Text>
         </Center>
-
+        {/* isReviewer {isReviewer} */}
+        {/* {JSON.stringify({ isReviewer, data: request.data })} */}
         {/* Main content */}
         <Container
           maxW={{
@@ -225,25 +275,17 @@ const Home = () => {
                             <ButtonGroup variant="brandSecondary">
                               <Button
                                 size="sm"
-                                isLoading={cancelLoading}
-                                loadingText="Cancelling..."
-                                onClick={() => {
-                                  if (request.data) {
-                                    setCancelLoading(true);
-                                    userCancelRequest(request.data?.id)
-                                      .then((e) => {
-                                        console.log(e);
-                                      })
-                                      .catch((e) => {
-                                        console.log(e);
-                                      })
-                                      .finally(() => {
-                                        setCancelLoading(false);
-                                      });
-                                  }
-                                }}
+                                isLoading={mutationLoading}
+                                loadingText={
+                                  requestIsActive
+                                    ? "Revoking..."
+                                    : "Cancelling..."
+                                }
+                                onClick={
+                                  requestIsActive ? handleRevoke : handleCancel
+                                }
                               >
-                                Cancel
+                                {requestIsActive ? "Revoke" : "Cancel"}
                               </Button>
                             </ButtonGroup>
                           )}
