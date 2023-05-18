@@ -135,6 +135,7 @@ const SelectMultiGeneric = <T, K extends keyof T>({
         placeholder="Search for a provider..."
         align="center"
         bg="white !important"
+        borderColor="neutrals.300"
         rounded="md"
         px={0}
         outline="none"
@@ -249,6 +250,8 @@ const SelectMultiGeneric = <T, K extends keyof T>({
                 }}
                 onClick={() => {
                   // redundancy check, ensure not already in selected array
+                  setOpen.off();
+
                   if (
                     selectedItems.find(
                       (item) =>

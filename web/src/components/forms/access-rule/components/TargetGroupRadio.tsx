@@ -79,7 +79,7 @@ const TargetGroupDropdown: React.FC<TargetGroupDropdownProps> = (props) => {
             }}
             pos="relative"
           >
-            <AccordionIcon />
+            <AccordionIcon mr={1} />
 
             <Box
               as="span"
@@ -113,7 +113,7 @@ const TargetGroupDropdown: React.FC<TargetGroupDropdownProps> = (props) => {
             bg="white"
             p={4}
           >
-            <VStack align="start" spacing={2}>
+            <VStack align="stretch" spacing={2}>
               <SelectMultiGeneric
                 keyUsedForFilter="id"
                 inputArray={props.targetGroups}
@@ -129,7 +129,7 @@ const TargetGroupDropdown: React.FC<TargetGroupDropdownProps> = (props) => {
                   item.id,
                 ]}
               />
-              <Box>
+              <Box w="100%">
                 {selectedTargetgroup[0]?.schema &&
                   Object.values(selectedTargetgroup[0].schema).map((schema) => {
                     return (
