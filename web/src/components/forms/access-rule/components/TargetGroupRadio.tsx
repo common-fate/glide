@@ -23,6 +23,7 @@ import { useAdminListTargetGroups } from "../../../../utils/backend-client/admin
 import { TargetGroupField } from "./TargetGroupField";
 import ReactSelect from "react-select";
 import { AccessRuleFormData } from "../CreateForm";
+import SelectMultiGeneric from "../../../SelectMultiGeneric";
 
 interface TargetGroupDropdownProps {
   item: Record<"id", string>;
@@ -33,45 +34,50 @@ interface TargetGroupDropdownProps {
 
 const TargetGroupDropdown: React.FC<TargetGroupDropdownProps> = (props) => {
   const { remove, item, index } = props;
-  const [selectedTargetgroup, setSelectedTargetgroup] = useState<TargetGroup>();
+  const [selectedTargetgroup, setSelectedTargetgroup] = useState<TargetGroup[]>(
+    []
+  );
 
   const methods = useFormContext<AccessRuleFormData>();
   const targetgroups = methods.watch("targetgroups");
 
+  // methods.setValue(`targetgroups[${index}].id`, false);
+
   // CreateOption will exclude already selected targetgroups from new targetgroup dropdown.
-  const createOptions = () => {
-    const excludingItemTargetgroupIds = targetgroups
-      ? Object.keys(targetgroups).filter((e) => e)
-      : [];
+  // const createOptions = () => {
+  //   const excludingItemTargetgroupIds = targetgroups
+  //     ? Object.keys(targetgroups).filter((e) => e)
+  //     : [];
 
-    const excludedList = props.targetGroups.filter(
-      (t) => !excludingItemTargetgroupIds.includes(t.id)
-    );
+  //   const excludedList = props.targetGroups.filter(
+  //     (t) => !excludingItemTargetgroupIds.includes(t.id)
+  //   );
 
-    return excludedList.map((t) => ({
-      value: t.id,
-      label: t.id,
-    }));
-  };
+  //   return excludedList.map((t) => ({
+  //     value: t.id,
+  //     label: t.id,
+  //   }));
+  // };
 
   return (
     <>
       <Accordion defaultIndex={[0]} allowMultiple>
         <AccordionItem key={item.id}>
           <AccordionButton>
-            <ReactSelect
-              styles={{
-                control: (provided, state) => ({
-                  ...provided,
-                  width: 420,
-                }),
-              }}
-              options={createOptions()}
-              onChange={(val) => {
-                setSelectedTargetgroup(
-                  props.targetGroups.find((t) => t.id === val?.value)
-                );
-              }}
+            <SelectMultiGeneric
+              keyUsedForFilter="id"
+              inputArray={props.targetGroups}
+              selectedItems={selectedTargetgroup}
+              setSelectedItems={setSelectedTargetgroup}
+              boxProps={{ mt: 4 }}
+              renderFnTag={(item) => [
+                <ProviderIcon shortType={item?.icon} />,
+                item.id,
+              ]}
+              renderFnMenuSelect={(item) => [
+                <ProviderIcon shortType={item.icon} mr={2} />,
+                item.id,
+              ]}
             />
             {index != 0 && (
               <Button onClick={() => remove(index)}>Delete </Button>
@@ -81,11 +87,11 @@ const TargetGroupDropdown: React.FC<TargetGroupDropdownProps> = (props) => {
           <AccordionPanel>
             <VStack>
               <Box>
-                {!!selectedTargetgroup?.schema &&
-                  Object.values(selectedTargetgroup.schema).map((schema) => {
+                {selectedTargetgroup[0]?.schema &&
+                  Object.values(selectedTargetgroup[0].schema).map((schema) => {
                     return (
                       <TargetGroupField
-                        targetGroup={selectedTargetgroup}
+                        targetGroup={selectedTargetgroup[0]}
                         fieldSchema={schema}
                       />
                     );
@@ -106,9 +112,9 @@ interface MultiTargetGroupSelectorProps {
   control: any;
 }
 
-export const MultiTargetGroupSelector: React.FC<
-  MultiTargetGroupSelectorProps
-> = (props) => {
+export const MultiTargetGroupSelector: React.FC<MultiTargetGroupSelectorProps> = (
+  props
+) => {
   const { data } = useAdminListTargetGroups();
 
   const { fields, append, remove, insert } = useFieldArray({

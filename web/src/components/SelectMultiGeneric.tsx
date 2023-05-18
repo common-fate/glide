@@ -50,13 +50,12 @@ const SelectMultiGeneric = <T, K extends keyof T>({
               (s) => s[keyUsedForFilter] === item[keyUsedForFilter]
             ) === -1
           );
-          //   return !selectedItems.includes(item);
         })
         // dont filter if input is empty; filter input otherwise
         .filter((item) =>
           input === ""
             ? true
-            : item[keyUsedForFilter]
+            : (item[keyUsedForFilter] as string)
                 .toString()
                 .toLowerCase()
                 .includes(input.toLowerCase())
@@ -148,7 +147,7 @@ const SelectMultiGeneric = <T, K extends keyof T>({
       >
         {/* result preview box */}
         <Wrap px={2}>
-          {selectedItems.map((shortType) => (
+          {selectedItems.map((selectedItem) => (
             <Flex
               rounded="full"
               textStyle="Body/Small"
@@ -157,7 +156,7 @@ const SelectMultiGeneric = <T, K extends keyof T>({
               px={2}
               align="center"
             >
-              {renderFnTag(shortType)}
+              {renderFnTag(selectedItem)}
               <IconButton
                 variant="ghost"
                 size="xs"
@@ -166,14 +165,16 @@ const SelectMultiGeneric = <T, K extends keyof T>({
                 p={1}
                 aria-label="remove item"
                 isRound
-                onClick={() => {
-                  // if selected, remove
-                  if (inputArray.includes(shortType as ShortTypes)) {
-                    setSelectedItems(inputArray.filter((s) => s !== shortType));
-                    return;
-                  }
-                }}
                 icon={<CloseIcon boxSize="8px" h="8px" w="8px" />}
+                onClick={() => {
+                  setSelectedItems((prev) => {
+                    return prev.filter(
+                      (s) =>
+                        s[keyUsedForFilter] !== selectedItem[keyUsedForFilter]
+                    );
+                  });
+                  setSelectedItems([]);
+                }}
               />
             </Flex>
           ))}
