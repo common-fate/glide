@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/benbjohnson/clock"
+	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/service/rulesvc/mocks"
 	"github.com/common-fate/common-fate/pkg/storage"
@@ -179,6 +180,7 @@ func TestUpdateAccessRule(t *testing.T) {
 			defer ctrl.Finish()
 
 			dbc.MockQueryWithErr(&storage.GetTargetGroup{Result: &tc.wantTargetGroup}, tc.wantTargetGroupErr)
+			dbc.MockQuery(&storage.ListAccessTemplate{Result: []access.AccessTemplate{}})
 
 			mockCache := mocks.NewMockCacheService(ctrl)
 			if tc.wantTargetGroupErr == nil && tc.wantErr == nil {
