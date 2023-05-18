@@ -13,4 +13,5 @@ export interface AccessTemplate {
   createdAt: string;
   name: string;
   groupsWithAccess: string[];
+  description?: string;
 }

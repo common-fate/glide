@@ -4,6 +4,7 @@ import {
   Center,
   CenterProps,
   chakra,
+  Divider,
   Flex,
   HStack,
   Input,
@@ -276,19 +277,12 @@ const Entitlements: React.FC<EntitlementsProps> = ({
         onClick={onShowSelected}
       />
       {entitlements?.entitlements.map((kind) => {
-        const key = (
-          kind.publisher +
-          "#" +
-          kind.name +
-          "#" +
-          kind.kind +
-          "#"
-        ).toLowerCase();
+        const key = kind.name.toLowerCase();
         return (
           <FilterBlock
             key={key}
-            label={kind.kind}
-            icon={kind.icon as ShortTypes}
+            label={kind.name}
+            icon={kind.name as ShortTypes}
             onClick={() => {
               onSetSearch(key);
             }}

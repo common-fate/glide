@@ -8,6 +8,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
+	"github.com/common-fate/ddb"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -101,6 +102,30 @@ func (s *Service) UpdateRule(ctx context.Context, in *UpdateOpts) (*rule.AccessR
 		RequiresApproval:   in.Rule.Approval.IsRequired(),
 	})
 	err = s.Cache.RefreshCachedTargets(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	//update access template groups when access rule changes.
+
+	templates := storage.ListAccessTemplate{}
+
+	_, err = s.DB.Query(ctx, &templates)
+	if err != nil {
+		return nil, err
+	}
+
+	items := []ddb.Keyer{}
+	for _, access_template := range templates.Result {
+		for _, group := range access_template.AccessGroups {
+			if group.AccessRule == rul.ID {
+				access_template.GroupsWithAccess = rul.Groups
+				items = append(items, &access_template)
+			}
+		}
+	}
+
+	err = s.DB.PutBatch(ctx, items...)
 	if err != nil {
 		return nil, err
 	}

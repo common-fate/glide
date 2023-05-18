@@ -1,5 +1,6 @@
 import {
   Box,
+  Button,
   Divider,
   Flex,
   Grid,
@@ -8,13 +9,25 @@ import {
   LinkBox,
   LinkBoxProps,
   LinkOverlay,
+  Popover,
+  PopoverArrow,
+  PopoverBody,
+  PopoverCloseButton,
+  PopoverContent,
+  PopoverHeader,
+  PopoverTrigger,
   Stack,
   Text,
+  Tooltip,
   VStack,
   chakra,
 } from "@chakra-ui/react";
 import { useUserListAccessTemplates } from "../utils/backend-client/default/default";
-import { AccessTemplate } from "src/utils/backend-client/types";
+import {
+  AccessTemplate,
+  AuthUserResponseResponse,
+  User,
+} from "src/utils/backend-client/types";
 import { ProviderIcon, ShortTypes } from "./icons/providerIcon";
 import { access } from "fs";
 import {
@@ -22,6 +35,7 @@ import {
   userGetMe,
   userGetUser,
 } from "../utils/backend-client/end-user/end-user";
+import { useUser } from "../utils/context/userContext";
 
 interface ListAccessTemplateProps {
   setChecked: React.Dispatch<React.SetStateAction<Set<string>>>;
@@ -30,6 +44,29 @@ export const AccessTemplateList: React.FC<ListAccessTemplateProps> = ({
   setChecked,
 }) => {
   const { data } = useUserListAccessTemplates();
+
+  if (!data || data.accessTemplates.length === 0) {
+    return (
+      <Stack>
+        <Flex
+          p={1}
+          rounded="lg"
+          bg="white"
+          // columns={2}
+          borderWidth={1}
+          borderColor="neutrals.300"
+          direction="column"
+          w="350px"
+          h="70vh"
+        >
+          <Text as="h4" textStyle="Heading/H4" my="10px" pl="5px">
+            Access Templates
+          </Text>
+          <Text>No Access Templates made yet...</Text>
+        </Flex>
+      </Stack>
+    );
+  }
 
   if (data && data?.accessTemplates) {
     return (
@@ -52,22 +89,17 @@ export const AccessTemplateList: React.FC<ListAccessTemplateProps> = ({
             {data.accessTemplates.map((template) => {
               return (
                 <AccessTemplateCard
-                  _hover={{
-                    bg: "neutrals.100",
-                    rounded: "lg",
-                    textDecoration: "none",
-                  }}
                   accessTemplate={template}
                   handleClick={() => {
+                    const set = new Set();
+
                     template.accessGroups.forEach((group) => {
                       group.targets.forEach((target) => {
-                        setChecked((old) => {
-                          const newSet = new Set(old);
-                          newSet.add(target.id.toLowerCase());
-                          return newSet;
-                        });
+                        set.add(target.id.toLowerCase());
                       });
                     });
+                    //@ts-ignore
+                    setChecked(() => set);
                   }}
                 />
               );
@@ -80,40 +112,101 @@ export const AccessTemplateList: React.FC<ListAccessTemplateProps> = ({
   return <></>;
 };
 
+const CanUseTemplate = (user: User, accessTemplate: AccessTemplate) => {
+  const mergedArr = user.groups.concat(accessTemplate.groupsWithAccess); // Merge the arrays into a single array
+
+  // Create an object to store the occurrence count of each item
+  //@ts-ignore
+  const count: Record<T, number> = {};
+
+  // Iterate over the merged array and count the occurrences of each item
+  for (let i = 0; i < mergedArr.length; i++) {
+    const item = mergedArr[i];
+    count[item] = (count[item] || 0) + 1;
+  }
+
+  // Check if any item has occurred more than once
+  for (const item in count) {
+    if (count[item] > 1) {
+      return true; // Found an overlapping item
+    }
+  }
+
+  return false; // No overlapping item found
+};
+
 const AccessTemplateCard: React.FC<
   {
     accessTemplate: AccessTemplate;
-    handleClick: React.MouseEventHandler<HTMLAnchorElement>;
+    handleClick: React.MouseEventHandler<HTMLDivElement>;
   } & LinkBoxProps
 > = ({ accessTemplate, handleClick, ...rest }) => {
-  // const user = useUserGetMe();
+  const user = useUser();
 
-  // console.log(user);
-  const CanUseTemplate = () => {
-    // accessTemplate.accessGroups.map((g) => {
+  if (!user || !user.user) {
+    return <Text>Loading...</Text>;
+  }
 
-    //   if (user && user.data && !user?.data.user.groups.includes(g)) {
-    //     console.log(g);
-    //     return false;
-    //   }
-    // });
+  const canUse = CanUseTemplate(user.user, accessTemplate);
 
-    return false;
-  };
   return (
-    <LinkBox {...rest}>
-      <Link
-        onClick={(e) =>
-          CanUseTemplate() ? handleClick(e) : e.preventDefault()
-        }
-        textDecoration="none"
-        _hover={{
-          textDecoration: "none",
-          cursor: CanUseTemplate() ? "pointer" : "default",
-        }}
-      >
-        <LinkOverlay>
-          <Box rounded="lg" w="100%" h="50px">
+    <>
+      {!canUse && (
+        <Box
+          {...rest}
+          _hover={{
+            cursor: "default",
+          }}
+          rounded="lg"
+          w="100%"
+          h="50px"
+        >
+          <Tooltip
+            hasArrow
+            label={
+              "You do not have access to all the resources in this Access Template"
+            }
+          >
+            <Flex px={3} py={2}>
+              <HStack>
+                <Text
+                  textStyle="Body/medium"
+                  color="neutrals.400"
+                  decoration="none"
+                >
+                  {accessTemplate.name}
+                </Text>
+                {accessTemplate.accessGroups.map((group) => {
+                  return (
+                    <ProviderIcon
+                      h="18px"
+                      w="18px"
+                      shortType={group.targets[0].kind.name as ShortTypes}
+                      mr={2}
+                      color="neutrals.400"
+                    />
+                  );
+                })}
+              </HStack>
+            </Flex>
+          </Tooltip>
+        </Box>
+      )}
+      {canUse && (
+        <Box
+          {...rest}
+          _hover={{
+            bg: "neutrals.100",
+            rounded: "lg",
+            textDecoration: "none",
+            cursor: "pointer",
+          }}
+          rounded="lg"
+          w="100%"
+          h="50px"
+          onClick={(e) => handleClick(e)}
+        >
+          <Tooltip hasArrow label={accessTemplate.description}>
             <Flex px={3} py={2}>
               <HStack>
                 <Text
@@ -135,10 +228,9 @@ const AccessTemplateCard: React.FC<
                 })}
               </HStack>
             </Flex>
-          </Box>
-          {/* <Divider borderColor="neutrals.300" /> */}
-        </LinkOverlay>
-      </Link>
-    </LinkBox>
+          </Tooltip>
+        </Box>
+      )}
+    </>
   );
 };

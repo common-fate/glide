@@ -1533,6 +1533,8 @@ components:
           type: array
           items:
             type: string
+        description:
+          type: string
       required:
         - id
         - accessGroups

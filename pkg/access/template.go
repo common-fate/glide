@@ -12,9 +12,11 @@ import (
 //AccessTemplate holds all state for a request. This includes all access groups and all grants\
 
 type AccessTemplate struct {
-	ID               string                      `json:"id" dynamodbav:"id"`
-	CreatedBy        string                      `json:"createdBy" dynamodbav:"createdBy"`
-	Name             string                      `json:"name" dynamodbav:"name"`
+	ID        string `json:"id" dynamodbav:"id"`
+	CreatedBy string `json:"createdBy" dynamodbav:"createdBy"`
+	Name      string `json:"name" dynamodbav:"name"`
+	//description will be used when templates are used to make preflight requests
+	Description      *string                     `json:"description" dynamodbav:"description"`
 	AccessGroups     []AccessTemplateAccessGroup `json:"accessGroups" dynamodbav:"accessGroups"`
 	GroupsWithAccess []string                    `json:"groupsWithAccess" dynamodbav:"groupsWithAccess"`
 	// CreatedAt is a read-only field after the request has been created.
@@ -61,6 +63,9 @@ func (i *AccessTemplate) ToAPI() types.AccessTemplate {
 	}
 	for _, accessgroup := range i.AccessGroups {
 		out.AccessGroups = append(out.AccessGroups, accessgroup.ToAPI())
+	}
+	if i.Description != nil {
+		out.Description = i.Description
 	}
 
 	return out

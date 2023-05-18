@@ -200,10 +200,11 @@ func (s *Service) CreateAccessTemplate(ctx context.Context, user identity.User, 
 
 	now := s.Clock.Now()
 	tmp := access.AccessTemplate{
-		ID:        types.NewAccessTemplateID(),
-		CreatedBy: user.ID,
-		CreatedAt: now,
-		Name:      *createRequest.TemplateName,
+		ID:          types.NewAccessTemplateID(),
+		CreatedBy:   user.ID,
+		CreatedAt:   now,
+		Name:        *createRequest.TemplateName,
+		Description: createRequest.Reason,
 	}
 	for _, group := range preflight.AccessGroups {
 		accessRule := storage.GetAccessRule{ID: group.AccessRule}
