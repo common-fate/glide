@@ -5,7 +5,11 @@
   "main": "index.js",
   "keywords": [],
   "author": "",
+  "packageManager": "pnpm@8.5.0",
   "license": "ISC",
+  "scripts": {
+    "clean": "rm -rf node_modules && pnpm -r clean"
+  },
   "pnpm": {
     "peerDependencyRules": {
       "allowedVersions": {
