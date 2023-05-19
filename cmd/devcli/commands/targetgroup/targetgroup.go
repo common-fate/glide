@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/common-fate/common-fate/pkg/config"
+	"github.com/common-fate/common-fate/pkg/service/targetsvc"
 	"github.com/common-fate/common-fate/pkg/target"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/provider-registry-sdk-go/pkg/handlerclient"
@@ -58,11 +59,13 @@ var CreateCommand = cli.Command{
 		if describe.Schema.Targets == nil {
 			return errors.New("target schema was nil")
 		}
+
+		s := (*describe.Schema.Targets)[c.String("kind")]
+		internalSchema := targetsvc.InternalSchemaFromSDKSchema(s, describe.Schema.Resources.Types)
 		tg := target.Group{
-			ID:   c.String("id"),
-			From: target.From{Publisher: c.String("provider")},
-			// FIXME:
-			// Schema: (*describe.Schema.Targets)[c.String("kind")],
+			ID:     c.String("id"),
+			From:   target.From{Publisher: c.String("provider")},
+			Schema: internalSchema,
 		}
 		err = db.Put(ctx, &tg)
 		if err != nil {
