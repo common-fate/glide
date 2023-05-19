@@ -61,6 +61,11 @@ func (s *Service) UpdateRule(ctx context.Context, in *UpdateOpts) (*rule.AccessR
 		return nil, errors.New("access rule cannot be longer than 6 months")
 	}
 
+	// validate it is under 6 months
+	if in.UpdateRequest.TimeConstraints.DefaultDurationSeconds > 26*7*24*3600 {
+		return nil, errors.New("access rule cannot be longer than 6 months")
+	}
+
 	approvals := rule.Approval{}
 
 	if in.UpdateRequest.Approval.Groups != nil {
@@ -92,14 +97,26 @@ func (s *Service) UpdateRule(ctx context.Context, in *UpdateOpts) (*rule.AccessR
 		return nil, err
 	}
 
-	// analytics event
+	hasFilterExpression := false
+	selectedTargets := []string{}
+	for _, target := range in.UpdateRequest.Targets {
+		selectedTargets = append(selectedTargets, target.TargetGroupId)
+		if len(target.FieldFilterExpessions) > 0 {
+			hasFilterExpression = true
+		}
+	}
+
+	// analytics event Update access rule
 	analytics.FromContext(ctx).Track(&analytics.RuleUpdated{
-		UpdatedBy: in.UpdaterID,
-		RuleID:    in.Rule.ID,
-		// Provider:           in.Rule.Target.TargetGroupFrom.ToAnalytics(),
-		MaxDurationSeconds: in.Rule.TimeConstraints.MaxDurationSeconds,
-		RequiresApproval:   in.Rule.Approval.IsRequired(),
+		UpdatedBy:           in.UpdaterID,
+		RuleID:              in.Rule.ID,
+		TargetsCount:        len(in.UpdateRequest.Targets),
+		HasFilterExpression: hasFilterExpression,
+		Targets:             selectedTargets,
+		MaxDurationSeconds:  in.Rule.TimeConstraints.MaxDurationSeconds,
+		RequiresApproval:    in.Rule.Approval.IsRequired(),
 	})
+
 	err = s.Cache.RefreshCachedTargets(ctx)
 	if err != nil {
 		return nil, err

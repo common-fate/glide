@@ -101,6 +101,9 @@ func (s *Service) CreateAccessRule(ctx context.Context, userID string, in types.
 	if in.TimeConstraints.MaxDurationSeconds > 26*7*24*3600 {
 		return nil, errors.New("access rule cannot be longer than 6 months")
 	}
+	if in.TimeConstraints.DefaultDurationSeconds > 26*7*24*3600 {
+		return nil, errors.New("access rule cannot be longer than 6 months")
+	}
 
 	approvals := rule.Approval{}
 
@@ -137,14 +140,24 @@ func (s *Service) CreateAccessRule(ctx context.Context, userID string, in types.
 		return nil, err
 	}
 
-	// analytics event
-	analytics.FromContext(ctx).Track(&analytics.RuleCreated{
-		CreatedBy: userID,
-		RuleID:    rul.ID,
-		// Provider:           rul.Target.TargetGroupFrom.ToAnalytics(),
-		MaxDurationSeconds: in.TimeConstraints.MaxDurationSeconds,
+	hasFilterExpression := false
+	selectedTargets := []string{}
+	for _, target := range in.Targets {
+		selectedTargets = append(selectedTargets, target.TargetGroupId)
+		if len(target.FieldFilterExpessions) > 0 {
+			hasFilterExpression = true
+		}
+	}
 
-		RequiresApproval: rul.Approval.IsRequired(),
+	// analytics event Create Access Rule
+	analytics.FromContext(ctx).Track(&analytics.RuleCreated{
+		CreatedBy:           userID,
+		RuleID:              rul.ID,
+		RequiresApproval:    rul.Approval.IsRequired(),
+		HasFilterExpression: hasFilterExpression,
+		TargetsCount:        len(in.Targets),
+		Targets:             selectedTargets,
+		MaxDurationSeconds:  in.TimeConstraints.MaxDurationSeconds,
 	})
 
 	err = s.Cache.RefreshCachedTargets(ctx)
