@@ -33,7 +33,7 @@ func TestAdminCreateAccessRule(t *testing.T) {
 	testcases := []testcase{
 		{
 			name: "ok",
-			give: `{"priority":4,"approval":{"groups":["group1","group2"],"users":["user1","user2"]},"description":"Test Access Rule","groups":["group_a","group_b"],"name":"Test Access Rule","targets":[{"fieldFilterExpessions":{"field1":"value1","field2":"value2"},"targetGroupId":"target_group_id"}],"timeConstraints":{"maxDurationSeconds":3600, "defaultDurationSeconds":3600}}`,
+			give: `{"priority":4,"approval":{"groups":["group1","group2"],"users":["user1","user2"]},"description":"Test Access Rule","groups":["group_a","group_b"],"name":"Test Access Rule","targets":[{"fieldFilterExpessions":{"field1": []},"targetGroupId":"target_group_id"}],"timeConstraints":{"maxDurationSeconds":3600, "defaultDurationSeconds":3600}}`,
 			mockCreate: &rule.AccessRule{
 				ID: "rule1",
 
@@ -66,14 +66,14 @@ func TestAdminCreateAccessRule(t *testing.T) {
 		},
 		{
 			name:          "id already exists",
-			give:          `{"priority":4,"approval":{"groups":["group1","group2"],"users":["user1","user2"]},"description":"Test Access Rule","groups":["group_a","group_b"],"name":"Test Access Rule","targets":[{"fieldFilterExpessions":{"field1":"value1","field2":"value2"},"targetGroupId":"target_group_id"}],"timeConstraints":{"maxDurationSeconds":3600, "defaultDurationSeconds":3600}}`,
+			give:          `{"priority":4,"approval":{"groups":["group1","group2"],"users":["user1","user2"]},"description":"Test Access Rule","groups":["group_a","group_b"],"name":"Test Access Rule","targets":[{"fieldFilterExpessions":{"field1":[]},"targetGroupId":"target_group_id"}],"timeConstraints":{"maxDurationSeconds":3600, "defaultDurationSeconds":3600}}`,
 			mockCreateErr: rulesvc.ErrRuleIdAlreadyExists,
 			wantCode:      http.StatusBadRequest,
 			wantBody:      `{"error":"access rule id already exists"}`,
 		},
 		{
 			name:     "fail when rule doesn't meet maxduration req",
-			give:     `{"priority":4,"approval":{"groups":["group1","group2"],"users":["user1","user2"]},"description":"Test Access Rule","groups":["group_a","group_b"],"name":"Test Access Rule","targets":[{"fieldFilterExpessions":{"field1":"value1","field2":"value2"},"targetGroupId":"target_group_id"}],"timeConstraints":{"maxDurationSeconds":6}}`,
+			give:     `{"priority":4,"approval":{"groups":["group1","group2"],"users":["user1","user2"]},"description":"Test Access Rule","groups":["group_a","group_b"],"name":"Test Access Rule","targets":[{"fieldFilterExpessions":{"field1":[]},"targetGroupId":"target_group_id"}],"timeConstraints":{"maxDurationSeconds":6}}`,
 			wantCode: http.StatusBadRequest,
 			wantBody: `{"error":"request body has an error: doesn't match the schema: Error at \"/timeConstraints/maxDurationSeconds\": number must be at least 60"}`,
 		},
@@ -131,7 +131,7 @@ func TestAdminUpdateAccessRule(t *testing.T) {
 	testcases := []testcase{
 		{
 			name: "ok",
-			give: `{"priority":4,"approval":{"groups":["group1","group2"],"users":["user1","user2"]},"description":"Test Access Rule","groups":["group_a","group_b"],"name":"Test Access Rule","targets":[{"fieldFilterExpessions":{"field1":"value1","field2":"value2"},"targetGroupId":"target_group_id"}],"timeConstraints":{"maxDurationSeconds":3600, "defaultDurationSeconds":3600}}`,
+			give: `{"priority":4,"approval":{"groups":["group1","group2"],"users":["user1","user2"]},"description":"Test Access Rule","groups":["group_a","group_b"],"name":"Test Access Rule","targets":[{"fieldFilterExpessions":{"field1":[]},"targetGroupId":"target_group_id"}],"timeConstraints":{"maxDurationSeconds":3600, "defaultDurationSeconds":3600}}`,
 			mockCreate: &rule.AccessRule{
 				ID:          "rule1",
 				Description: "string",

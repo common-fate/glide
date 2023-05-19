@@ -49,8 +49,13 @@ func TestCreateTargetGroup(t *testing.T) {
 			version: "v1.0.1",
 			give:    types.CreateTargetGroupRequest{Id: name, From: from},
 			want: &target.Group{
-				ID:        name,
-				From:      target.FromFieldFromAPI(from),
+				ID:   name,
+				From: target.FromFieldFromAPI(from),
+				Schema: target.GroupSchema{
+					Target: target.TargetSchema{
+						Properties: map[string]target.TargetField{},
+					},
+				},
 				CreatedAt: clk.Now(),
 				UpdatedAt: clk.Now(),
 			},
@@ -66,6 +71,7 @@ func TestCreateTargetGroup(t *testing.T) {
 					Targets: &map[string]providerregistrysdk.Target{
 						"Kind": {},
 					},
+					Resources: &providerregistrysdk.Resources{},
 				},
 			}},
 		},

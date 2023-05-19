@@ -16,9 +16,18 @@ import (
 // (GET /api/v1/entitlements)
 func (a *API) UserListEntitlements(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+
+	res := types.ListEntitlementsResponse{
+		Entitlements: []types.TargetKind{},
+	}
+
 	q := storage.ListTargetGroups{}
 	err := a.DB.All(ctx, &q)
-	if err != nil {
+	if err == ddb.ErrNoItems {
+		apio.JSON(ctx, w, res, http.StatusOK)
+		return
+	}
+	if err != nil && err != ddb.ErrNoItems {
 		apio.Error(ctx, w, err)
 		return
 	}
@@ -34,21 +43,22 @@ func (a *API) UserListEntitlements(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	res := types.ListEntitlementsResponse{
-		Entitlements: []types.TargetKind{},
-	}
-
 	for _, k := range kinds {
 		res.Entitlements = append(res.Entitlements, k)
 	}
 	apio.JSON(ctx, w, res, http.StatusOK)
 }
 
+// (GET /api/v1/entitlements/targets)
 func (a *API) UserListEntitlementTargets(w http.ResponseWriter, r *http.Request, params types.UserListEntitlementTargetsParams) {
 	ctx := r.Context()
 	var opts []func(*ddb.QueryOpts)
 	if params.NextToken != nil {
 		opts = append(opts, ddb.Page(*params.NextToken))
+	}
+
+	res := types.ListTargetsResponse{
+		Targets: []types.Target{},
 	}
 
 	var results []cache.Target
@@ -63,7 +73,12 @@ func (a *API) UserListEntitlementTargets(w http.ResponseWriter, r *http.Request,
 			Kind:      parts[2],
 		}
 		qo, err = a.DB.Query(ctx, &q, opts...)
-		if err != nil {
+		if err == ddb.ErrNoItems {
+			apio.JSON(ctx, w, res, http.StatusOK)
+
+			return
+		}
+		if err != nil && err != ddb.ErrNoItems {
 			apio.Error(ctx, w, err)
 			return
 		}
@@ -71,16 +86,18 @@ func (a *API) UserListEntitlementTargets(w http.ResponseWriter, r *http.Request,
 	} else {
 		q := storage.ListCachedTargets{}
 		qo, err = a.DB.Query(ctx, &q, opts...)
-		if err != nil {
+		if err == ddb.ErrNoItems {
+			apio.JSON(ctx, w, res, http.StatusOK)
+
+			return
+		}
+		if err != nil && err != ddb.ErrNoItems {
 			apio.Error(ctx, w, err)
 			return
 		}
 		results = q.Result
 	}
 
-	res := types.ListTargetsResponse{
-		Targets: []types.Target{},
-	}
 	if qo.NextPage != "" {
 		res.Next = &qo.NextPage
 	}

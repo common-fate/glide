@@ -59,7 +59,6 @@ export const accessRuleFormDataToApi = (
       };
 
       const targetFields = targetgroups[k];
-
       Object.entries(targetFields).map(([k, v]) => {
         // if no filter selected then we will return empty array which signifies to select everything
         if (
