@@ -1320,6 +1320,8 @@ components:
       title: TimeConstraints
       type: object
       description: Time configuration for an Access Rule.
+      x-stoplight:
+        id: 1fe6870129392
       properties:
         maxDurationSeconds:
           type: integer
@@ -1327,10 +1329,15 @@ components:
           minimum: 60
           exclusiveMinimum: false
           maximum: 15724800
+        defaultDurationSeconds:
+          type: integer
+          description: The default duration in seconds the access is allowed for.
+          minimum: 60
+          exclusiveMinimum: false
+          maximum: 15724800
       required:
         - maxDurationSeconds
-      x-stoplight:
-        id: 1fe6870129392
+        - defaultDurationSeconds
     CreateAccessRuleTarget:
       title: CreateAccessRuleTarget
       type: object

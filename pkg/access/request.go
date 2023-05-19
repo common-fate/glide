@@ -78,6 +78,11 @@ type Purpose struct {
 	Reason *string `json:"reason" dynamodbav:"reason"`
 }
 
+// return true if reason field is not nil
+func (p Purpose) ToAnalytics() bool {
+	return p.Reason != nil
+}
+
 func (p Purpose) ToAPI() types.RequestPurpose {
 	return types.RequestPurpose{
 		Reason: p.Reason,
@@ -115,7 +120,7 @@ func (i *Request) DDBKeys() (ddb.Keys, error) {
 // RequestStatusToPastOrUpcoming processes teh request status and determines if the request is a past request or an upcoming request
 // The 2 statuses are used in dynamodb queries to serve the upcoming and past tabs/apis on the user homepage.
 func RequestStatusToPastOrUpcoming(status types.RequestStatus) keys.AccessRequestPastUpcoming {
-	if status == types.COMPLETE || status == types.REVOKED || status == types.CANCELLED {
+	if status == types.COMPLETE || status == types.REVOKED || status == types.CANCELLED || status == types.RequestStatus(types.ERROR) {
 		return keys.AccessRequestPastUpcomingPAST
 	}
 	return keys.AccessRequestPastUpcomingUPCOMING

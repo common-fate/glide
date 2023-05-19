@@ -146,7 +146,7 @@ const Home = () => {
                               id: group.id,
                               timing: {
                                 durationSeconds:
-                                  group.timeConstraints.maxDurationSeconds,
+                                  group.timeConstraints.defaultDurationSeconds,
                               },
                             }}
                             render={({
