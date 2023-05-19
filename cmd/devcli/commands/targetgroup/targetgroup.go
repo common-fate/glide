@@ -61,6 +61,7 @@ var CreateCommand = cli.Command{
 		tg := target.Group{
 			ID:   c.String("id"),
 			From: target.From{Publisher: c.String("provider")},
+			// FIXME:
 			// Schema: (*describe.Schema.Targets)[c.String("kind")],
 		}
 		err = db.Put(ctx, &tg)
