@@ -254,25 +254,18 @@ interface FieldFilterViewProps {
 }
 
 const FieldFilterView: React.FC<FieldFilterViewProps> = (props) => {
-  const {
-    isOpen,
-    targetGroup,
-    fieldSchema,
-    resources,
-    filteredResources,
-  } = props;
+  const { isOpen, targetGroup, fieldSchema, resources, filteredResources } =
+    props;
 
   const { watch, register, control, setValue } = useFormContext<any>();
   const [targetGroupFilterOpts] = watch(["targetgroups"]);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const [
-    operationType,
-    setOperationType,
-  ] = useState<ResourceFilterOperationTypeEnum>(
-    ResourceFilterOperationTypeEnum.IN
-  );
+  const [operationType, setOperationType] =
+    useState<ResourceFilterOperationTypeEnum>(
+      ResourceFilterOperationTypeEnum.IN
+    );
 
   const createOptions = () => {
     const defaultOptions = [
