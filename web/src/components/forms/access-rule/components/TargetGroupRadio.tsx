@@ -112,9 +112,9 @@ interface MultiTargetGroupSelectorProps {
   control: any;
 }
 
-export const MultiTargetGroupSelector: React.FC<MultiTargetGroupSelectorProps> = (
-  props
-) => {
+export const MultiTargetGroupSelector: React.FC<
+  MultiTargetGroupSelectorProps
+> = (props) => {
   const { data } = useAdminListTargetGroups();
 
   const { fields, append, remove, insert } = useFieldArray({
