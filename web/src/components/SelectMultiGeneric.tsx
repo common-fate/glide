@@ -259,7 +259,11 @@ const SelectMultiGeneric = <T, K extends keyof T>({
                     )
                   )
                     return;
-                  setSelectedItems((curr) => [...curr, entryItem]);
+                  if (onlyOne) {
+                    setSelectedItems([entryItem]);
+                  } else {
+                    setSelectedItems((curr) => [...curr, entryItem]);
+                  }
                 }}
               >
                 {renderFnMenuSelect(entryItem)}
