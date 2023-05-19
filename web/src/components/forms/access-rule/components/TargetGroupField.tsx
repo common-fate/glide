@@ -175,7 +175,11 @@ export const TargetGroupField: React.FC<TargetGroupFieldProps> = (props) => {
               p={2}
               w="100%"
             >
-              <Text ml={2}>{0} Filters Applied</Text>
+              <Text ml={2}>
+                {isOpen
+                  ? filteredResources.length + " Resources Selected"
+                  : "All Resources Selected"}
+              </Text>
 
               {!isOpen ? (
                 <Button
