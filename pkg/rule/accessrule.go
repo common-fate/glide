@@ -87,7 +87,8 @@ func (a AccessRule) ToAPI() types.AccessRule {
 		},
 		Groups: a.Groups,
 		TimeConstraints: types.AccessRuleTimeConstraints{
-			MaxDurationSeconds: a.TimeConstraints.MaxDurationSeconds,
+			MaxDurationSeconds:     a.TimeConstraints.MaxDurationSeconds,
+			DefaultDurationSeconds: a.TimeConstraints.DefaultDurationSeconds,
 		},
 		Approval: approval,
 		Targets:  targets,

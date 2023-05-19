@@ -395,21 +395,6 @@ export const AuditLog: React.FC<{ request?: Request }> = ({ request }) => {
             timestamp={new Date(e.createdAt)}
           />
         );
-      } else if (e.fromStatus && e.actor) {
-        items.push(
-          <CFTimelineRow
-            arrLength={l}
-            header={
-              <Text>
-                <UserText userId={e.actor || ""} />
-                {` ${e.toStatus?.toLowerCase()} the request`}
-              </Text>
-            }
-            index={i}
-            key={i}
-            timestamp={new Date(e.createdAt)}
-          />
-        );
       } else if (e.fromStatus?.toLowerCase()) {
         items.push(
           <CFTimelineRow

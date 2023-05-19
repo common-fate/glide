@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/common-fate/analytics-go"
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/identity"
@@ -177,6 +178,15 @@ func (s *Service) CreateRequest(ctx context.Context, user identity.User, createR
 	if err != nil {
 		return nil, err
 	}
+
+	// analytics event
+	analytics.FromContext(ctx).Track(&analytics.RequestCreated{
+		RequestedBy:       request.RequestedBy.ID,
+		RequestID:         request.ID,
+		TargetsCount:      request.GroupTargetCount,
+		AccessGroupsCount: len(out.Groups),
+		HasReason:         request.Purpose.ToAnalytics(),
+	})
 
 	return &out, nil
 

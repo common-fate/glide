@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/common-fate/analytics-go"
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/auth"
 	"github.com/common-fate/common-fate/pkg/gevent"
@@ -61,6 +62,16 @@ func (s *Service) RevokeRequest(ctx context.Context, in access.RequestWithGroups
 		return nil, err
 	}
 	user := auth.UserFromContext(ctx)
+
+	// analytics event
+	analytics.FromContext(ctx).Track(&analytics.RequestRevoked{
+		RequestedBy:      in.Request.RequestedBy.ID,
+		RevokedBy:        user.ID,
+		RequestID:        in.Request.ID,
+		AccessGroupCount: len(in.Groups),
+		HasReason:        in.Request.Purpose.ToAnalytics(),
+	})
+
 	//emit request group revoke event
 	err = s.EventPutter.Put(ctx, gevent.RequestRevokeInitiated{
 		Request: in,

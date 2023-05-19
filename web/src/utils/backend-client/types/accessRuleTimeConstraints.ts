@@ -12,4 +12,6 @@
 export interface AccessRuleTimeConstraints {
   /** The maximum duration in seconds the access is allowed for. */
   maxDurationSeconds: number;
+  /** The default duration in seconds the access is allowed for. */
+  defaultDurationSeconds: number;
 }
