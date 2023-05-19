@@ -7,6 +7,8 @@ import {
   Box,
   Button,
   Spinner,
+  Stack,
+  Text,
   VStack,
 } from "@chakra-ui/react";
 import React, { useState, useEffect } from "react";
@@ -60,33 +62,74 @@ const TargetGroupDropdown: React.FC<TargetGroupDropdownProps> = (props) => {
   // };
 
   return (
-    <>
+    <Box bg="neutrals.100" borderColor="neutrals.300" rounded="lg">
       <Accordion defaultIndex={[0]} allowMultiple>
-        <AccordionItem key={item.id}>
-          <AccordionButton>
-            <SelectMultiGeneric
-              keyUsedForFilter="id"
-              inputArray={props.targetGroups}
-              selectedItems={selectedTargetgroup}
-              setSelectedItems={setSelectedTargetgroup}
-              boxProps={{ mt: 4 }}
-              renderFnTag={(item) => [
-                <ProviderIcon shortType={item?.icon} />,
-                item.id,
-              ]}
-              renderFnMenuSelect={(item) => [
-                <ProviderIcon shortType={item.icon} mr={2} />,
-                item.id,
-              ]}
-            />
+        <AccordionItem key={item.id} border="none">
+          <AccordionButton
+            p={2}
+            bg="white"
+            // bg="neutrals.100"
+            roundedTop="md"
+            borderColor="neutrals.300"
+            borderWidth="1px"
+            sx={{
+              "&[aria-expanded='false']": {
+                roundedBottom: "md",
+              },
+            }}
+            pos="relative"
+          >
+            <AccordionIcon mr={1} />
+
+            <Box
+              as="span"
+              flex="1"
+              textAlign="left"
+              sx={{
+                p: { lineHeight: "120%", textStyle: "Body/Extra Small" },
+              }}
+            >
+              <Text color="neutrals.700">Select a target</Text>
+            </Box>
+
             {index != 0 && (
-              <Button onClick={() => remove(index)}>Delete </Button>
+              <Button
+                variant="brandSecondary"
+                size="xs"
+                onClick={() => remove(index)}
+                position="absolute"
+                right={1}
+                top={1}
+              >
+                Delete{" "}
+              </Button>
             )}
-            <AccordionIcon />
           </AccordionButton>
-          <AccordionPanel>
-            <VStack>
-              <Box>
+          <AccordionPanel
+            borderColor="neutrals.300"
+            borderTop="none"
+            roundedBottom="md"
+            borderWidth="1px"
+            bg="white"
+            p={4}
+          >
+            <VStack align="stretch" spacing={2}>
+              <SelectMultiGeneric
+                keyUsedForFilter="id"
+                inputArray={props.targetGroups}
+                selectedItems={selectedTargetgroup}
+                setSelectedItems={setSelectedTargetgroup}
+                boxProps={{ w: "100%" }}
+                renderFnTag={(item) => [
+                  <ProviderIcon mr={1} shortType={item?.icon} />,
+                  item.id,
+                ]}
+                renderFnMenuSelect={(item) => [
+                  <ProviderIcon mr={1} shortType={item.icon} mr={2} />,
+                  item.id,
+                ]}
+              />
+              <Box w="100%">
                 {selectedTargetgroup[0]?.schema &&
                   Object.values(selectedTargetgroup[0].schema).map((schema) => {
                     return (
@@ -101,7 +144,7 @@ const TargetGroupDropdown: React.FC<TargetGroupDropdownProps> = (props) => {
           </AccordionPanel>
         </AccordionItem>
       </Accordion>
-    </>
+    </Box>
   );
 };
 
@@ -134,16 +177,24 @@ export const MultiTargetGroupSelector: React.FC<MultiTargetGroupSelectorProps> =
 
   return (
     <>
-      {fields.map((item, index) => (
-        <TargetGroupDropdown
-          item={item}
-          index={index}
-          remove={remove}
-          targetGroups={data.targetGroups}
-        />
-      ))}
-      <Button type="button" onClick={() => append({})}>
-        + Target
+      <Stack>
+        {fields.map((item, index) => (
+          <TargetGroupDropdown
+            item={item}
+            index={index}
+            remove={remove}
+            targetGroups={data.targetGroups}
+          />
+        ))}
+      </Stack>
+      <Button
+        variant="brandSecondary"
+        size="sm"
+        mt={2}
+        type="button"
+        onClick={() => append({})}
+      >
+        Target +
       </Button>
     </>
   );

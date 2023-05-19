@@ -277,7 +277,19 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
                   ...provided,
                   // @TODO Hack: I couldn't work out why the layout was overflowing the step container so I added this as a workaround to fix it
                   // this doesn't work on small screens like mobile
-                  minWidth: "calc(-20px + 100%)",
+                  // minWidth: "calc(-20px + 100%)",
+                  position: "relative",
+                  width: "100%",
+                  display: "flex",
+                  flexGrow: 1,
+                };
+              },
+              control: (provided: any, state: any) => {
+                return {
+                  ...provided,
+
+                  borderColor: "#E5E5E5", // neutrals.300
+                  width: "100%",
                 };
               },
             }}
@@ -385,6 +397,12 @@ export const SelectWithArrayAsValue: React.FC<SelectProps> = ({
                   color: state.isSelected
                     ? colors.neutrals[800]
                     : provided.color,
+                };
+              },
+              control: (provided: any, state: any) => {
+                return {
+                  ...provided,
+                  borderColor: "#E5E5E5", // neutrals.300
                 };
               },
             }}
