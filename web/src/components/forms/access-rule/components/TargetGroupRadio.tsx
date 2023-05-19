@@ -15,7 +15,6 @@ import React, { useEffect, useState } from "react";
 
 import { ProviderIcon, ShortTypes } from "../../../icons/providerIcon";
 
-import { TargetGroup } from "../../../../utils/backend-client/types";
 import {
   useFieldArray,
   UseFieldArrayRemove,
