@@ -54,7 +54,7 @@ export const TargetDetail: React.FC<TargetDetailProps> = ({
           <Flex pr={2} position="relative">
             <ProviderIcon
               boxSize={"24px"}
-              shortType={target.kind.icon as ShortTypes}
+              shortType={target.kind.name as ShortTypes}
             />
           </Flex>
         </Tooltip>

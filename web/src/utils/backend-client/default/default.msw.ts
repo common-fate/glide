@@ -41,6 +41,8 @@ export const getUserGetRequestMock = () => ({id: faker.random.word(), purpose: {
 
 export const getGetGroupTargetInstructionsMock = () => ({instructions: {instructions: faker.helpers.arrayElement([faker.random.word(), undefined])}})
 
+export const getUserListAccessTemplatesMock = () => ({accessTemplates: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.random.word(), accessGroups: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.random.word(), requiresApproval: faker.datatype.boolean(), timeConstraints: {maxDurationSeconds: faker.datatype.number({min: 60, max: 15724800}), defaultDurationSeconds: faker.datatype.number({min: 60, max: 15724800})}, targets: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.random.word(), kind: {publisher: faker.random.word(), name: faker.random.word(), kind: faker.random.word(), icon: faker.random.word()}, fields: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.random.word(), fieldTitle: faker.random.word(), fieldDescription: faker.helpers.arrayElement([faker.random.word(), undefined]), valueLabel: faker.random.word(), valueDescription: faker.helpers.arrayElement([faker.random.word(), undefined]), value: faker.random.word()}))}))})), createdAt: faker.random.word(), name: faker.random.word(), groupsWithAccess: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.random.word())), description: faker.helpers.arrayElement([faker.random.word(), undefined])})), next: faker.helpers.arrayElement([faker.random.word(), undefined])})
+
 export const getDefaultMSW = () => [
 rest.delete('*/api/v1/admin/access-rules/:ruleId', (_req, res, ctx) => {
         return res(
@@ -112,5 +114,11 @@ ctx.json(getUserGetRequestMock()),
           ctx.delay(1000),
           ctx.status(200, 'Mocked status'),
 ctx.json(getGetGroupTargetInstructionsMock()),
+        )
+      }),rest.get('*/api/v1/access-templates', (_req, res, ctx) => {
+        return res(
+          ctx.delay(1000),
+          ctx.status(200, 'Mocked status'),
+ctx.json(getUserListAccessTemplatesMock()),
         )
       }),]

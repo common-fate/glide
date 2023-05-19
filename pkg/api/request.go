@@ -168,7 +168,15 @@ func (a *API) UserPostRequests(w http.ResponseWriter, r *http.Request) {
 		apio.Error(ctx, w, err)
 		return
 	}
-	//do we need to return anything via this api?
+
+	//check to create an access template
+	if createRequest.CreateTemplate {
+		_, err = a.Access.CreateAccessTemplate(ctx, *user, createRequest)
+		if err != nil {
+			apio.Error(ctx, w, err)
+			return
+		}
+	}
 	apio.JSON(ctx, w, result.ToAPI(), http.StatusOK)
 }
 
@@ -387,5 +395,32 @@ func (a *API) UserListRequestEvents(w http.ResponseWriter, r *http.Request, requ
 	for i, re := range qre.Result {
 		res.Events[i] = re.ToAPI()
 	}
+	apio.JSON(ctx, w, res, http.StatusOK)
+}
+
+func (a *API) UserListAccessTemplates(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	q := storage.ListAccessTemplate{}
+	// if params.NextToken != nil {
+	// 	opts = append(opts, ddb.Page(*params.NextToken))
+	// }
+
+	_, err := a.DB.Query(ctx, &q)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+
+	res := types.ListAccessTemplatesResponse{
+		AccessTemplates: []types.AccessTemplate{},
+	}
+	// if qo.NextPage != "" {
+	// 	res.Next = &qo.NextPage
+	// }
+
+	for _, template := range q.Result {
+		res.AccessTemplates = append(res.AccessTemplates, template.ToAPI())
+	}
+
 	apio.JSON(ctx, w, res, http.StatusOK)
 }
