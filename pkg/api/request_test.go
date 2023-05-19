@@ -214,31 +214,31 @@ func TestUserCreateRequest(t *testing.T) {
   "reason": "Sample reason"
 }`,
 			wantCode:  http.StatusOK,
-			wantBody:  `{"accessGroups":[{"accessRule":{"timeConstraints":{"maxDurationSeconds":0}},"createdAt":"0001-01-01T00:00:00Z","id":"group1","requestId":"req_123","requestStatus":"ACTIVE","requestedBy":{"email":"abc@gmail.com","firstName":"abc","id":"123","lastName":"xyz"},"requestedTiming":{"durationSeconds":0},"status":"APPROVED","targets":[{"accessGroupId":"group1","fields":[{"fieldTitle":"","id":"123","value":"","valueLabel":""}],"id":"xyz","requestId":"req_123","requestedBy":{"email":"abc@gmail.com","firstName":"abc","id":"123","lastName":"xyz"},"status":"ACTIVE","targetGroupId":"aws","targetKind":{"icon":"","kind":"","name":"","publisher":""}}],"updatedAt":"0001-01-01T00:00:00Z"},{"accessRule":{"timeConstraints":{"maxDurationSeconds":0}},"createdAt":"0001-01-01T00:00:00Z","id":"group2","requestId":"123","requestStatus":"ACTIVE","requestedBy":{"email":"","firstName":"","id":"","lastName":""},"requestedTiming":{"durationSeconds":0},"status":"APPROVED","targets":[{"accessGroupId":"group2","fields":[{"fieldTitle":"","id":"123","value":"","valueLabel":""}],"id":"xyz","requestId":"req_123","requestedBy":{"email":"","firstName":"","id":"","lastName":""},"status":"ACTIVE","targetGroupId":"aws","targetKind":{"icon":"","kind":"","name":"","publisher":""}}],"updatedAt":"0001-01-01T00:00:00Z"}],"id":"req_123","purpose":{"reason":"sample reason"},"requestedAt":"0001-01-01T00:00:00Z","requestedBy":{"email":"user1@gmail.com","firstName":"","id":"","lastName":""},"status":"ACTIVE"}`,
+			wantBody:  `{"accessGroups":[{"accessRule":{"timeConstraints":{"defaultDurationSeconds":0,"maxDurationSeconds":0}},"createdAt":"0001-01-01T00:00:00Z","id":"group1","requestId":"req_123","requestStatus":"ACTIVE","requestedBy":{"email":"abc@gmail.com","firstName":"abc","id":"123","lastName":"xyz"},"requestedTiming":{"durationSeconds":0},"status":"APPROVED","targets":[{"accessGroupId":"group1","fields":[{"fieldTitle":"","id":"123","value":"","valueLabel":""}],"id":"xyz","requestId":"req_123","requestedBy":{"email":"abc@gmail.com","firstName":"abc","id":"123","lastName":"xyz"},"status":"ACTIVE","targetGroupId":"aws","targetKind":{"icon":"","kind":"","name":"","publisher":""}}],"updatedAt":"0001-01-01T00:00:00Z"},{"accessRule":{"timeConstraints":{"defaultDurationSeconds":0,"maxDurationSeconds":0}},"createdAt":"0001-01-01T00:00:00Z","id":"group2","requestId":"123","requestStatus":"ACTIVE","requestedBy":{"email":"","firstName":"","id":"","lastName":""},"requestedTiming":{"durationSeconds":0},"status":"APPROVED","targets":[{"accessGroupId":"group2","fields":[{"fieldTitle":"","id":"123","value":"","valueLabel":""}],"id":"xyz","requestId":"req_123","requestedBy":{"email":"","firstName":"","id":"","lastName":""},"status":"ACTIVE","targetGroupId":"aws","targetKind":{"icon":"","kind":"","name":"","publisher":""}}],"updatedAt":"0001-01-01T00:00:00Z"}],"id":"req_123","purpose":{"reason":"sample reason"},"requestedAt":"0001-01-01T00:00:00Z","requestedBy":{"email":"user1@gmail.com","firstName":"","id":"","lastName":""},"status":"ACTIVE","targetCount":4}`,
 			createRes: r,
 		},
 
 		{
 			name: "no preflight ID",
 			give: `{
-  "groupOptions": [
-    {
-      "id": "group1",
-      "timing": {
-        "durationSeconds": 3600
-      }
-    },
-    {
-      "id": "group2",
-      "timing": {
-        "durationSeconds": 1800
-      }
-    }
-  ],
-  "preflightId": "1234567890",
-	"createTemplate": false,
-  "reason": "Sample reason"
-}`,
+		  "groupOptions": [
+		    {
+		      "id": "group1",
+		      "timing": {
+		        "durationSeconds": 3600
+		      }
+		    },
+		    {
+		      "id": "group2",
+		      "timing": {
+		        "durationSeconds": 1800
+		      }
+		    }
+		  ],
+		  "preflightId": "1234567890",
+			"createTemplate": false,
+		  "reason": "Sample reason"
+		}`,
 			wantCode:      http.StatusNotFound,
 			mockCreateErr: accesssvc.ErrPreflightNotFound,
 			wantBody:      `{"error":"preflight not found"}`,
@@ -379,7 +379,7 @@ func TestUserGetRequest(t *testing.T) {
 			wantCode:       http.StatusOK,
 			mockGetRequest: &r,
 			// canReview is false in the response
-			wantBody: `{"accessGroups":[{"accessRule":{"timeConstraints":{"maxDurationSeconds":0}},"createdAt":"0001-01-01T00:00:00Z","id":"group1","requestId":"req_123","requestStatus":"ACTIVE","requestedBy":{"email":"abc@gmail.com","firstName":"abc","id":"123","lastName":"xyz"},"requestedTiming":{"durationSeconds":0},"status":"APPROVED","targets":[{"accessGroupId":"group1","fields":[{"fieldTitle":"","id":"123","value":"","valueLabel":""}],"id":"xyz","requestId":"req_123","requestedBy":{"email":"abc@gmail.com","firstName":"abc","id":"123","lastName":"xyz"},"status":"ACTIVE","targetGroupId":"aws","targetKind":{"icon":"","kind":"","name":"","publisher":""}}],"updatedAt":"0001-01-01T00:00:00Z"},{"accessRule":{"timeConstraints":{"maxDurationSeconds":0}},"createdAt":"0001-01-01T00:00:00Z","id":"group2","requestId":"123","requestStatus":"ACTIVE","requestedBy":{"email":"","firstName":"","id":"","lastName":""},"requestedTiming":{"durationSeconds":0},"status":"APPROVED","targets":[{"accessGroupId":"group2","fields":[{"fieldTitle":"","id":"123","value":"","valueLabel":""}],"id":"xyz","requestId":"req_123","requestedBy":{"email":"","firstName":"","id":"","lastName":""},"status":"ACTIVE","targetGroupId":"aws","targetKind":{"icon":"","kind":"","name":"","publisher":""}}],"updatedAt":"0001-01-01T00:00:00Z"}],"id":"req_123","purpose":{"reason":"sample reason"},"requestedAt":"0001-01-01T00:00:00Z","requestedBy":{"email":"user1@gmail.com","firstName":"","id":"","lastName":""},"status":"ACTIVE"}`,
+			wantBody: `{"accessGroups":[{"accessRule":{"timeConstraints":{"defaultDurationSeconds":0,"maxDurationSeconds":0}},"createdAt":"0001-01-01T00:00:00Z","id":"group1","requestId":"req_123","requestStatus":"ACTIVE","requestedBy":{"email":"abc@gmail.com","firstName":"abc","id":"123","lastName":"xyz"},"requestedTiming":{"durationSeconds":0},"status":"APPROVED","targets":[{"accessGroupId":"group1","fields":[{"fieldTitle":"","id":"123","value":"","valueLabel":""}],"id":"xyz","requestId":"req_123","requestedBy":{"email":"abc@gmail.com","firstName":"abc","id":"123","lastName":"xyz"},"status":"ACTIVE","targetGroupId":"aws","targetKind":{"icon":"","kind":"","name":"","publisher":""}}],"updatedAt":"0001-01-01T00:00:00Z"},{"accessRule":{"timeConstraints":{"defaultDurationSeconds":0,"maxDurationSeconds":0}},"createdAt":"0001-01-01T00:00:00Z","id":"group2","requestId":"123","requestStatus":"ACTIVE","requestedBy":{"email":"","firstName":"","id":"","lastName":""},"requestedTiming":{"durationSeconds":0},"status":"APPROVED","targets":[{"accessGroupId":"group2","fields":[{"fieldTitle":"","id":"123","value":"","valueLabel":""}],"id":"xyz","requestId":"req_123","requestedBy":{"email":"","firstName":"","id":"","lastName":""},"status":"ACTIVE","targetGroupId":"aws","targetKind":{"icon":"","kind":"","name":"","publisher":""}}],"updatedAt":"0001-01-01T00:00:00Z"}],"id":"req_123","purpose":{"reason":"sample reason"},"requestedAt":"0001-01-01T00:00:00Z","requestedBy":{"email":"user1@gmail.com","firstName":"","id":"","lastName":""},"status":"ACTIVE","targetCount":4}`,
 		},
 		{
 			name:              "noRequestFound",
@@ -453,7 +453,7 @@ func TestUserListRequests(t *testing.T) {
 				Request: r.Request,
 				Groups:  r.Groups,
 			}}},
-			wantBody: `{"next":null,"requests":[{"accessGroups":[{"accessRule":{"timeConstraints":{"maxDurationSeconds":0}},"createdAt":"0001-01-01T00:00:00Z","id":"group1","requestId":"req_123","requestStatus":"ACTIVE","requestedBy":{"email":"abc@gmail.com","firstName":"abc","id":"123","lastName":"xyz"},"requestedTiming":{"durationSeconds":0},"status":"APPROVED","targets":[{"accessGroupId":"group1","fields":[{"fieldTitle":"","id":"123","value":"","valueLabel":""}],"id":"xyz","requestId":"req_123","requestedBy":{"email":"abc@gmail.com","firstName":"abc","id":"123","lastName":"xyz"},"status":"ACTIVE","targetGroupId":"aws","targetKind":{"icon":"","kind":"","name":"","publisher":""}}],"updatedAt":"0001-01-01T00:00:00Z"},{"accessRule":{"timeConstraints":{"maxDurationSeconds":0}},"createdAt":"0001-01-01T00:00:00Z","id":"group2","requestId":"123","requestStatus":"ACTIVE","requestedBy":{"email":"","firstName":"","id":"","lastName":""},"requestedTiming":{"durationSeconds":0},"status":"APPROVED","targets":[{"accessGroupId":"group2","fields":[{"fieldTitle":"","id":"123","value":"","valueLabel":""}],"id":"xyz","requestId":"req_123","requestedBy":{"email":"","firstName":"","id":"","lastName":""},"status":"ACTIVE","targetGroupId":"aws","targetKind":{"icon":"","kind":"","name":"","publisher":""}}],"updatedAt":"0001-01-01T00:00:00Z"}],"id":"req_123","purpose":{"reason":"sample reason"},"requestedAt":"0001-01-01T00:00:00Z","requestedBy":{"email":"user1@gmail.com","firstName":"","id":"","lastName":""},"status":"ACTIVE"}]}`,
+			wantBody: `{"next":null,"requests":[{"accessGroups":[{"accessRule":{"timeConstraints":{"defaultDurationSeconds":0,"maxDurationSeconds":0}},"createdAt":"0001-01-01T00:00:00Z","id":"group1","requestId":"req_123","requestStatus":"ACTIVE","requestedBy":{"email":"abc@gmail.com","firstName":"abc","id":"123","lastName":"xyz"},"requestedTiming":{"durationSeconds":0},"status":"APPROVED","targets":[{"accessGroupId":"group1","fields":[{"fieldTitle":"","id":"123","value":"","valueLabel":""}],"id":"xyz","requestId":"req_123","requestedBy":{"email":"abc@gmail.com","firstName":"abc","id":"123","lastName":"xyz"},"status":"ACTIVE","targetGroupId":"aws","targetKind":{"icon":"","kind":"","name":"","publisher":""}}],"updatedAt":"0001-01-01T00:00:00Z"},{"accessRule":{"timeConstraints":{"defaultDurationSeconds":0,"maxDurationSeconds":0}},"createdAt":"0001-01-01T00:00:00Z","id":"group2","requestId":"123","requestStatus":"ACTIVE","requestedBy":{"email":"","firstName":"","id":"","lastName":""},"requestedTiming":{"durationSeconds":0},"status":"APPROVED","targets":[{"accessGroupId":"group2","fields":[{"fieldTitle":"","id":"123","value":"","valueLabel":""}],"id":"xyz","requestId":"req_123","requestedBy":{"email":"","firstName":"","id":"","lastName":""},"status":"ACTIVE","targetGroupId":"aws","targetKind":{"icon":"","kind":"","name":"","publisher":""}}],"updatedAt":"0001-01-01T00:00:00Z"}],"id":"req_123","purpose":{"reason":"sample reason"},"requestedAt":"0001-01-01T00:00:00Z","requestedBy":{"email":"user1@gmail.com","firstName":"","id":"","lastName":""},"status":"ACTIVE","targetCount":4}]}`,
 		},
 		{
 			name:           "ok with no requests",
@@ -478,7 +478,7 @@ func TestUserListRequests(t *testing.T) {
 					Request: r.Request,
 					Groups:  r.Groups,
 				}}},
-			wantBody: `{"next":null,"requests":[{"accessGroups":[{"accessRule":{"timeConstraints":{"maxDurationSeconds":0}},"createdAt":"0001-01-01T00:00:00Z","id":"group1","requestId":"req_123","requestStatus":"ACTIVE","requestedBy":{"email":"abc@gmail.com","firstName":"abc","id":"123","lastName":"xyz"},"requestedTiming":{"durationSeconds":0},"status":"APPROVED","targets":[{"accessGroupId":"group1","fields":[{"fieldTitle":"","id":"123","value":"","valueLabel":""}],"id":"xyz","requestId":"req_123","requestedBy":{"email":"abc@gmail.com","firstName":"abc","id":"123","lastName":"xyz"},"status":"ACTIVE","targetGroupId":"aws","targetKind":{"icon":"","kind":"","name":"","publisher":""}}],"updatedAt":"0001-01-01T00:00:00Z"},{"accessRule":{"timeConstraints":{"maxDurationSeconds":0}},"createdAt":"0001-01-01T00:00:00Z","id":"group2","requestId":"123","requestStatus":"ACTIVE","requestedBy":{"email":"","firstName":"","id":"","lastName":""},"requestedTiming":{"durationSeconds":0},"status":"APPROVED","targets":[{"accessGroupId":"group2","fields":[{"fieldTitle":"","id":"123","value":"","valueLabel":""}],"id":"xyz","requestId":"req_123","requestedBy":{"email":"","firstName":"","id":"","lastName":""},"status":"ACTIVE","targetGroupId":"aws","targetKind":{"icon":"","kind":"","name":"","publisher":""}}],"updatedAt":"0001-01-01T00:00:00Z"}],"id":"req_123","purpose":{"reason":"sample reason"},"requestedAt":"0001-01-01T00:00:00Z","requestedBy":{"email":"user1@gmail.com","firstName":"","id":"","lastName":""},"status":"ACTIVE"}]}`,
+			wantBody: `{"next":null,"requests":[{"accessGroups":[{"accessRule":{"timeConstraints":{"defaultDurationSeconds":0,"maxDurationSeconds":0}},"createdAt":"0001-01-01T00:00:00Z","id":"group1","requestId":"req_123","requestStatus":"ACTIVE","requestedBy":{"email":"abc@gmail.com","firstName":"abc","id":"123","lastName":"xyz"},"requestedTiming":{"durationSeconds":0},"status":"APPROVED","targets":[{"accessGroupId":"group1","fields":[{"fieldTitle":"","id":"123","value":"","valueLabel":""}],"id":"xyz","requestId":"req_123","requestedBy":{"email":"abc@gmail.com","firstName":"abc","id":"123","lastName":"xyz"},"status":"ACTIVE","targetGroupId":"aws","targetKind":{"icon":"","kind":"","name":"","publisher":""}}],"updatedAt":"0001-01-01T00:00:00Z"},{"accessRule":{"timeConstraints":{"defaultDurationSeconds":0,"maxDurationSeconds":0}},"createdAt":"0001-01-01T00:00:00Z","id":"group2","requestId":"123","requestStatus":"ACTIVE","requestedBy":{"email":"","firstName":"","id":"","lastName":""},"requestedTiming":{"durationSeconds":0},"status":"APPROVED","targets":[{"accessGroupId":"group2","fields":[{"fieldTitle":"","id":"123","value":"","valueLabel":""}],"id":"xyz","requestId":"req_123","requestedBy":{"email":"","firstName":"","id":"","lastName":""},"status":"ACTIVE","targetGroupId":"aws","targetKind":{"icon":"","kind":"","name":"","publisher":""}}],"updatedAt":"0001-01-01T00:00:00Z"}],"id":"req_123","purpose":{"reason":"sample reason"},"requestedAt":"0001-01-01T00:00:00Z","requestedBy":{"email":"user1@gmail.com","firstName":"","id":"","lastName":""},"status":"ACTIVE","targetCount":4}]}`,
 		},
 	}
 

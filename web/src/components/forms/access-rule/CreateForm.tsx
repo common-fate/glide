@@ -118,6 +118,10 @@ const CreateAccessRuleForm = () => {
   const onSubmit = async (data: AccessRuleFormData) => {
     console.debug("submit form data", { data });
 
+    console.log("rule data", accessRuleFormDataToApi(data));
+
+    return;
+
     try {
       await adminCreateAccessRule(accessRuleFormDataToApi(data));
       toast({
