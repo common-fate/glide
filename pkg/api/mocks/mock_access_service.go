@@ -52,6 +52,21 @@ func (mr *MockAccessServiceMockRecorder) CancelRequest(arg0, arg1 interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CancelRequest", reflect.TypeOf((*MockAccessService)(nil).CancelRequest), arg0, arg1)
 }
 
+// CreateAccessTemplate mocks base method.
+func (m *MockAccessService) CreateAccessTemplate(arg0 context.Context, arg1 identity.User, arg2 types.CreateAccessRequestRequest) (*access.AccessTemplate, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateAccessTemplate", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*access.AccessTemplate)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateAccessTemplate indicates an expected call of CreateAccessTemplate.
+func (mr *MockAccessServiceMockRecorder) CreateAccessTemplate(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAccessTemplate", reflect.TypeOf((*MockAccessService)(nil).CreateAccessTemplate), arg0, arg1, arg2)
+}
+
 // CreateRequest mocks base method.
 func (m *MockAccessService) CreateRequest(arg0 context.Context, arg1 identity.User, arg2 types.CreateAccessRequestRequest) (*access.RequestWithGroupsWithTargets, error) {
 	m.ctrl.T.Helper()

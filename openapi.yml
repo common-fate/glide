@@ -1104,6 +1104,16 @@ paths:
         "500":
           $ref: "#/components/responses/ErrorResponse"
       operationId: get-group-target-instructions
+  /api/v1/access-templates:
+    get:
+      summary: Your GET endpoint
+      tags: []
+      responses:
+        "200":
+          $ref: "#/components/responses/ListAccessTemplatesResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      operationId: user-list-access-templates
 components:
   schemas:
     User:
@@ -1493,6 +1503,56 @@ components:
       type: object
       x-stoplight:
         id: 9f3a10a488434
+      properties:
+        id:
+          type: string
+        requiresApproval:
+          type: boolean
+        timeConstraints:
+          $ref: "#/components/schemas/AccessRuleTimeConstraints"
+        targets:
+          type: array
+          items:
+            $ref: "#/components/schemas/Target"
+      required:
+        - id
+        - requiresApproval
+        - timeConstraints
+        - targets
+    AccessTemplate:
+      title: AccessTemplate
+      x-stoplight:
+        id: 398878d1a70d0
+      type: object
+      properties:
+        id:
+          type: string
+        accessGroups:
+          type: array
+          items:
+            $ref: "#/components/schemas/AccessTemplateAccessGroup"
+        createdAt:
+          type: string
+          x-go-type: time.Time
+        name:
+          type: string
+        groupsWithAccess:
+          type: array
+          items:
+            type: string
+        description:
+          type: string
+      required:
+        - id
+        - accessGroups
+        - createdAt
+        - name
+        - groupsWithAccess
+    AccessTemplateAccessGroup:
+      title: AccessTemplateAccessGroup
+      type: object
+      x-stoplight:
+        id: 2d092a0e9a6d1
       properties:
         id:
           type: string
@@ -2480,6 +2540,21 @@ components:
                 $ref: "#/components/schemas/RequestAccessGroupTargetAccessInstructions"
             required:
               - instructions
+    ListAccessTemplatesResponse:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              accessTemplates:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AccessTemplate"
+              next:
+                type: string
+            required:
+              - accessTemplates
   examples: {}
   securitySchemes: {}
   requestBodies:
@@ -2685,9 +2760,14 @@ components:
                   $ref: "#/components/schemas/CreateAccessRequestGroupOptions"
               reason:
                 type: string
+              createTemplate:
+                type: boolean
+              templateName:
+                type: string
             required:
               - preflightId
               - groupOptions
+              - createTemplate
           examples: {}
 tags:
   - name: End User
