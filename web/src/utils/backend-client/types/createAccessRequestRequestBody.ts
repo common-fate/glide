@@ -11,4 +11,6 @@ export type CreateAccessRequestRequestBody = {
   preflightId: string;
   groupOptions: CreateAccessRequestGroupOptions[];
   reason?: string;
+  createTemplate: boolean;
+  templateName?: string;
 };

@@ -25,7 +25,8 @@ import type {
   UserListRequestsParams,
   Request,
   CreateAccessRequestRequestBody,
-  AccessInstructionsResponseResponse
+  AccessInstructionsResponseResponse,
+  ListAccessTemplatesResponseResponse
 } from '.././types'
 import { customInstance } from '../../custom-instance'
 import type { ErrorType } from '../../custom-instance'
@@ -406,6 +407,44 @@ export const useGetGroupTargetInstructions = <TError = ErrorType<ErrorResponseRe
   const isEnabled = swrOptions?.enabled !== false && !!(targetId)
     const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetGroupTargetInstructionsKey(targetId) : null);
   const swrFn = () => getGroupTargetInstructions(targetId, requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+/**
+ * @summary Your GET endpoint
+ */
+export const userListAccessTemplates = (
+    
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<ListAccessTemplatesResponseResponse>(
+      {url: `/api/v1/access-templates`, method: 'get'
+    },
+      options);
+    }
+  
+
+export const getUserListAccessTemplatesKey = () => [`/api/v1/access-templates`];
+
+    
+export type UserListAccessTemplatesQueryResult = NonNullable<Awaited<ReturnType<typeof userListAccessTemplates>>>
+export type UserListAccessTemplatesQueryError = ErrorType<ErrorResponseResponse>
+
+export const useUserListAccessTemplates = <TError = ErrorType<ErrorResponseResponse>>(
+  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userListAccessTemplates>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserListAccessTemplatesKey() : null);
+  const swrFn = () => userListAccessTemplates(requestOptions);
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 

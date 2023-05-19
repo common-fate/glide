@@ -7,6 +7,7 @@ import {
   Button,
   ButtonGroup,
   Center,
+  Checkbox,
   Container,
   Flex,
   FormControl,
@@ -25,6 +26,7 @@ import {
   Skeleton,
   Spacer,
   Stack,
+  Switch,
   Text,
   Textarea,
   chakra,
@@ -98,6 +100,8 @@ const Home = () => {
       });
     }
   };
+
+  // const accessTemplateSelected = watch("createTemplate", false);
 
   return (
     <div>
@@ -251,6 +255,39 @@ const Home = () => {
                     bg="neutrals.0"
                     {...methods.register("reason")}
                     onBlur={() => void methods.trigger("reason")}
+                  />
+                  {methods.formState.errors?.reason?.message && (
+                    <FormErrorMessage>
+                      {methods.formState.errors.reason?.message?.toString()}
+                    </FormErrorMessage>
+                  )}
+                  <Switch
+                    {...methods.register("createTemplate")}
+                    onBlur={() => void methods.trigger("createTemplate")}
+                    mt="30px"
+                    mb="10px"
+                  >
+                    Create Access Template
+                  </Switch>
+                  <Text
+                    textStyle="Body/Small"
+                    color="neutrals.400"
+                    decoration="none"
+                    mb="30px"
+                  >
+                    Access Templates will be visible to everyone with access to
+                    Common Fate
+                  </Text>
+                  <FormLabel htmlFor="reason">
+                    <Text textStyle={"Body/Medium"}>Access Template Name</Text>
+                  </FormLabel>
+
+                  <Input
+                    disabled={!methods.watch("createTemplate", false)}
+                    placeholder="Template Name"
+                    bg="neutrals.0"
+                    {...methods.register("templateName")}
+                    onBlur={() => void methods.trigger("templateName")}
                   />
                   {methods.formState.errors?.reason?.message && (
                     <FormErrorMessage>
