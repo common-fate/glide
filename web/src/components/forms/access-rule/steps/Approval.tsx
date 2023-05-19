@@ -22,6 +22,7 @@ import { CFAvatar } from "../../../CFAvatar";
 
 export const ApprovalStep: React.FC = () => {
   const methods = useFormContext<AccessRuleFormData>();
+  // @ts-ignore
   const approval = methods.watch("approval");
   // If approval is required, then at least one user or one group needs to be set
   const approverRequired =

@@ -5,15 +5,12 @@ import (
 	"os"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/common-fate/common-fate/pkg/cachesync"
 	"github.com/common-fate/common-fate/pkg/handler"
-	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/service/cachesvc"
 	"github.com/common-fate/common-fate/pkg/service/requestroutersvc"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 	"github.com/joho/godotenv"
 	"github.com/urfave/cli/v2"
 )
@@ -97,26 +94,28 @@ var targetsCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-		q.Result.Schema.Properties = map[string]providerregistrysdk.TargetField{"log_group": {
-			Resource: aws.String("LogGroup"),
-		}}
 
-		ar := rule.AccessRule{
-			ID: "demo-rule",
-			Targets: []rule.Target{
-				{
-					TargetGroup: *q.Result,
-					FieldFilterExpessions: map[string]rule.FieldFilterExpessions{
-						"accountId":        {},
-						"permissionSetArn": {},
-					},
-				},
-			},
-		}
-		err = db.Put(ctx, &ar)
-		if err != nil {
-			return err
-		}
+		// FIX ME:
+		// q.Result.Schema.Properties = map[string]providerregistrysdk.TargetField{"log_group": {
+		// 	Resource: aws.String("LogGroup"),
+		// }}
+
+		// ar := rule.AccessRule{
+		// 	ID: "demo-rule",
+		// 	Targets: []rule.Target{
+		// 		{
+		// 			TargetGroup: *q.Result,
+		// 			FieldFilterExpessions: map[string]rule.FieldFilterExpessions{
+		// 				"accountId":        {},
+		// 				"permissionSetArn": {},
+		// 			},
+		// 		},
+		// 	},
+		// }
+		// err = db.Put(ctx, &ar)
+		// if err != nil {
+		// 	return err
+		// }
 
 		err = s.RefreshCachedTargets(ctx)
 		if err != nil {

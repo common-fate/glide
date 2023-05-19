@@ -22,6 +22,8 @@ type Props<T, K extends keyof T> = {
   /** renderFn takes T and passes it to the react child */
   renderFnTag: (item: T) => React.ReactNode | React.ReactNode[];
   renderFnMenuSelect: (item: T) => React.ReactNode | React.ReactNode[];
+  /** onlyOne - limits selection to only one option */
+  onlyOne?: boolean;
 };
 
 const SelectMultiGeneric = <T, K extends keyof T>({
@@ -32,6 +34,7 @@ const SelectMultiGeneric = <T, K extends keyof T>({
   boxProps,
   renderFnMenuSelect,
   renderFnTag,
+  onlyOne,
 }: Props<T, K>) => {
   const [input, setInput] = useState("");
 
@@ -132,6 +135,7 @@ const SelectMultiGeneric = <T, K extends keyof T>({
         placeholder="Search for a provider..."
         align="center"
         bg="white !important"
+        borderColor="neutrals.300"
         rounded="md"
         px={0}
         outline="none"
@@ -186,6 +190,7 @@ const SelectMultiGeneric = <T, K extends keyof T>({
             onKeyDown={handleSearchInputKeyDown}
             onChange={(e) => setInput(e.target.value)}
             onClick={setOpen.on}
+            placeholder="Search for a provider..."
             type="text"
             flex="1"
             minW="120px"
@@ -234,7 +239,7 @@ const SelectMultiGeneric = <T, K extends keyof T>({
                 role="group"
                 align="center"
                 bg="white"
-                checked={true}
+                // checked={true}
                 data-checkbox={true}
                 aria-checked={true}
                 _hover={{
@@ -245,6 +250,8 @@ const SelectMultiGeneric = <T, K extends keyof T>({
                 }}
                 onClick={() => {
                   // redundancy check, ensure not already in selected array
+                  setOpen.off();
+
                   if (
                     selectedItems.find(
                       (item) =>
