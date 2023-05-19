@@ -12,6 +12,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/service/rulesvc"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/target"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb/ddbmock"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
