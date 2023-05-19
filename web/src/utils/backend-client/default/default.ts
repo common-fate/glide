@@ -12,6 +12,8 @@ import type {
 } from 'swr'
 import type {
   ErrorResponseResponse,
+  ListTargetGroupResourceResponse,
+  ResourceFilter,
   ListTargetGroupRoutesResponse,
   ListEntitlementsResponseResponse,
   ListTargetsResponseResponse,
@@ -47,6 +49,24 @@ export const adminDeleteAccessRule = (
  options?: SecondParameter<typeof customInstance>) => {
       return customInstance<void>(
       {url: `/api/v1/admin/access-rules/${ruleId}`, method: 'delete'
+    },
+      options);
+    }
+  
+
+/**
+ * List the filtered resources associated with the provided resourceType for given target-group-id.
+ * @summary Filter TargetGroup Resources
+ */
+export const adminFilterTargetGroupResources = (
+    id: string,
+    resourceType: string,
+    resourceFilter: ResourceFilter,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<ListTargetGroupResourceResponse>(
+      {url: `/api/v1/admin/target-groups/${id}/resources/${resourceType}/filters`, method: 'post',
+      headers: {'Content-Type': 'application/json', },
+      data: resourceFilter
     },
       options);
     }

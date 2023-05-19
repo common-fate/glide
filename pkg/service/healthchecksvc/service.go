@@ -3,8 +3,8 @@ package healthchecksvc
 import (
 	"context"
 	"fmt"
-	"reflect"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/common-fate/pkg/handler"
 	"github.com/common-fate/common-fate/pkg/providerschema"
@@ -191,7 +191,7 @@ func validateRoute(route target.Route, group target.Group, dr *providerregistrys
 	targets := *dr.Schema.Targets
 	kindSchema, ok := targets[route.Kind]
 	if ok {
-		route.Valid = validateProviderSchema(group.Schema.Properties, kindSchema.Properties)
+		route.Valid = validateProviderSchema(group.Schema, kindSchema.Properties)
 	} else {
 		// invalid route because the kind does not exist in the schema
 		route.Valid = false
@@ -201,17 +201,25 @@ func validateRoute(route target.Route, group target.Group, dr *providerregistrys
 }
 
 // validateProviderSchema asserts that the target schemas are equivalent in structure, comparing only the keys and value types
-func validateProviderSchema(schema1 map[string]providerregistrysdk.TargetField, schema2 map[string]providerregistrysdk.TargetField) bool {
-	var in = []map[string]providerregistrysdk.TargetField{schema1, schema2}
-	var compare = make([]map[string]*string, 2)
-	for i := range compare {
-		m := make(map[string]*string)
-		for key, arg := range in[i] {
-			m[key] = arg.Resource
-		}
-		compare[i] = m
+func validateProviderSchema(schema1 target.GroupSchema, schema2 map[string]providerregistrysdk.TargetField) bool {
+	// Check that the number of fields in each schema is the same
+	if len(schema1.Target.Properties) != len(schema2) {
+		return false
 	}
-	return reflect.DeepEqual(compare[0], compare[1])
+
+	// Check that the field ids and resource types match
+	for fieldID, fieldSchema := range schema1.Target.Properties {
+		if targetField, ok := schema2[fieldID]; ok {
+			if fieldSchema.Type != targetField.Type || aws.ToString(fieldSchema.Resource) != aws.ToString(targetField.Resource) {
+				return false
+			}
+
+		} else {
+			return false
+		}
+	}
+
+	return true
 }
 
 // The logic in the Check method is split out into small steps, these steps can be more easily unit tested

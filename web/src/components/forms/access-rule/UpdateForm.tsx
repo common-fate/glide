@@ -77,7 +77,7 @@ const UpdateAccessRuleForm = ({ data }: Props) => {
         }
       }
 
-      const f: AccessRuleFormData = {
+      const f = {
         description: data.description,
         groups: data.groups,
         name: data.name,

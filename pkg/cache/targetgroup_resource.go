@@ -8,8 +8,9 @@ import (
 )
 
 type Resource struct {
-	ID   string `json:"id" dynamodbav:"id"`
-	Name string `json:"name" dynamodbav:"name"`
+	ID         string                 `json:"id" dynamodbav:"id"`
+	Name       string                 `json:"name" dynamodbav:"name"`
+	Attributes map[string]interface{} `json:"attributes" dynamodbav:"attributes"`
 }
 
 type TargetGroupResource struct {

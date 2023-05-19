@@ -1,6 +1,6 @@
 # Running the API with VS-Code debugger
 
-1. Create the file `.vscode/launch.json` and copy this launch configuration in.
+1. Create the file `.vscode/launch.json` and copy this launch configuration in:
 
 ```
 {

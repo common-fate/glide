@@ -7,4 +7,4 @@
  */
 import type { ResourceFilter } from './resourceFilter';
 
-export type CreateAccessRuleTargetFieldFilterExpessions = {[key: string]: ResourceFilter};
+export type ResouceFilterRequestBody = ResourceFilter;

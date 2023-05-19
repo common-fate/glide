@@ -13,7 +13,6 @@ import (
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/ddb/ddbmock"
-	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
@@ -38,8 +37,10 @@ func TestCreateAccessRule(t *testing.T) {
 
 		Targets: []types.CreateAccessRuleTarget{
 			{
-				TargetGroupId:         "test",
-				FieldFilterExpessions: make(map[string]interface{}),
+				TargetGroupId: "test",
+				FieldFilterExpessions: types.CreateAccessRuleTarget_FieldFilterExpessions{
+					AdditionalProperties: nil,
+				},
 			},
 		},
 	}
@@ -70,12 +71,12 @@ func TestCreateAccessRule(t *testing.T) {
 						Kind:      "Account",
 						Version:   "v1.1.1",
 					},
-					Schema:    providerregistrysdk.Target{},
+					Schema:    target.GroupSchema{},
 					Icon:      "",
 					CreatedAt: now,
 					UpdatedAt: now,
 				},
-				FieldFilterExpessions: map[string]rule.FieldFilterExpessions{},
+				FieldFilterExpessions: map[string][]types.Operation{},
 			},
 		},
 
@@ -103,7 +104,7 @@ func TestCreateAccessRule(t *testing.T) {
 					Kind:      "Account",
 					Version:   "v1.1.1",
 				},
-				Schema:    providerregistrysdk.Target{},
+				Schema:    target.GroupSchema{},
 				Icon:      "",
 				CreatedAt: now,
 				UpdatedAt: now,
@@ -122,7 +123,7 @@ func TestCreateAccessRule(t *testing.T) {
 					Kind:      "Account",
 					Version:   "v1.1.1",
 				},
-				Schema:    providerregistrysdk.Target{},
+				Schema:    target.GroupSchema{},
 				Icon:      "",
 				CreatedAt: now,
 				UpdatedAt: now,
@@ -199,7 +200,7 @@ func TestProcessTarget(t *testing.T) {
 			Version:   "test",
 			Kind:      "test",
 		},
-		Schema: providerregistrysdk.Target{},
+		Schema: target.GroupSchema{},
 	}
 
 	testcases := []testcase{
@@ -207,15 +208,17 @@ func TestProcessTarget(t *testing.T) {
 			name: "ok ",
 			give: []types.CreateAccessRuleTarget{
 				{
-					TargetGroupId:         "123",
-					FieldFilterExpessions: make(map[string]interface{}),
+					TargetGroupId: "123",
+					FieldFilterExpessions: types.CreateAccessRuleTarget_FieldFilterExpessions{
+						AdditionalProperties: nil,
+					},
 				},
 			},
 			wantTargetGroupLookup: &tg1,
 			want: []rule.Target{
 				{
 					TargetGroup:           tg1,
-					FieldFilterExpessions: map[string]rule.FieldFilterExpessions{},
+					FieldFilterExpessions: map[string][]types.Operation{},
 				},
 			},
 		},
@@ -223,12 +226,16 @@ func TestProcessTarget(t *testing.T) {
 			name: "duplicate target group fails ",
 			give: []types.CreateAccessRuleTarget{
 				{
-					TargetGroupId:         "123",
-					FieldFilterExpessions: make(map[string]interface{}),
+					TargetGroupId: "123",
+					FieldFilterExpessions: types.CreateAccessRuleTarget_FieldFilterExpessions{
+						AdditionalProperties: nil,
+					},
 				},
 				{
-					TargetGroupId:         "123",
-					FieldFilterExpessions: make(map[string]interface{}),
+					TargetGroupId: "123",
+					FieldFilterExpessions: types.CreateAccessRuleTarget_FieldFilterExpessions{
+						AdditionalProperties: nil,
+					},
 				},
 			},
 			wantTargetGroupLookup: &tg1,
@@ -239,8 +246,10 @@ func TestProcessTarget(t *testing.T) {
 			name: "target group not found",
 			give: []types.CreateAccessRuleTarget{
 				{
-					TargetGroupId:         "123",
-					FieldFilterExpessions: make(map[string]interface{}),
+					TargetGroupId: "123",
+					FieldFilterExpessions: types.CreateAccessRuleTarget_FieldFilterExpessions{
+						AdditionalProperties: nil,
+					},
 				},
 			},
 			wantTargetGroupLookup:    nil,
