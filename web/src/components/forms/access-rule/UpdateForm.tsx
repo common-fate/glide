@@ -83,6 +83,7 @@ const UpdateAccessRuleForm = ({ data }: Props) => {
         name: data.name,
         timeConstraints: {
           maxDurationSeconds: data.timeConstraints.maxDurationSeconds,
+          defaultDurationSeconds: data.timeConstraints.defaultDurationSeconds,
         },
         approval: {
           required: approvalRequired,

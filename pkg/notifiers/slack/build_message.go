@@ -77,7 +77,7 @@ func BuildRequestReviewMessage(o RequestMessageOpts) (summary string, msg slack.
 	}
 
 	start, _ := group.GetInterval(access.WithNow(clock.New().Now()))
-	when := start.Format(time.Kitchen)
+	when := types.ExpiryString(start)
 
 	requestDetails := []*slack.TextBlockObject{
 		{
@@ -193,6 +193,7 @@ func BuildRequestDetailMessage(o RequestDetailMessageOpts) (summary string, msg 
 
 	duration := end.Sub(start) // if this is off by a couple seconds it could make the duration values inconsistent
 
+	when := types.ExpiryString(end)
 	requestDetails := []*slack.TextBlockObject{
 		{
 			Type: "mrkdwn",
@@ -200,7 +201,7 @@ func BuildRequestDetailMessage(o RequestDetailMessageOpts) (summary string, msg 
 		},
 		{
 			Type: "mrkdwn",
-			Text: fmt.Sprintf("*Expires:*\n%s", end),
+			Text: fmt.Sprintf("*Expires:*\n%s", when),
 		},
 	}
 

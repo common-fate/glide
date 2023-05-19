@@ -96,6 +96,9 @@ func (s *Service) CreateAccessRule(ctx context.Context, userID string, in types.
 	if in.TimeConstraints.MaxDurationSeconds > 26*7*24*3600 {
 		return nil, errors.New("access rule cannot be longer than 6 months")
 	}
+	if in.TimeConstraints.DefaultDurationSeconds > 26*7*24*3600 {
+		return nil, errors.New("access rule cannot be longer than 6 months")
+	}
 
 	approvals := rule.Approval{}
 

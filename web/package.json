@@ -71,12 +71,23 @@
     "eslint-plugin-prettier": "^4.2.1",
     "msw": "^0.39.2",
     "openapi-client-axios-typegen": "^5.0.2",
-    "orval": "^6.7.1",
+    "orval": "^6.10.1",
     "prettier": "^2.8.8",
     "rollup-plugin-node-polyfills": "^0.2.1",
     "source-map-explorer": "^2.5.2",
     "typescript": "4.9.4",
     "vite": "^4.0.4",
     "vite-plugin-checker": "^0.5.3"
+  },
+  "pnpm": {
+    "overrides": {
+      "json5@>=2.0.0 <2.2.2": ">=2.2.2",
+      "vm2@<3.9.15": ">=3.9.15",
+      "decode-uri-component@<0.2.1": ">=0.2.1",
+      "vm2@<3.9.16": ">=3.9.16",
+      "vm2@<3.9.17": ">=3.9.17",
+      "yaml@>=2.0.0-5 <2.2.2": ">=2.2.2",
+      "vm2@<3.9.18": ">=3.9.18"
+    }
   }
 }
