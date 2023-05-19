@@ -71,7 +71,7 @@
     "eslint-plugin-prettier": "^4.2.1",
     "msw": "^0.39.2",
     "openapi-client-axios-typegen": "^5.0.2",
-    "orval": "^6.7.1",
+    "orval": "^6.10.1",
     "prettier": "^2.8.8",
     "rollup-plugin-node-polyfills": "^0.2.1",
     "source-map-explorer": "^2.5.2",
