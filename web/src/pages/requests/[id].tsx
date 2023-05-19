@@ -787,7 +787,7 @@ export const ApproveRejectDuration = ({
             })
               .then((e) => {
                 toast({
-                  title: "Request Declined",
+                  title: "Request Approved",
                   status: "success",
                   variant: "subtle",
                   duration: 2200,
@@ -796,7 +796,7 @@ export const ApproveRejectDuration = ({
               })
               .catch((e) => {
                 toast({
-                  title: "Error Declining Request",
+                  title: "Error Approving Request",
                   status: "error",
                   variant: "subtle",
                   duration: 2200,
@@ -820,7 +820,7 @@ export const ApproveRejectDuration = ({
             })
               .then((e) => {
                 toast({
-                  title: "Request Approved",
+                  title: "Request Declined",
                   status: "success",
                   variant: "subtle",
                   duration: 2200,
@@ -829,7 +829,7 @@ export const ApproveRejectDuration = ({
               })
               .catch((e) => {
                 toast({
-                  title: "Error Approving Request",
+                  title: "Error Declining Request",
                   status: "error",
                   variant: "subtle",
                   duration: 2200,
