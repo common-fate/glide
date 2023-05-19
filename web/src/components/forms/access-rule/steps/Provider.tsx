@@ -24,7 +24,7 @@ import {
 
 export const TargetStep: React.FC = () => {
   const methods = useFormContext<AccessRuleFormData>();
-  const targets = methods.watch("targetgroups");
+  // const targets = methods.watch("targetgroups");
 
   type MockProvider = {
     name: string;

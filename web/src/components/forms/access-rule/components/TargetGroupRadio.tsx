@@ -41,7 +41,7 @@ const TargetGroupDropdown: React.FC<TargetGroupDropdownProps> = (props) => {
   );
 
   const methods = useFormContext<AccessRuleFormData>();
-  const targetgroups = methods.watch("targetgroups");
+  // const targetgroups = methods.watch("targetgroups");
 
   // methods.setValue(`targetgroups[${index}].id`, false);
 
@@ -121,11 +121,11 @@ const TargetGroupDropdown: React.FC<TargetGroupDropdownProps> = (props) => {
                 setSelectedItems={setSelectedTargetgroup}
                 boxProps={{ w: "100%" }}
                 renderFnTag={(item) => [
-                  <ProviderIcon mr={1} shortType={item?.icon} />,
+                  <ProviderIcon mr={1} shortType={item?.icon as ShortTypes} />,
                   item.id,
                 ]}
                 renderFnMenuSelect={(item) => [
-                  <ProviderIcon mr={1} shortType={item.icon} mr={2} />,
+                  <ProviderIcon shortType={item.icon as ShortTypes} mr={2} />,
                   item.id,
                 ]}
               />

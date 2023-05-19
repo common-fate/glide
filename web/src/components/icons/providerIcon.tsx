@@ -65,8 +65,10 @@ export const shortTypesArr: ShortTypes[] = [
 // use english title case
 export const shortTypeValues: { [key in ShortTypes]: string } = {
   "aws": "AWS",
+  "aws-sso": "AWS",
   "okta": "Okta",
   "azure": "Azure",
+  "azure-ad": "AzureAd",
   "1pass": "1Password",
   "github": "GitHub",
   "snowflake": "Snowflake",
@@ -77,7 +79,9 @@ export const shortTypeValues: { [key in ShortTypes]: string } = {
   "ecs-exec-sso": "ECS",
   "aws-eks-roles-sso": "EKS",
   "aws-cloudwatch": "Cloudwatch",
+  "cloudwatch": "Cloudwatch",
   "flask": "Flask",
+  "google": "Google",
 };
 
 interface Props extends IconProps {
