@@ -7,6 +7,7 @@ import {
   Button,
   ButtonGroup,
   Center,
+  Checkbox,
   Container,
   Flex,
   FormControl,
@@ -22,8 +23,10 @@ import {
   PopoverHeader,
   PopoverTrigger,
   Portal,
+  Skeleton,
   Spacer,
   Stack,
+  Switch,
   Text,
   Textarea,
   chakra,
@@ -68,7 +71,7 @@ const Home = () => {
   } = useMatch();
   const navigate = useNavigate();
   const toast = useToast();
-  const { data: preflight } = useUserGetPreflight(preflightId);
+  const { data: preflight, ...network } = useUserGetPreflight(preflightId);
 
   const methods = useForm<CreateAccessRequestRequestBody>({
     defaultValues: {
@@ -98,6 +101,8 @@ const Home = () => {
     }
   };
 
+  // const accessTemplateSelected = watch("createTemplate", false);
+
   return (
     <div>
       <UserLayout>
@@ -108,11 +113,15 @@ const Home = () => {
           <form onSubmit={methods.handleSubmit(onSubmit)}>
             <Center pt={{ base: 12, lg: 32 }}>
               <Stack
+                maxW={{
+                  base: "100%",
+                  md: "container.md",
+                }}
+                p={12}
+                rounded="md"
                 spacing={7}
                 background="neutrals.100"
-                px={"200px"}
-                pt={"100px"}
-                pb={"150px"}
+                w="100%"
               >
                 <Breadcrumb>
                   <BreadcrumbItem>
@@ -125,94 +134,114 @@ const Home = () => {
                   </BreadcrumbItem>
                 </Breadcrumb>
                 <Stack spacing={2} w="100%">
-                  {preflight?.accessGroups.map((group, i) => {
-                    return (
-                      <FormControl
-                        isInvalid={
-                          !!methods.formState.errors?.groupOptions?.[i]
-                        }
-                      >
-                        <Controller
-                          control={methods.control}
-                          name={`groupOptions.${i}`}
-                          // sets the field up with default value of max request duration
-                          defaultValue={{
-                            id: group.id,
-                            timing: {
-                              durationSeconds:
-                                group.timeConstraints.maxDurationSeconds,
-                            },
-                          }}
-                          render={({
-                            field: { onChange, ref, value, onBlur },
-                          }) => {
-                            return (
-                              <Flex
-                                p={2}
-                                w="100%"
-                                borderColor="neutrals.300"
-                                borderWidth="1px"
-                                rounded="lg"
-                                dir="row"
-                              >
-                                {/* <HeaderStatusCell group={group} /> */}
-                                <Stack spacing={2} w="100%">
-                                  <Flex
-                                    justify="space-between"
-                                    direction="row"
-                                    w="100%"
-                                  >
-                                    <Text>
-                                      {group.requiresApproval
-                                        ? "Requires Approval"
-                                        : "No Approval Required"}
-                                    </Text>
+                  {preflight ? (
+                    preflight?.accessGroups.map((group, i) => {
+                      return (
+                        <FormControl
+                          isInvalid={
+                            !!methods.formState.errors?.groupOptions?.[i]
+                          }
+                        >
+                          <Controller
+                            control={methods.control}
+                            name={`groupOptions.${i}`}
+                            // sets the field up with default value of max request duration
+                            defaultValue={{
+                              id: group.id,
+                              timing: {
+                                durationSeconds:
+                                  group.timeConstraints.defaultDurationSeconds,
+                              },
+                            }}
+                            render={({
+                              field: { onChange, ref, value, onBlur },
+                            }) => {
+                              return (
+                                <Flex
+                                  p={2}
+                                  w="100%"
+                                  borderColor="neutrals.300"
+                                  borderWidth="1px"
+                                  rounded="lg"
+                                  dir="row"
+                                >
+                                  {/* <HeaderStatusCell group={group} /> */}
+                                  <Stack spacing={2} w="100%">
+                                    <Flex
+                                      justify="space-between"
+                                      direction="row"
+                                      w="100%"
+                                    >
+                                      <Text>
+                                        {group.requiresApproval
+                                          ? "Requires Approval"
+                                          : "No Approval Required"}
+                                      </Text>
 
-                                    <EditDuration
-                                      group={group}
-                                      durationSeconds={
-                                        value?.timing?.durationSeconds
-                                      }
-                                      setDurationSeconds={(val) => {
-                                        onChange({
-                                          id: group.id,
-                                          timing: {
-                                            durationSeconds: val,
-                                          },
-                                        });
-                                      }}
-                                    />
-                                  </Flex>
-                                  {group.targets.map((target) => {
-                                    return (
-                                      <Flex
-                                        p={2}
-                                        borderColor="neutrals.300"
-                                        borderWidth="1px"
-                                        rounded="lg"
-                                        flexDir="row"
-                                        background="white"
-                                      >
-                                        <TargetDetail
-                                          showIcon
-                                          target={target}
-                                        />
-                                      </Flex>
-                                    );
-                                  })}
-                                </Stack>
-                                {methods.formState.errors?.reason?.message && (
-                                  <FormErrorMessage>
-                                    {methods.formState.errors.reason?.message?.toString()}
-                                  </FormErrorMessage>
-                                )}
-                              </Flex>
-                            );
-                          }}
-                        />
-                      </FormControl>
-                    );
-                  })}
+                                      <EditDuration
+                                        group={group}
+                                        durationSeconds={
+                                          value?.timing?.durationSeconds
+                                        }
+                                        setDurationSeconds={(val) => {
+                                          onChange({
+                                            id: group.id,
+                                            timing: {
+                                              durationSeconds: val,
+                                            },
+                                          });
+                                        }}
+                                      />
+                                    </Flex>
+                                    {group.targets.map((target) => {
+                                      return (
+                                        <Flex
+                                          p={2}
+                                          borderColor="neutrals.300"
+                                          borderWidth="1px"
+                                          rounded="lg"
+                                          flexDir="row"
+                                          background="white"
+                                        >
+                                          <TargetDetail
+                                            showIcon
+                                            target={target}
+                                          />
+                                        </Flex>
+                                      );
+                                    })}
+                                  </Stack>
+                                  {methods.formState.errors?.reason
+                                    ?.message && (
+                                    <FormErrorMessage>
+                                      {methods.formState.errors.reason?.message?.toString()}
+                                    </FormErrorMessage>
+                                  )}
+                                </Flex>
+                              );
+                            }}
+                          />
+                        </FormControl>
+                      );
+                    })
+                  ) : network.isValidating ? (
+                    <Skeleton rounded="lg" h="100px" />
+                  ) : (
+                    <Center
+                      borderColor="neutrals.300"
+                      borderWidth="1px"
+                      rounded="lg"
+                      h="100px"
+                      w="100%"
+                      p={2}
+                    >
+                      <Text textStyle="Body/Medium">
+                        Preflight request failed.
+                        <br />
+                        Please contact your administrator
+                      </Text>
+                    </Center>
+                  )}
                 </Stack>
 
                 <FormControl isInvalid={!!methods.formState.errors.reason}>
@@ -226,6 +255,39 @@ const Home = () => {
                     bg="neutrals.0"
                     {...methods.register("reason")}
                     onBlur={() => void methods.trigger("reason")}
+                  />
+                  {methods.formState.errors?.reason?.message && (
+                    <FormErrorMessage>
+                      {methods.formState.errors.reason?.message?.toString()}
+                    </FormErrorMessage>
+                  )}
+                  <Switch
+                    {...methods.register("createTemplate")}
+                    onBlur={() => void methods.trigger("createTemplate")}
+                    mt="30px"
+                    mb="10px"
+                  >
+                    Create Access Template
+                  </Switch>
+                  <Text
+                    textStyle="Body/Small"
+                    color="neutrals.400"
+                    decoration="none"
+                    mb="30px"
+                  >
+                    Access Templates will be visible to everyone with access to
+                    Common Fate
+                  </Text>
+                  <FormLabel htmlFor="reason">
+                    <Text textStyle={"Body/Medium"}>Access Template Name</Text>
+                  </FormLabel>
+
+                  <Input
+                    disabled={!methods.watch("createTemplate", false)}
+                    placeholder="Template Name"
+                    bg="neutrals.0"
+                    {...methods.register("templateName")}
+                    onBlur={() => void methods.trigger("templateName")}
                   />
                   {methods.formState.errors?.reason?.message && (
                     <FormErrorMessage>

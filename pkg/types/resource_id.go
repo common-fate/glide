@@ -59,6 +59,10 @@ func NewPreflightID() string {
 	return newResourceID("pre")
 }
 
+func NewAccessTemplateID() string {
+	return newResourceID("tmp")
+}
+
 func NewHistoryID() string {
 	return newResourceID("his")
 }

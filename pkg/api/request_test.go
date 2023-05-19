@@ -57,7 +57,8 @@ var r = access.RequestWithGroupsWithTargets{
 						},
 					},
 					TimeConstraints: types.AccessRuleTimeConstraints{
-						MaxDurationSeconds: 3600,
+						MaxDurationSeconds:     3600,
+						DefaultDurationSeconds: 3600,
 					},
 					Groups:   []string{"123"},
 					Approval: rule.Approval{},
@@ -125,7 +126,8 @@ var r = access.RequestWithGroupsWithTargets{
 						},
 					},
 					TimeConstraints: types.AccessRuleTimeConstraints{
-						MaxDurationSeconds: 3600,
+						MaxDurationSeconds:     3600,
+						DefaultDurationSeconds: 3600,
 					},
 					Groups:   []string{"123"},
 					Approval: rule.Approval{},
@@ -207,6 +209,7 @@ func TestUserCreateRequest(t *testing.T) {
       }
     }
   ],
+  "createTemplate": false,
   "preflightId": "1234567890",
   "reason": "Sample reason"
 }`,
@@ -233,6 +236,7 @@ func TestUserCreateRequest(t *testing.T) {
     }
   ],
   "preflightId": "1234567890",
+	"createTemplate": false,
   "reason": "Sample reason"
 }`,
 			wantCode:      http.StatusNotFound,

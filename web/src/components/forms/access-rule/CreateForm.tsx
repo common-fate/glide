@@ -53,13 +53,12 @@ export const accessRuleFormDataToApi = (
   // TODO: Check for condition where there is no targetgroups.
   if (targetgroups) {
     Object.entries(targetgroups).map(([k, v]) => {
-      let target: CreateAccessRuleTarget = {
+      const target: CreateAccessRuleTarget = {
         targetGroupId: k,
         fieldFilterExpessions: {},
       };
 
-      let targetFields = targetgroups[k];
-
+      const targetFields = targetgroups[k];
       Object.entries(targetFields).map(([k, v]) => {
         // if no filter selected then we will return empty array which signifies to select everything
         if (

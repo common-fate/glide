@@ -39,6 +39,10 @@ export const TimeStep: React.FC = () => {
             Max duration:{"  "}
             {time && durationString(time?.maxDurationSeconds)}
           </Text>
+          <Text textStyle={"Body/Medium"} color="neutrals.600">
+            Default duration:{"  "}
+            {time && durationString(time?.defaultDurationSeconds)}
+          </Text>
           {/* <Text textStyle={"Body/Medium"} color="neutrals.600">
             Suggested duration:{"  "}
             {time && durationString(time?.reccomdenedDurationSeconds)}
@@ -46,41 +50,78 @@ export const TimeStep: React.FC = () => {
         </VStack>
       }
     >
-      <FormControl
-        isInvalid={
-          !!methods.formState.errors.timeConstraints?.maxDurationSeconds
-        }
-      >
-        <FormLabel htmlFor="timeConstraints.maxDurationSeconds">
-          <Text textStyle={"Body/Medium"}>Maximum Duration </Text>
-        </FormLabel>
-        <Controller
-          control={methods.control}
-          rules={{
-            required: "Duration is required.",
-            max: sixMonthsMaxInSeconds,
-            min: 60,
-          }}
-          name="timeConstraints.maxDurationSeconds"
-          render={({ field: { ref, ...rest } }) => {
-            return (
-              <>
-                <DurationInput
-                  {...rest}
-                  max={sixMonthsMaxInSeconds}
-                  min={60}
-                  defaultValue={3600}
-                >
-                  <Weeks />
-                  <Days />
-                  <Hours />
-                  <Minutes />
-                </DurationInput>
-              </>
-            );
-          }}
-        />
-      </FormControl>
+      <>
+        <FormControl
+          isInvalid={
+            !!methods.formState.errors.timeConstraints?.maxDurationSeconds
+          }
+        >
+          <FormLabel htmlFor="timeConstraints.maxDurationSeconds">
+            <Text textStyle={"Body/Medium"}>Maximum Duration </Text>
+          </FormLabel>
+          <Controller
+            control={methods.control}
+            rules={{
+              required: "Duration is required.",
+              max: sixMonthsMaxInSeconds,
+              min: 60,
+            }}
+            name="timeConstraints.maxDurationSeconds"
+            render={({ field: { ref, ...rest } }) => {
+              return (
+                <>
+                  <DurationInput
+                    {...rest}
+                    max={sixMonthsMaxInSeconds}
+                    min={60}
+                    defaultValue={3600}
+                  >
+                    <Weeks />
+                    <Days />
+                    <Hours />
+                    <Minutes />
+                  </DurationInput>
+                </>
+              );
+            }}
+          />
+        </FormControl>
+        <FormControl
+          isInvalid={
+            !!methods.formState.errors.timeConstraints?.defaultDurationSeconds
+          }
+        >
+          <FormLabel htmlFor="timeConstraints.defaultDurationSeconds">
+            <Text textStyle={"Body/Medium"}>Default Duration </Text>
+          </FormLabel>
+          <Controller
+            control={methods.control}
+            rules={{
+              required: "Duration is required.",
+              max: methods.watch("timeConstraints.maxDurationSeconds"),
+              min: 60,
+            }}
+            name="timeConstraints.defaultDurationSeconds"
+            render={({ field: { ref, ...rest } }) => {
+              return (
+                <>
+                  <DurationInput
+                    {...rest}
+                    max={methods.watch("timeConstraints.maxDurationSeconds")}
+                    min={60}
+                    defaultValue={3600}
+                  >
+                    <Weeks />
+                    <Days />
+                    <Hours />
+                    <Minutes />
+                  </DurationInput>
+                </>
+              );
+            }}
+          />
+        </FormControl>
+      </>
       {/* <FormControl
         isInvalid={
           !!methods.formState.errors.timeConstraints?.reccomdenedDurationSeconds
