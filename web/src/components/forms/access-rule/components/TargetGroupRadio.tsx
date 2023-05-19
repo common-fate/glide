@@ -11,21 +11,20 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
 import { ProviderIcon, ShortTypes } from "../../../icons/providerIcon";
 
-import { TargetGroup } from "../../../../utils/backend-client/types";
 import {
   useFieldArray,
   UseFieldArrayRemove,
   useFormContext,
 } from "react-hook-form";
 import { useAdminListTargetGroups } from "../../../../utils/backend-client/admin/admin";
-import { TargetGroupField } from "./TargetGroupField";
-import ReactSelect from "react-select";
-import { AccessRuleFormData } from "../CreateForm";
+import { TargetGroup } from "../../../../utils/backend-client/types";
 import SelectMultiGeneric from "../../../SelectMultiGeneric";
+import { AccessRuleFormData } from "../CreateForm";
+import { TargetGroupField } from "./TargetGroupField";
 
 interface TargetGroupDropdownProps {
   item: Record<"id", string>;
@@ -40,26 +39,21 @@ const TargetGroupDropdown: React.FC<TargetGroupDropdownProps> = (props) => {
     []
   );
 
-  const methods = useFormContext<AccessRuleFormData>();
-  // const targetgroups = methods.watch("targetgroups");
+  const { setError, clearErrors, trigger } =
+    useFormContext<AccessRuleFormData>();
 
-  // methods.setValue(`targetgroups[${index}].id`, false);
-
-  // CreateOption will exclude already selected targetgroups from new targetgroup dropdown.
-  // const createOptions = () => {
-  //   const excludingItemTargetgroupIds = targetgroups
-  //     ? Object.keys(targetgroups).filter((e) => e)
-  //     : [];
-
-  //   const excludedList = props.targetGroups.filter(
-  //     (t) => !excludingItemTargetgroupIds.includes(t.id)
-  //   );
-
-  //   return excludedList.map((t) => ({
-  //     value: t.id,
-  //     label: t.id,
-  //   }));
-  // };
+  // we want to set a form error when there is no selectedTargetgroup
+  useEffect(() => {
+    if (selectedTargetgroup.length === 0) {
+      // @ts-ignore; weird circular error
+      setError("targetgroups", {
+        message: "Please select at least one target",
+        type: "required",
+      });
+    } else {
+      clearErrors("targetgroups");
+    }
+  }, [selectedTargetgroup]);
 
   return (
     <Box bg="neutrals.100" borderColor="neutrals.300" rounded="lg">
@@ -115,6 +109,7 @@ const TargetGroupDropdown: React.FC<TargetGroupDropdownProps> = (props) => {
           >
             <VStack align="stretch" spacing={2}>
               <SelectMultiGeneric
+                onlyOne={true}
                 keyUsedForFilter="id"
                 inputArray={props.targetGroups}
                 selectedItems={selectedTargetgroup}
