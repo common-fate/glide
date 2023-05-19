@@ -133,9 +133,23 @@ const Home = () => {
     userRevokeRequest(requestId)
       .then(() => {
         request.mutate();
+        toast({
+          title: "Request revoked",
+          description: "The request has been revoked.",
+          status: "success",
+          duration: 5000,
+          isClosable: true,
+        });
       })
       .catch((e) => {
         console.log(e);
+        toast({
+          title: "Request revoke failed",
+          description: "The request could not be revoked.",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
       })
       .finally(() => {
         setMutationLoading(false);
@@ -147,9 +161,23 @@ const Home = () => {
     userCancelRequest(requestId)
       .then(() => {
         request.mutate();
+        toast({
+          title: "Request cancelled",
+          description: "The request has been cancelled.",
+          status: "success",
+          duration: 5000,
+          isClosable: true,
+        });
       })
       .catch((e) => {
         console.log(e);
+        toast({
+          title: "Request cancellation failed",
+          description: "The request could not be cancelled.",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
       })
       .finally(() => {
         setMutationLoading(false);
@@ -342,9 +370,9 @@ const Home = () => {
               <AuditLog request={request.data} />
             </GridItem>
           </Grid>
-          {/* <Code whiteSpace="pre-wrap">
+          <Code whiteSpace="pre-wrap">
             {JSON.stringify({ isReviewer, data: request.data }, null, 2)}
-          </Code> */}
+          </Code>
         </Container>
       </UserLayout>
     </div>
@@ -356,118 +384,63 @@ type AccessGroupProps = {
 };
 
 export const HeaderStatusCell = ({ group }: AccessGroupProps) => {
-  if (group.status === "PENDING_APPROVAL") {
-    if (group.requestStatus === "CANCELLED") {
-      return (
-        <Box
-          as="span"
-          flex="1"
-          textAlign="left"
-          sx={{
-            p: { lineHeight: "120%", textStyle: "Body/Extra Small" },
-          }}
-        >
-          <Text color="neutrals.700">Cancelled</Text>
-        </Box>
-      );
-    }
-
-    return (
-      <Box
-        as="span"
-        flex="1"
-        textAlign="left"
-        sx={{
-          p: { lineHeight: "120%", textStyle: "Body/Extra Small" },
-        }}
-      >
-        <Text color="neutrals.700">Review Required</Text>
-      </Box>
-    );
+  let statusText = "";
+  let renderStatus = false;
+  switch (group.status) {
+    case "PENDING_APPROVAL":
+      if (group.requestStatus === "CANCELLED") {
+        statusText = "Cancelled";
+      } else statusText = "Review Required";
+      break;
+    case "DECLINED":
+      statusText = "Declined";
+      break;
+    default:
+      switch (group.requestStatus) {
+        case "ACTIVE":
+          statusText = "Active";
+          renderStatus = true;
+        case "PENDING":
+          statusText = "Pending";
+        case "REVOKING":
+          statusText = "Revoking";
+        case "REVOKED":
+          statusText = "Revoked";
+        case "COMPLETE":
+          statusText = "Complete";
+      }
   }
 
-  if (group.status === "APPROVED") {
-    switch (group.requestStatus) {
-      case "ACTIVE":
-        return (
-          <Flex flex="1">
-            <StatusCell
-              success="ACTIVE"
-              value={group.requestStatus}
-              replaceValue={
-                "Active for the next " +
-                durationStringHoursMinutes(
-                  intervalToDuration({
-                    start: new Date(),
-                    end: new Date(
-                      group.finalTiming?.endTime
-                        ? group.finalTiming?.endTime
-                        : ""
-                    ),
-                  })
-                )
-              }
-            />
-          </Flex>
-        );
-      case "PENDING":
-        return (
-          <Box
-            as="span"
-            flex="1"
-            textAlign="left"
-            sx={{
-              p: { lineHeight: "120%", textStyle: "Body/Extra Small" },
-            }}
-          >
-            <Text color="neutrals.700">Pending</Text>
-          </Box>
-        );
-      case "REVOKING":
-        return (
-          <Box
-            as="span"
-            flex="1"
-            textAlign="left"
-            sx={{
-              p: { lineHeight: "120%", textStyle: "Body/Extra Small" },
-            }}
-          >
-            <Text color="neutrals.700">Revoking</Text>
-          </Box>
-        );
-      case "REVOKED":
-        return (
-          <Box
-            as="span"
-            flex="1"
-            textAlign="left"
-            sx={{
-              p: { lineHeight: "120%", textStyle: "Body/Extra Small" },
-            }}
-          >
-            <Text color="neutrals.700">Revoked</Text>
-          </Box>
-        );
-      case "COMPLETE":
-        return (
-          <Box
-            as="span"
-            flex="1"
-            textAlign="left"
-            sx={{
-              p: { lineHeight: "120%", textStyle: "Body/Extra Small" },
-            }}
-          >
-            <Text color="neutrals.700">Complete</Text>
-          </Box>
-        );
-      default:
-        break;
-    }
-  }
-
-  return null;
+  return renderStatus ? (
+    <Flex flex="1">
+      <StatusCell
+        success="ACTIVE"
+        value={group.requestStatus}
+        replaceValue={
+          "Active for the next " +
+          durationStringHoursMinutes(
+            intervalToDuration({
+              start: new Date(),
+              end: new Date(
+                group.finalTiming?.endTime ? group.finalTiming?.endTime : ""
+              ),
+            })
+          )
+        }
+      />
+    </Flex>
+  ) : (
+    <Box
+      as="span"
+      flex="1"
+      textAlign="left"
+      sx={{
+        p: { lineHeight: "120%", textStyle: "Body/Extra Small" },
+      }}
+    >
+      <Text color="neutrals.700">{statusText}</Text>
+    </Box>
+  );
 };
 
 export const AccessGroupItem = ({ group }: AccessGroupProps) => {
@@ -494,7 +467,8 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
 
   const requestPending = group.requestStatus === "PENDING";
 
-  const showGrant = group.requestStatus != "CANCELLED";
+  const showGrant =
+    group.requestStatus != "CANCELLED" && group.requestStatus != "COMPLETE";
 
   return (
     <Box bg="neutrals.100" borderColor="neutrals.300" rounded="lg">
@@ -813,7 +787,7 @@ export const ApproveRejectDuration = ({
             })
               .then((e) => {
                 toast({
-                  title: "Revoke Initiated",
+                  title: "Request Declined",
                   status: "success",
                   variant: "subtle",
                   duration: 2200,
@@ -822,7 +796,7 @@ export const ApproveRejectDuration = ({
               })
               .catch((e) => {
                 toast({
-                  title: "Error Revoking",
+                  title: "Error Declining Request",
                   status: "error",
                   variant: "subtle",
                   duration: 2200,
@@ -846,7 +820,7 @@ export const ApproveRejectDuration = ({
             })
               .then((e) => {
                 toast({
-                  title: "Revoke Initiated",
+                  title: "Request Approved",
                   status: "success",
                   variant: "subtle",
                   duration: 2200,
@@ -855,7 +829,7 @@ export const ApproveRejectDuration = ({
               })
               .catch((e) => {
                 toast({
-                  title: "Error Revoking",
+                  title: "Error Approving Request",
                   status: "error",
                   variant: "subtle",
                   duration: 2200,
