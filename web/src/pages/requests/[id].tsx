@@ -180,7 +180,7 @@ const Home = () => {
           </Text>
         </Center>
         {/* isReviewer {isReviewer} */}
-        {/* {JSON.stringify({ isReviewer, data: request.data })} */}
+
         {/* Main content */}
         <Container
           maxW={{
@@ -200,7 +200,7 @@ const Home = () => {
                         w="100%"
                         mr="10px"
                       >
-                        <Flex>
+                        <Flex h="40px">
                           <Avatar
                             size="sm"
                             src={request.data.requestedBy.picture}
@@ -211,15 +211,16 @@ const Home = () => {
                             }
                             mr={2}
                           />
-                          <Stack>
+                          <Stack spacing={1}>
                             <Flex>
-                              <Text textStyle="Body/Small">
+                              <Text textStyle="Body/Small" lineHeight="1.4em">
                                 {request.data.requestedBy.firstName +
                                   " " +
                                   request.data.requestedBy.lastName}
                               </Text>
                               <Text
                                 textStyle="Body/Small"
+                                lineHeight="1.4em"
                                 ml={1}
                                 color="neutrals.500"
                               >
@@ -243,31 +244,34 @@ const Home = () => {
                             <ButtonGroup variant="brandSecondary">
                               <Button
                                 size="sm"
-                                onClick={() => {
-                                  console.log("revoke");
-                                  //@ts-ignore
-                                  userRevokeRequest(request.data?.id)
-                                    .then((e) => {
-                                      toast({
-                                        title: "Revoke Initiated",
-                                        status: "success",
-                                        variant: "subtle",
-                                        duration: 2200,
-                                        isClosable: true,
-                                      });
-                                    })
-                                    .catch((e) => {
-                                      toast({
-                                        title: "Error Revoking",
-                                        status: "error",
-                                        variant: "subtle",
-                                        duration: 2200,
-                                        isClosable: true,
-                                      });
-                                    });
-                                }}
+                                onClick={
+                                  requestIsActive ? handleRevoke : handleCancel
+                                }
+                                // onClick={() => {
+                                //   console.log("revoke");
+                                //   //@ts-ignore
+                                //   userRevokeRequest(request.data?.id)
+                                //     .then((e) => {
+                                //       toast({
+                                //         title: "Revoke Initiated",
+                                //         status: "success",
+                                //         variant: "subtle",
+                                //         duration: 2200,
+                                //         isClosable: true,
+                                //       });
+                                //     })
+                                //     .catch((e) => {
+                                //       toast({
+                                //         title: "Error Revoking",
+                                //         status: "error",
+                                //         variant: "subtle",
+                                //         duration: 2200,
+                                //         isClosable: true,
+                                //       });
+                                //     });
+                                // }}
                               >
-                                Revoke
+                                {requestIsActive ? "Revoke" : "Cancel"}
                               </Button>
                             </ButtonGroup>
                           )}
@@ -338,6 +342,9 @@ const Home = () => {
               <AuditLog request={request.data} />
             </GridItem>
           </Grid>
+          {/* <Code whiteSpace="pre-wrap">
+            {JSON.stringify({ isReviewer, data: request.data }, null, 2)}
+          </Code> */}
         </Container>
       </UserLayout>
     </div>
@@ -478,6 +485,17 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
   };
 
   const user = useUser();
+
+  const isGroupReviewer = !!group.groupReviewers?.find(
+    (g) => g === user.user?.id
+  );
+
+  const requestActive = group.requestStatus === "ACTIVE";
+
+  const requestPending = group.requestStatus === "PENDING";
+
+  const showGrant = group.requestStatus != "CANCELLED";
+
   return (
     <Box bg="neutrals.100" borderColor="neutrals.300" rounded="lg">
       <Accordion
@@ -501,9 +519,9 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
           >
             <AccordionIcon boxSize="6" mr={2} />
             <HeaderStatusCell group={group} />
-            {group.requestReviewers?.includes(
-              user.user?.id ? user.user?.id : ""
-            ) && <ApproveRejectDuration group={group} />}
+            {isGroupReviewer && requestPending && (
+              <ApproveRejectDuration group={group} />
+            )}
           </AccordionButton>
 
           <AccordionPanel
@@ -542,13 +560,15 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
                     flexDir="column"
                     justifyContent="space-between"
                   >
-                    <GrantStatusCell
-                      minW="120px"
-                      justifyContent="end"
-                      position="absolute"
-                      right={3}
-                      targetStatus={target.status}
-                    />
+                    {showGrant && (
+                      <GrantStatusCell
+                        minW="120px"
+                        justifyContent="end"
+                        position="absolute"
+                        right={3}
+                        targetStatus={target.status}
+                      />
+                    )}
                     <Button
                       mt="auto"
                       variant="brandSecondary"
@@ -656,6 +676,9 @@ export const ApproveRejectDuration = ({
 
   const [isEditing, setIsEditing] = useBoolean();
   const toast = useToast();
+
+  const [approveLoading, setApproveLoading] = useState(false);
+  const [declineLoading, setDeclineLoading] = useState(false);
 
   return (
     <Flex
@@ -780,9 +803,11 @@ export const ApproveRejectDuration = ({
       <ButtonGroup ml="auto" variant="brandSecondary" spacing={2}>
         <Button
           size="sm"
+          isLoading={approveLoading}
+          loadingText="Loading..."
+          disabled={declineLoading}
           onClick={() => {
-            console.log("approve");
-            // @TODO: add in admin approval API methods
+            setApproveLoading(true);
             userReviewRequest(group.requestId, group.id, {
               decision: "APPROVED",
             })
@@ -803,16 +828,19 @@ export const ApproveRejectDuration = ({
                   duration: 2200,
                   isClosable: true,
                 });
-              });
+              })
+              .finally(() => setApproveLoading(false));
           }}
         >
           Approve
         </Button>
         <Button
           size="sm"
+          isLoading={declineLoading}
+          disabled={approveLoading}
+          loadingText="Loading..."
           onClick={() => {
-            console.log("reject");
-            // @TODO: add in admin approval API methods
+            setDeclineLoading(true);
             userReviewRequest(group.requestId, group.id, {
               decision: "DECLINED",
             })
@@ -833,13 +861,13 @@ export const ApproveRejectDuration = ({
                   duration: 2200,
                   isClosable: true,
                 });
-              });
+              })
+              .finally(() => setDeclineLoading(false));
           }}
         >
           Reject
         </Button>
       </ButtonGroup>
-      )
     </Flex>
   );
 };
