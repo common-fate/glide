@@ -672,22 +672,22 @@ export const getAdminGetTargetGroupResourcesKey = (id: string,
     resourceType: string,) => [`/api/v1/admin/target-groups/${id}/resources/${resourceType}`];
 
     
-export type AdminGetTargetGroupResourcesQueryResult = NonNullable<AsyncReturnType<typeof adminGetTargetGroupResources>>
+export type AdminGetTargetGroupResourcesQueryResult = NonNullable<Awaited<ReturnType<typeof adminGetTargetGroupResources>>>
 export type AdminGetTargetGroupResourcesQueryError = ErrorType<ErrorResponseResponse>
 
 export const useAdminGetTargetGroupResources = <TError = ErrorType<ErrorResponseResponse>>(
  id: string,
-    resourceType: string, options?: { swr?:SWRConfiguration<AsyncReturnType<typeof adminGetTargetGroupResources>, TError> & {swrKey: Key}, request?: SecondParameter<typeof customInstance> }
+    resourceType: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminGetTargetGroupResources>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
 
   ) => {
 
-  const {swr: swrOptions, request: requestOptions} = options || {}
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
 
-  const isEnable = !!(id && resourceType)
-  const swrKey = swrOptions?.swrKey ?? (() => isEnable ? getAdminGetTargetGroupResourcesKey(id,resourceType) : null);
+  const isEnabled = swrOptions?.enabled !== false && !!(id && resourceType)
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminGetTargetGroupResourcesKey(id,resourceType) : null);
   const swrFn = () => adminGetTargetGroupResources(id,resourceType, requestOptions);
 
-  const query = useSwr<AsyncReturnType<typeof swrFn>, TError>(swrKey, swrFn, swrOptions)
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,

@@ -19,6 +19,8 @@ import {
   RequestStatus
 } from '.././types'
 
+export const getAdminFilterTargetGroupResourcesMock = () => (Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({targetGroupId: faker.random.word(), resourceType: faker.random.word(), resource: {id: faker.random.word(), name: faker.random.word(), attributes: {}}})))
+
 export const getAdminListTargetRoutesMock = () => ({routes: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({targetGroupId: faker.random.word(), handlerId: faker.random.word(), kind: faker.random.word(), priority: faker.datatype.number({min: undefined, max: undefined}), valid: faker.datatype.boolean(), diagnostics: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({level: faker.helpers.arrayElement(Object.values(LogLevel)), code: faker.random.word(), message: faker.random.word()}))})), next: faker.helpers.arrayElement([faker.random.word(), undefined])})
 
 export const getUserListEntitlementsMock = () => ({entitlements: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({publisher: faker.random.word(), name: faker.random.word(), kind: faker.random.word(), icon: faker.random.word()}))})
@@ -44,6 +46,12 @@ rest.delete('*/api/v1/admin/access-rules/:ruleId', (_req, res, ctx) => {
         return res(
           ctx.delay(1000),
           ctx.status(200, 'Mocked status'),
+        )
+      }),rest.post('*/api/v1/admin/target-groups/:id/resources/:resourceType/filters', (_req, res, ctx) => {
+        return res(
+          ctx.delay(1000),
+          ctx.status(200, 'Mocked status'),
+ctx.json(getAdminFilterTargetGroupResourcesMock()),
         )
       }),rest.get('*/api/v1/admin/target-groups/:id/routes', (_req, res, ctx) => {
         return res(

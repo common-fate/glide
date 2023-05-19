@@ -70,6 +70,12 @@ const (
 	REVOKING  RequestStatus = "REVOKING"
 )
 
+// Defines values for ResourceFilterOperationTypeEnum.
+const (
+	BEGINSWITH ResourceFilterOperationTypeEnum = "BEGINS_WITH"
+	IN         ResourceFilterOperationTypeEnum = "IN"
+)
+
 // Defines values for ReviewDecision.
 const (
 	ReviewDecisionAPPROVED ReviewDecision = "APPROVED"
@@ -113,8 +119,13 @@ type AccessRuleMetadata struct {
 
 // a request body for an Access Rule Target
 type AccessRuleTarget struct {
-	FieldFilterExpessions map[string]interface{} `json:"fieldFilterExpessions"`
-	TargetGroup           TargetGroup            `json:"targetGroup"`
+	FieldFilterExpessions AccessRuleTarget_FieldFilterExpessions `json:"fieldFilterExpessions"`
+	TargetGroup           TargetGroup                            `json:"targetGroup"`
+}
+
+// AccessRuleTarget_FieldFilterExpessions defines model for AccessRuleTarget.FieldFilterExpessions.
+type AccessRuleTarget_FieldFilterExpessions struct {
+	AdditionalProperties map[string]ResourceFilter `json:"-"`
 }
 
 // Time configuration for an Access Rule.
@@ -134,8 +145,13 @@ type CreateAccessRequestGroupOptions struct {
 
 // a request body for creating a Access Rule Target
 type CreateAccessRuleTarget struct {
-	FieldFilterExpessions map[string]interface{} `json:"fieldFilterExpessions"`
-	TargetGroupId         string                 `json:"targetGroupId"`
+	FieldFilterExpessions CreateAccessRuleTarget_FieldFilterExpessions `json:"fieldFilterExpessions"`
+	TargetGroupId         string                                       `json:"targetGroupId"`
+}
+
+// CreateAccessRuleTarget_FieldFilterExpessions defines model for CreateAccessRuleTarget.FieldFilterExpessions.
+type CreateAccessRuleTarget_FieldFilterExpessions struct {
+	AdditionalProperties map[string]ResourceFilter `json:"-"`
 }
 
 // Diagnostic defines model for Diagnostic.
@@ -160,6 +176,15 @@ type IdpStatus string
 
 // LogLevel defines model for LogLevel.
 type LogLevel string
+
+// Operation defines model for Operation.
+type Operation struct {
+	Attribute     string                          `json:"attribute"`
+	OperationType ResourceFilterOperationTypeEnum `json:"operationType"`
+	Operations    *Operation                      `json:"operations,omitempty"`
+	Value         *string                         `json:"value,omitempty"`
+	Values        *[]string                       `json:"values,omitempty"`
+}
 
 // Preflight defines model for Preflight.
 type Preflight struct {
@@ -332,6 +357,19 @@ type RequestRequestedBy struct {
 // The status of an Access Request.
 type RequestStatus string
 
+// Resource defines model for Resource.
+type Resource struct {
+	Attributes map[string]string `json:"attributes"`
+	Id         string            `json:"id"`
+	Name       string            `json:"name"`
+}
+
+// ResourceFilter defines model for ResourceFilter.
+type ResourceFilter = []Operation
+
+// ResourceFilterOperationTypeEnum defines model for ResourceFilterOperationTypeEnum.
+type ResourceFilterOperationTypeEnum string
+
 // A decision made on an Access Request.
 type ReviewDecision string
 
@@ -384,6 +422,13 @@ type TargetGroupFrom struct {
 	Version   string `json:"version"`
 }
 
+// TargetGroupResource defines model for TargetGroupResource.
+type TargetGroupResource struct {
+	Resource      Resource `json:"resource"`
+	ResourceType  string   `json:"resourceType"`
+	TargetGroupId string   `json:"targetGroupId"`
+}
+
 // TargetGroupSchema defines model for TargetGroupSchema.
 type TargetGroupSchema struct {
 	AdditionalProperties map[string]TargetGroupSchemaArgument `json:"-"`
@@ -391,9 +436,11 @@ type TargetGroupSchema struct {
 
 // Define the metadata, data type and UI elements for the argument
 type TargetGroupSchemaArgument struct {
-	Description *string `json:"description,omitempty"`
-	Id          string  `json:"id"`
-	Title       string  `json:"title"`
+	Description    *string                 `json:"description,omitempty"`
+	Id             string                  `json:"id"`
+	Resource       *string                 `json:"resource,omitempty"`
+	ResourceSchema *map[string]interface{} `json:"resourceSchema,omitempty"`
+	Title          string                  `json:"title"`
 }
 
 // TargetKind defines model for TargetKind.
@@ -505,6 +552,9 @@ type ListRequestsResponse struct {
 	Requests []Request `json:"requests"`
 }
 
+// ListTargetGroupResource defines model for ListTargetGroupResource.
+type ListTargetGroupResource = []TargetGroupResource
+
 // ListTargetGroupResponse defines model for ListTargetGroupResponse.
 type ListTargetGroupResponse struct {
 	TargetGroups []TargetGroup `json:"targetGroups"`
@@ -601,6 +651,9 @@ type RegisterHandlerRequest struct {
 	Runtime string `json:"runtime"`
 }
 
+// ResouceFilterRequest defines model for ResouceFilterRequest.
+type ResouceFilterRequest = ResourceFilter
+
 // ReviewRequest defines model for ReviewRequest.
 type ReviewRequest struct {
 	Comment *string `json:"comment,omitempty"`
@@ -637,6 +690,9 @@ type AdminListRequestsParams struct {
 
 // AdminListRequestsParamsStatus defines parameters for AdminListRequests.
 type AdminListRequestsParamsStatus string
+
+// AdminFilterTargetGroupResourcesJSONBody defines parameters for AdminFilterTargetGroupResources.
+type AdminFilterTargetGroupResourcesJSONBody = ResourceFilter
 
 // AdminRemoveTargetGroupLinkParams defines parameters for AdminRemoveTargetGroupLink.
 type AdminRemoveTargetGroupLinkParams struct {
@@ -709,6 +765,9 @@ type AdminCreateTargetGroupJSONRequestBody CreateTargetGroupRequest
 // AdminCreateTargetGroupLinkJSONRequestBody defines body for AdminCreateTargetGroupLink for application/json ContentType.
 type AdminCreateTargetGroupLinkJSONRequestBody CreateTargetGroupLink
 
+// AdminFilterTargetGroupResourcesJSONRequestBody defines body for AdminFilterTargetGroupResources for application/json ContentType.
+type AdminFilterTargetGroupResourcesJSONRequestBody = AdminFilterTargetGroupResourcesJSONBody
+
 // AdminCreateUserJSONRequestBody defines body for AdminCreateUser for application/json ContentType.
 type AdminCreateUserJSONRequestBody CreateUserRequest
 
@@ -723,6 +782,112 @@ type UserPostRequestsJSONRequestBody CreateAccessRequestRequest
 
 // UserReviewRequestJSONRequestBody defines body for UserReviewRequest for application/json ContentType.
 type UserReviewRequestJSONRequestBody ReviewRequest
+
+// Getter for additional properties for AccessRuleTarget_FieldFilterExpessions. Returns the specified
+// element and whether it was found
+func (a AccessRuleTarget_FieldFilterExpessions) Get(fieldName string) (value ResourceFilter, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for AccessRuleTarget_FieldFilterExpessions
+func (a *AccessRuleTarget_FieldFilterExpessions) Set(fieldName string, value ResourceFilter) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]ResourceFilter)
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for AccessRuleTarget_FieldFilterExpessions to handle AdditionalProperties
+func (a *AccessRuleTarget_FieldFilterExpessions) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]ResourceFilter)
+		for fieldName, fieldBuf := range object {
+			var fieldVal ResourceFilter
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for AccessRuleTarget_FieldFilterExpessions to handle AdditionalProperties
+func (a AccessRuleTarget_FieldFilterExpessions) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
+
+// Getter for additional properties for CreateAccessRuleTarget_FieldFilterExpessions. Returns the specified
+// element and whether it was found
+func (a CreateAccessRuleTarget_FieldFilterExpessions) Get(fieldName string) (value ResourceFilter, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for CreateAccessRuleTarget_FieldFilterExpessions
+func (a *CreateAccessRuleTarget_FieldFilterExpessions) Set(fieldName string, value ResourceFilter) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]ResourceFilter)
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for CreateAccessRuleTarget_FieldFilterExpessions to handle AdditionalProperties
+func (a *CreateAccessRuleTarget_FieldFilterExpessions) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]ResourceFilter)
+		for fieldName, fieldBuf := range object {
+			var fieldVal ResourceFilter
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for CreateAccessRuleTarget_FieldFilterExpessions to handle AdditionalProperties
+func (a CreateAccessRuleTarget_FieldFilterExpessions) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
 
 // Getter for additional properties for TargetGroupSchema. Returns the specified
 // element and whether it was found
@@ -935,6 +1100,14 @@ type ClientInterface interface {
 	AdminCreateTargetGroupLinkWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	AdminCreateTargetGroupLink(ctx context.Context, id string, body AdminCreateTargetGroupLinkJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AdminGetTargetGroupResources request
+	AdminGetTargetGroupResources(ctx context.Context, id string, resourceType string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AdminFilterTargetGroupResources request with any body
+	AdminFilterTargetGroupResourcesWithBody(ctx context.Context, id string, resourceType string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	AdminFilterTargetGroupResources(ctx context.Context, id string, resourceType string, body AdminFilterTargetGroupResourcesJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// AdminListTargetRoutes request
 	AdminListTargetRoutes(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -1369,6 +1542,42 @@ func (c *Client) AdminCreateTargetGroupLinkWithBody(ctx context.Context, id stri
 
 func (c *Client) AdminCreateTargetGroupLink(ctx context.Context, id string, body AdminCreateTargetGroupLinkJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewAdminCreateTargetGroupLinkRequest(c.Server, id, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminGetTargetGroupResources(ctx context.Context, id string, resourceType string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminGetTargetGroupResourcesRequest(c.Server, id, resourceType)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminFilterTargetGroupResourcesWithBody(ctx context.Context, id string, resourceType string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminFilterTargetGroupResourcesRequestWithBody(c.Server, id, resourceType, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminFilterTargetGroupResources(ctx context.Context, id string, resourceType string, body AdminFilterTargetGroupResourcesJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminFilterTargetGroupResourcesRequest(c.Server, id, resourceType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -2587,6 +2796,101 @@ func NewAdminCreateTargetGroupLinkRequestWithBody(server string, id string, cont
 	return req, nil
 }
 
+// NewAdminGetTargetGroupResourcesRequest generates requests for AdminGetTargetGroupResources
+func NewAdminGetTargetGroupResourcesRequest(server string, id string, resourceType string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "resourceType", runtime.ParamLocationPath, resourceType)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/target-groups/%s/resources/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewAdminFilterTargetGroupResourcesRequest calls the generic AdminFilterTargetGroupResources builder with application/json body
+func NewAdminFilterTargetGroupResourcesRequest(server string, id string, resourceType string, body AdminFilterTargetGroupResourcesJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewAdminFilterTargetGroupResourcesRequestWithBody(server, id, resourceType, "application/json", bodyReader)
+}
+
+// NewAdminFilterTargetGroupResourcesRequestWithBody generates requests for AdminFilterTargetGroupResources with any type of body
+func NewAdminFilterTargetGroupResourcesRequestWithBody(server string, id string, resourceType string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "resourceType", runtime.ParamLocationPath, resourceType)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/target-groups/%s/resources/%s/filters", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewAdminListTargetRoutesRequest generates requests for AdminListTargetRoutes
 func NewAdminListTargetRoutesRequest(server string, id string) (*http.Request, error) {
 	var err error
@@ -3561,6 +3865,14 @@ type ClientWithResponsesInterface interface {
 
 	AdminCreateTargetGroupLinkWithResponse(ctx context.Context, id string, body AdminCreateTargetGroupLinkJSONRequestBody, reqEditors ...RequestEditorFn) (*AdminCreateTargetGroupLinkResponse, error)
 
+	// AdminGetTargetGroupResources request
+	AdminGetTargetGroupResourcesWithResponse(ctx context.Context, id string, resourceType string, reqEditors ...RequestEditorFn) (*AdminGetTargetGroupResourcesResponse, error)
+
+	// AdminFilterTargetGroupResources request with any body
+	AdminFilterTargetGroupResourcesWithBodyWithResponse(ctx context.Context, id string, resourceType string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AdminFilterTargetGroupResourcesResponse, error)
+
+	AdminFilterTargetGroupResourcesWithResponse(ctx context.Context, id string, resourceType string, body AdminFilterTargetGroupResourcesJSONRequestBody, reqEditors ...RequestEditorFn) (*AdminFilterTargetGroupResourcesResponse, error)
+
 	// AdminListTargetRoutes request
 	AdminListTargetRoutesWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*AdminListTargetRoutesResponse, error)
 
@@ -4322,6 +4634,59 @@ func (r AdminCreateTargetGroupLinkResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r AdminCreateTargetGroupLinkResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AdminGetTargetGroupResourcesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]TargetGroupResource
+	JSON401      *struct {
+		Error string `json:"error"`
+	}
+	JSON404 *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminGetTargetGroupResourcesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminGetTargetGroupResourcesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AdminFilterTargetGroupResourcesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]TargetGroupResource
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminFilterTargetGroupResourcesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminFilterTargetGroupResourcesResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -5181,6 +5546,32 @@ func (c *ClientWithResponses) AdminCreateTargetGroupLinkWithResponse(ctx context
 		return nil, err
 	}
 	return ParseAdminCreateTargetGroupLinkResponse(rsp)
+}
+
+// AdminGetTargetGroupResourcesWithResponse request returning *AdminGetTargetGroupResourcesResponse
+func (c *ClientWithResponses) AdminGetTargetGroupResourcesWithResponse(ctx context.Context, id string, resourceType string, reqEditors ...RequestEditorFn) (*AdminGetTargetGroupResourcesResponse, error) {
+	rsp, err := c.AdminGetTargetGroupResources(ctx, id, resourceType, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminGetTargetGroupResourcesResponse(rsp)
+}
+
+// AdminFilterTargetGroupResourcesWithBodyWithResponse request with arbitrary body returning *AdminFilterTargetGroupResourcesResponse
+func (c *ClientWithResponses) AdminFilterTargetGroupResourcesWithBodyWithResponse(ctx context.Context, id string, resourceType string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AdminFilterTargetGroupResourcesResponse, error) {
+	rsp, err := c.AdminFilterTargetGroupResourcesWithBody(ctx, id, resourceType, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminFilterTargetGroupResourcesResponse(rsp)
+}
+
+func (c *ClientWithResponses) AdminFilterTargetGroupResourcesWithResponse(ctx context.Context, id string, resourceType string, body AdminFilterTargetGroupResourcesJSONRequestBody, reqEditors ...RequestEditorFn) (*AdminFilterTargetGroupResourcesResponse, error) {
+	rsp, err := c.AdminFilterTargetGroupResources(ctx, id, resourceType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminFilterTargetGroupResourcesResponse(rsp)
 }
 
 // AdminListTargetRoutesWithResponse request returning *AdminListTargetRoutesResponse
@@ -6471,6 +6862,85 @@ func ParseAdminCreateTargetGroupLinkResponse(rsp *http.Response) (*AdminCreateTa
 	return response, nil
 }
 
+// ParseAdminGetTargetGroupResourcesResponse parses an HTTP response from a AdminGetTargetGroupResourcesWithResponse call
+func ParseAdminGetTargetGroupResourcesResponse(rsp *http.Response) (*AdminGetTargetGroupResourcesResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminGetTargetGroupResourcesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []TargetGroupResource
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAdminFilterTargetGroupResourcesResponse parses an HTTP response from a AdminFilterTargetGroupResourcesWithResponse call
+func ParseAdminFilterTargetGroupResourcesResponse(rsp *http.Response) (*AdminFilterTargetGroupResourcesResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminFilterTargetGroupResourcesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []TargetGroupResource
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseAdminListTargetRoutesResponse parses an HTTP response from a AdminListTargetRoutesWithResponse call
 func ParseAdminListTargetRoutesResponse(rsp *http.Response) (*AdminListTargetRoutesResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -7418,6 +7888,12 @@ type ServerInterface interface {
 	// Link a target group deployment to its target group
 	// (POST /api/v1/admin/target-groups/{id}/link)
 	AdminCreateTargetGroupLink(w http.ResponseWriter, r *http.Request, id string)
+	// List Target Group Resources
+	// (GET /api/v1/admin/target-groups/{id}/resources/{resourceType})
+	AdminGetTargetGroupResources(w http.ResponseWriter, r *http.Request, id string, resourceType string)
+	// Filter TargetGroup Resources
+	// (POST /api/v1/admin/target-groups/{id}/resources/{resourceType}/filters)
+	AdminFilterTargetGroupResources(w http.ResponseWriter, r *http.Request, id string, resourceType string)
 
 	// (GET /api/v1/admin/target-groups/{id}/routes)
 	AdminListTargetRoutes(w http.ResponseWriter, r *http.Request, id string)
@@ -8031,6 +8507,76 @@ func (siw *ServerInterfaceWrapper) AdminCreateTargetGroupLink(w http.ResponseWri
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.AdminCreateTargetGroupLink(w, r, id)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// AdminGetTargetGroupResources operation middleware
+func (siw *ServerInterfaceWrapper) AdminGetTargetGroupResources(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameter("simple", false, "id", chi.URLParam(r, "id"), &id)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "resourceType" -------------
+	var resourceType string
+
+	err = runtime.BindStyledParameter("simple", false, "resourceType", chi.URLParam(r, "resourceType"), &resourceType)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "resourceType", Err: err})
+		return
+	}
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminGetTargetGroupResources(w, r, id, resourceType)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// AdminFilterTargetGroupResources operation middleware
+func (siw *ServerInterfaceWrapper) AdminFilterTargetGroupResources(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameter("simple", false, "id", chi.URLParam(r, "id"), &id)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "resourceType" -------------
+	var resourceType string
+
+	err = runtime.BindStyledParameter("simple", false, "resourceType", chi.URLParam(r, "resourceType"), &resourceType)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "resourceType", Err: err})
+		return
+	}
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminFilterTargetGroupResources(w, r, id, resourceType)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -8784,6 +9330,12 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/api/v1/admin/target-groups/{id}/link", wrapper.AdminCreateTargetGroupLink)
 	})
 	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/api/v1/admin/target-groups/{id}/resources/{resourceType}", wrapper.AdminGetTargetGroupResources)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/api/v1/admin/target-groups/{id}/resources/{resourceType}/filters", wrapper.AdminFilterTargetGroupResources)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/admin/target-groups/{id}/routes", wrapper.AdminListTargetRoutes)
 	})
 	r.Group(func(r chi.Router) {
@@ -8850,149 +9402,157 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"H4sIAAAAAAAC/+x9+3vbtrLgv4Llnu/bdle0SL0sab/9elXbSXVPmvjaSnv3xDk9IAlaiClSIUHbauL9",
+	"2/fDiwRJUKIefiS3v7SOSALzwsxgMJj5YrjRYhmFKCSJMf5ixOhzihLyc+RhxH44iREkaOK6KEku+EPx",
+	"P/rUjUKCQvYnXC4D7EKCo7D9KYlC+lviztEC0r+WcbREMRGDXsdRuny3pO+yf2OCFuyPv8XIN8bGf2/n",
+	"ULX5IElbA8lrdZyHlkFWS2SMDRjHcEX/vYyRH+DrOZl6dHTxOCExDq/p8xhBAWnpEXv2OcUx8ozxh8I4",
+	"rSL0H7NZI+cTconx8EC/LgCbBmh/msHlMo5uYbCJTPmcE/YFik+i0McMXw8lbowZ5HQYdA8Xy4DCPvEW",
+	"OASQfQpIBN7dEGi0jAW8f4PCazI3xh2rN2wZS0gIikNjbHyA5p8T8x+WOWod/e/xDz9+uLr6+NN/u7oy",
+	"//jX/7tKLaszaF9dhVdXycev//yb0arSnlGRYVaAypjNEWDPwPQ0AWQOCSBzJGGL0wABRjZEAT0yWrnw",
+	"VKYoi0MIF6iIN8UTQIp8EdueZbWMBQ7lv+3dUNfhvYxxFGOyUiDGIUHXKGYgw/gakR0XRRqgGftehzzB",
+	"C3QShQmJIRaLvZkYzUoflheHYGQrl1BB6aK8VSHIsVWosnY9sfW+/1IqLYOKlFd4tkALB8VFrjSWtsrw",
+	"dXL1z1yw/jgyNcJTIrwgsgRuLeXOpQbbn3o6Ed1AjBLgcgQNxK0CKPeLoAhJPYJc8JmAvMHhzV7SsQyi",
+	"1QKFdVbjBof6B+rSXsB7vEgXxng0GjGW839ZrcqiLxGnML0ypph3LZcVIuzPZz+OFpu0hDLhK/r6Q8vA",
+	"XknoB72ikJuZlH/8n3/bKOQMCjbqWszfJyjeH2W0gJhJnB/FC0iMsfiltWkRV0TBx3FC3m6rAfazLDhh",
+	"ZlwRTSeKAgRD+jCATwxPiY+SkDlhFJhy2GuYfIGucUJQ/AsMveAQnIZ3ycR1o5R/qYonlcsvdudBR2F4",
+	"l1BIyt5TmpgIJsS0jQIpRwW5/yFNfjCvo9sff/oKl19d+NUNv6L0awJ/NH9wUUhiGHz9IYxiMv+aRCmZ",
+	"//jTD3TQr3coIT/+9KN5deVp/Si+3qo+1PQURD5znbi6FU4ViQDXMNR7AnTZtAA129hDXlHOt1y3LSNO",
+	"Q2riOTg+TAO6gOBdYgZw4Xhwo4hgCoAcpKWySKV8rYQkUeqiVzggu8nHOjXHBo/l6NmMtxjd7S+KbrRY",
+	"iM82eyIecnEiBHA9xBS4U/n2Q8ugO4EYe9Sdo2Nt/J6hxb1Apt/Fd1VzJabQ8aW04zAmIYBiU/I/EhAz",
+	"GKmUwhDwmYCY9+gqnClOP/8REAYCcGEIHAQkQiFwVgCHbpB69Kn8Wb6NQ7YI5BhO5K2OrsKpDzABOAHR",
+	"AhOCvBZ7KYrxNQ5hUJ7xDgcBnTJNkHckSJAsozDhHOSwT6lnm7psW3ghHu8hFlgZbgdusTVfBay66NSH",
+	"TXh4xtUekBSgsjVJyZxb4P3Rzo1Ycd7f54jMUcz4lCYopsyDId+8YbqnIFFMZekkWiyiELyCBB3lKkex",
+	"hPTjTQSlyFRIxT5cb6rKxDpFBOIgAdCJUrGPTckchYSSA3kMEQrTaeb0/YZiupwOQMlbPpLeOuReJhDv",
+	"HYHfhZRDkKDFLTUMSerOAUzAlXFrHY2OrCsD+IzKPnYxWyYBgglKWiCKwZXhodv/9Xo6++OXyeUv4tVl",
+	"jEzxFnBSHHjJ0UY7IAFvRuAyHgCH3HujOFHansVxdAjJRHSczbEi/lpDbcheBjEiaRwiD1Bnl0lJguJb",
+	"7CIG/9Sj8kJWPIyTxgzaA+BTWDlMadTsd7AA4Jy7CQ1oUPmipZ+tCZUuGHESla3KcpIzAVelDvd8cKKI",
+	"OSPlG1xQkodQ03kYq1G8pqqptaEDdE82U1lMvavSzolxkQboELSA+WiNCZJDsI4QYRoE0KHONolTtEmB",
+	"qHCIMRqtRxDghFDZkc4IHSETnDMqaAGiwrQNscQ2IVH+/kMJodzCIGXDcFQlSkok8MMXw8co8JQ/Tyv6",
+	"PA3x55Q5TNRhBiI0xF6eUagpeuKZ3HF5xthw3Z7b83qe2UN93+y5Xc90+m7f7Pt92Pf6qO/0XaMlgeRh",
+	"YvnvpkCwl99ABwU5EMZDqzEq6cJhGkSPjHy6Czp2p9vrD46HI8vuNMdKzrgtXpMF/DMKgdxLMD6AHyYX",
+	"b3+UG7U4ChDdoMEkSav8u6BPJxdvJbJ9lyNl9rweYiiaFD9TEoHSQEEWxuEY3iVjDBfjsYr5mE7b/nVF",
+	"x6+nwg7QFwiUQf/wUcBvwy4coOO+6bvdjtnzuwNz6B275shHHf/YtWAH2tk6yENM4y8iAJcvFR5ppXtE",
+	"o2UsUyfAyZyaKba1ikLTh4TBIx0i49Y+so6sPN6eWT+uU0075+MLWHWXMPSc6P4FrzvKKsd2OqYNbcfs",
+	"OB1o0l9MaDsdx2ZPOwpCo+HxoN/rdmxrNPz21p1EiOPJMKY/mJQAEuG6dadi/lzrzh86PdTzkdlzYc/s",
+	"eV3XHHpdaPbdvt9Hfbfrd9Ff647tLW5REC1ZcOblrj2/jygP6drrOGbX7XlmHw188xgOnZFreTbqqGYg",
+	"U/vdXv/bW3scna5r9pw+NAfeMTKH/ggyReN215o8FfHnWnpeF/X8vjcw++7AMXuwC82RO/TMEbJ9Bf6X",
+	"vPToxBJ99mWZZWzgwrKTzDFR3x+Y18fzoYlHnyzzxg46i27Yi/rLQdnJTOrZooOgQHcFgsejfMQzJF44",
+	"6QVmZaqbkuyfj+OqwkPxoakvF6fpD66PzfkQj8xP1o1t5vz//B0SnxJeQ3dTEH6YjIgq9qmHSXRw0nP+",
+	"V6huZvwfJt8S6WO0jBJKp1XFVKhPtkBd0n+xMpdx9Am5xKSTNGNDAZyi8s+fZLxosBqHWzHjGpN56jwj",
+	"O6L4GoY4gSLDp8CQd8Vn3FlhC6LCDTNbEFZaZElpggYs0X0hmVIAKWPL5nX68pky+f0SxOyAVNLh8vId",
+	"wGFCYOhW3Cr6TBynbqWhJWPUA+8652kTQAXGKAAd0JuUZ38bSVHyMrezmk8cWKlBqkrOivfZ0A9rLulu",
+	"EKXeHSTu/BuT9u0sM0rNO/T9SvtmnfwtCvuh/Z7HkPWP7BCi9rxROW9ofJzCz/3/TnHYlIVZGL/J+Yg8",
+	"CHkdw+2OQOrPzuA2uNVlOexzggabIl93gvZcB4kbzw63OzLLkrgbn5bJc1mYnZpxUkjCiFS9Q5Cmhpks",
+	"C6f5yngtINq4MGK0JSE4giByPrGcB4q9khibpyhMzqcXJfERMn12iw6zpNAt2mFJsekPJ0wCiC1oeA6v",
+	"ccgyYqQwlSFTiHVIkdqAWEteiNqapA2kTAx8CDJlq66QAc6N7FZU2sLIFCepoluBnsIHlG9zN6C8KooT",
+	"7Mtrxf4mu+DY8D7D6/3TMVS8o5TI/NADK81s5C0IwcDZLNN86P1JsGuChRzVPlBqRfZJwYvOfsUFT1H6",
+	"yMUfagYsuLCSOR/LQ8qrJtgtfl3jpGb/Vh3UTEmvdzdr5WXbK2l1TlnzS0AVYZHaTmSyq54rs7gwS6Sk",
+	"InSgTNTGJoLO3Zw875MGLggfci/LwIdQ8tT3Jkicp7o3MoAP2zhPPsuDpJDi8BpAmYHNs63F0HmuNcsX",
+	"qyS25s8ARRHiMAEey8BFniZ/EIrbpKEHcMJyu+l2U0lUxLcIwCVmKavPfxn3Jdyg5ZdNclDjNPijM7zr",
+	"nCGHdP5jGL76j3/veH+H9qvZ2eg/rX+vQN0y7s3ryBTqanrKL1cS6EECm9PyV/nF5ju96+/orbmVt73e",
+	"e9ZLuOzujP7WbXbHtnr/Vnd1N2NH6VJunoQg119lebeMWnmvrlXxXCTucjWeS2hSWXKa/fFGcc00c3WB",
+	"sCsEdH2IuJO8l8INinJjZJsF8qDQqYh/mVZ0ISQkWrI7uQwpas97/vDYP+52XefY8tlwGqGvXiBiNyC9",
+	"icZ8i/UmfqQCcEQliUIuvvp5pcUrXXqQoF9RksBrtOYNMWt2X1Lc3WoMhRhFC0VJxHM0VeBVQNThtCL7",
+	"ay7ba0RXLN+K2MDCJSIusaGaKyw2NxXRZc4jvzt2dr9ESSLv9EDPw3RwGJwXPtjmLpoGFWU/stU2p35b",
+	"Iz3gChJaMmdkaCLzXnfk9brIO7bdbrck87OquiytZLxApdT/Kluq5ltcTzwV31wiNwq9pO6mDHsXeHIC",
+	"HIKEf6CaVZwAGATRHfIoBEf8KiW3Lnb/uNMbiooS/KeB1uIs4H0jkMTIjw9SSSA08LXqaKkIxqxa96GB",
+	"XNg+GgyPLbsz6o46RqWmiqYATPUumf4+CznsDUhmesWYCtaboG1GhYE/cDs+7HnwuDc0dJVlttBWTGty",
+	"9/play3tRaR67cQKJWzUTzWE00ByiuF1GCUEu7rbup7eHgboFm3cD7yJrt+w95jfW2dcS5jykVt86vw7",
+	"BTUF4GZi5TuDjus4I8ft9XpswsxarC2VUnP7vKZgyom8X69RdftUVKm8mAc6G1VMKTrIbP2qAOfQZSMr",
+	"tJb2sCI1U295SSBJxeEd1akfjMnFyS/T385OjZYxOZlNfztTh8q/0HlMVa7Bru/F9vG1O7d6kCGXyZMy",
+	"5fTtq3dGy/h9cvF2+va10TLOLi7eXajzZl81m3bprm7cYWDfer2Ia+J3S8S1veYOGCExdlKiZ1QkP5yx",
+	"J9vojHfqp2cUV3W8jQooB/mhlUcGKwCyJ/vUtili2FLooTAgB6bZcoXQg67nOgN75HMfKavnU3cLb8tw",
+	"dzbehpuJu+01sNfkziillgq7OptCvBz1ZsSLhkP38wgFx3Ey/1wknopsU+9BwJxMlBBQ9ZL5oYKmjx0y",
+	"qGCzrkyXjgkqCZvxY+R3oW3B3nDY63Lbo9TQKN/IzAoxRNKrTaIFInPqxSygh4Czot4+Cj1RFCAsFwA4",
+	"wOJodmlXJy+6eNcyjZdRghpOei7ezo8i995zZ+PwXXcDIC6UL6i5zcxcg2+FhcvWRK1ToBNPSauKZlBx",
+	"KFImA684oSK7Utx04lp7mFQUnA+FqEvdgVC15IpX3t5ZDNyYMN6MDbs3tvvjTucfCp+mhTEl7Y3J+fnF",
+	"O+5ZqOdZCpzFD1/2Qdd6XM/P3p5yX6Z5wta6szA1T6t80FUh3cNHrhNFgZ7KDn1gFaNh9UgqK19WHq1m",
+	"GohBckkoLdjcfuaac60dg4UTk+30XPF2vowS/4rIPPJ2GK34/c7uhI9DGOxax+iV8rE8ROFHZFvvR2o8",
+	"hENVWiqsii+1qSk7Ah8X1PO2unxvG5INsD+VtjJHyghly/Q4mYiFOHlDEa/z1LgsKBauTMViNFyNmBcN",
+	"Zn4oBNXznKJMVGK723h53Z7fGXQ81/K9Ud/Q66riWW4paeex3N7ywFXHQA9hQ+fWHdkW8kf9vnXs1qFd",
+	"UaPlmkb0Xw5KwJ2oeZXH8uYwAQ5CWR01D8CURAtIsAuDYAWimBcRgrK6mtHKYxHvZ+9+ncymJ0bLuDj7",
+	"bXr2+9lpgclFuJoFBxx72HU6EDrQ7nVqEH5V1NfVgDZT6LLYGnPr5SEcy9BtAQ+F1NsNcII8EIUkAnMi",
+	"D7krPj4KvVlWh1CdCifRcGDZdCKUELhY0u3C+9kJ++HPKGTp8rt61Yob94TzloQ7B6KVkWGtgKusaSbh",
+	"Q8vpWgNvALuOc1zD8NyoVHnNdVdd1T9FXE/PTt5M3/LQWe7rClfwD/7T5I0Gva1iasi2rL5ndUbQGtYt",
+	"2LoQ+wQQtFhGMYxXACYJvg5ZITKKGt+N0l0rWMY4dPESBmt3ozU2XnrtW4URXtGPtnBYGrkZT7RdrJC9",
+	"bKXXUYvktx+2uCexydoWudSqnDwos2YM09lo3ak0T5oHa05M1R0pywTiGs4YGx2r0zGtgWl3Z7Y97o7G",
+	"Xeto1LH/kd27d6DluQ40LTh0zV531DWhN+qYg1HftrqdgdMZ8SwPWdZNXu5lWqQ4gdUtTqDZmiUpB3rM",
+	"0i7+TcB95LL6zXeYzLMsjvySP9vEaN0Hb2h1hkPX6vY3LEtNjcvKQlWfgigE8+hOiSgpyR7IA7GIOh9d",
+	"hbwI6b/UEpn/AozBWUXQMA0CgH0QRkB9DcAYAXgLMcscrC58vC+4UYAAy5gTwGqLKhZFrUCiht7MAELX",
+	"gd3jY9hx1nKhocbn9ryo56VGp/p8ejl9J04tJr9PpjP6++VscjHLz0/keQbzYd79nRmFs/88n14UnZkN",
+	"gDYzDqMOciyrN7IG/eM6W5f7NaWTs+pJfvUY7EU4DV790X0tus3kp2/3BxBZ/shx+gX54dc6NKEKoi2x",
+	"WQoU7OyjUdeY3V67PJBJ4gMWPJ5d96B0qB034/TT/bfRbGnyQ3JPf6jB3ngFcZDG6KKudc4aL8ONYg95",
+	"Ge+r1VDpE3A3x+4c3MEEyC9AjAKeuECifFdwpBXCnPMLuPzAZ/9YcWbWorneHSKZM7hzhCA6qAzS4Q4i",
+	"gSTaUf5INHuElBrVBdMeBBZ0STOFdG/3/+x/dgOUeJ9HqkI6z0Oz5aT3+hZRJUBOopCg+6ag2IMR6jhd",
+	"hNxjf6iCclH0t2tSV+/mkeK0cNeguhOW/SzW96dotIJ1R1lqU4lqpjV2SRqjhie/NX0hOAZVpoOMSoAH",
+	"tP46yfnrJOebPcmpCa15nR50R72uBS1b1RAHCa+cTN6enL15w8Qu96TZX5xBOatO3v16/uZsdqZNYlof",
+	"dJGdOUR6Vk2uUFLt7dTAltf4GTVZYmsuTChwFBATcDfT53jp2XfEdVbw050MhBZyHpvGcAqZSmVgxFil",
+	"0I4eos/kT+vTfXQ36FjXUANRNaNKySL7+ez19O3lH79PZ78YLWP6VkeZumEappU5oXXXv0+76cBNjbyj",
+	"yqnS4qQcb5PdRniQOAo1Qq4GvHPFmgUTC2gUptOIbl4zoAKLeABitIxRwm4iQrWrAtvtytDKEbgKZT0E",
+	"2b4kwOEN8phHq/TnScAthkDco22tbVq0vjtRtXNMliPaPJyo5JVqool+GrJowiTWzzhHMCDzld7Jrtsk",
+	"5D2EtmoWpMJS2zooB6lIDjVXPeN4w9sLvnc87PrIHVgDdh/t3iTwmhpng/vpsirGRypO2dZBk2n92EHe",
+	"mwNERW8KMU6VbM3ilwU/7GW7Mc/hntT4AaO7z/35pyTBg7g3YG+pEqCXptMNedsqVZtv4TfkzW6aVKV8",
+	"w01BBmXhawmJIoGcGA23Xo517PfcrmV7qK8QtCaBZscklR3bJ7rbRVWaNTBTJrrkHxzoBp+OawKkVta7",
+	"0RXNfArKYptkgjt39acf2jfL0f3NfZlhcnkW7fPlErnYx4ia5SWMCXbTAMbSWZCNaaj55ewFEKgKG3Ak",
+	"2GF6NXxf2wG09oaCoht0CyNv1bShEXU2TOa8ym+V/qBVOr/inGi2OBByRp7fc/vHXpnW9b58rDxpktQv",
+	"yjexv+VlgJpY285Xggrj5/+sodGW/r5n3QwW/tL5BOPVskyny2xV7nJZqjLQJL5OF7JEUwFyIa2Xcsk1",
+	"gfzYgd0ecnr9rjfo6yHPJtQkp/g4RCwKK2+KtwD9L6BTs2IK76cAqdU52JVEOWDrMBeMVHGrfXhZ1zc4",
+	"o2IjK8Tf/biW9GCSI9joXt9xD44cD9k9t9tReCDPrkvHhXVG4bCKaLOyEQ6gXqODWi3zlw+4tw/oo64/",
+	"9HuDri1iQWpdpurh48E3e3O+LdqnJXZdiY11GR23MMDaY5oNqj8HNxNapZM2H7V+E6iQtuEFrW63O4JO",
+	"17Y7NmfPe9Fl8jAB+V2KX9Rozh1j9k3TePI7jY/oYeqaSUvQlcwb5RxBTYtV+uYJhr9Pajb8quI6mcdY",
+	"ZaLh0h/+jdd/9SFBRziqaCWhH9i34C2lQKjAOjbmhCyTcbsNbyGBcXLEi4enCYpFkaYjN1q007bd69i9",
+	"jmX9dPt/epSy/x4lcxWWGqVYUU/bT3zc61jdwYhPzDsf49CPZB0p6PIiWQLP/O4VJXocKDMVCVWpBKV8",
+	"CibnU0O5uF0YNFemNi+vGy1RCJfYGBtdVnGXda2eM0614RK3b+02qwbU5gcqZiz7E2pz+liRQhgE5WI0",
+	"2b1Opq1Z+lKpgSKbOIYLRFgu/ofyyG/RPQFLeI0AiW4Qu3lMf/6cItY9QFAwRPdkJp4nZf8lL+VW6kDc",
+	"say6hZm9165r+PjQMnqWvfn7YiPVh5bRbzJr6SuqSNLFAsYrSWy12SIzujx8JprsUqUU6e4GnohtW6hy",
+	"Ss+o8s3//CDm58hb1aMgX8EoaZfHUMp8ljhhH6ztuHr7plo6TeYwMPZZO7DvmZguGKewXcP1h9aaxdv+",
+	"Qv839R64VASIu0Aazp+yhyXOF7jVq0rW2wicCPbtTKUeH/ipacvxLdCWeg86RfcaEU2dHA0NXyOyjoDW",
+	"E4n7u79/c9ygJF4v5hWTwUwCtV+5ReCybqhuEC9EudY8LFMNz98zLygp8x2w30XdRVY9kS3RBEAQorus",
+	"QbhePPiYT6Vcn1rarCoRf4YeUAAUElkidAhTMo9i/KdU0Fo9Q8CrKOWl+vu6qaYhQXEIA3CJ4lsUAyZs",
+	"JSHj9N9WneYnlW0l+KhVFLLQO5kjXY/1WqVR6Wlv7OK01HfGr661alN7Uf4zaUKSfI9V6xgmwjNklUGz",
+	"4ok1rmF2V32tV4hCN14tCTsJvkGhLFxKF+OS13SV9N7LYWx90X6cRTzzL/MyMrOzi7eTNyy9Wvz5sXU4",
+	"T7TUOEHjGGYE3tIlpDqLXw0T3UNOousQk4gnzi2jiGXsYwJwAlAInQB5R+scR3lSsaNaE8Hlx3cXZRW/",
+	"781TzE6Kmq3g9pdrHgYquYflODbzlCBdW0LJyp56tX5kLghVgdebj+d0AuvI1lqv5tU6yby2NqNLvXO4",
+	"jiqPK9eUyhUjwKPyp7V6v4nLda0cIR3G55JkXOdDPa6eeSJ+7Kpi9pZ6QefGykJEiFWDX2PIZeaWsaup",
+	"q7TCeT6VSlfIPMen3rJqaHGBrnFCUJxnSG0tqaUhnsIqKn1/vh/LKOkIoOTmNiLf/oLXG8cLtIhu2f4v",
+	"H73WKqriUA2tNOZh44ZTYQTcbyo8U2uA9fa0lp7W06yJbzTQUr8Omlh8vKWxr64tllnqzpF7Y6qmRb9T",
+	"uUjFhlr5jHlbim7WSMcv+dv1RumRIpp7M0kBHvxSb4IqlMUe6/eyqt2ZU+5Xu3tQ6spPiyXCaz3ZqXj9",
+	"pPT29lZfO9ILMf+1RGnMiXayCt21wl2kPn0dZCQHLCyzgOxQXsOIy1XoSvpttdl6FopSaIEC7kYiqg3l",
+	"1mzElL6KMAiA0i2uxku9yN9YG3CKFpguDpwA9hogEWCFgvgsSRqwIbTBInmuXg0WqZeJ1t0byq8aaUJJ",
+	"rWeKje0cwqr0IyyKxv+N0hi8PpsBFHrLCPPcsE3iwRNZzEowsobrM7X13K546NrtPa+OKlyJ2Xafwp36",
+	"YpbxjnvqAmWeYK9S6MbxUnYrPWv0jNE/VRS2XkAbdzr89/IktXudslB9x0fJespsuZdZSy/rqdbNN7qj",
+	"UUkPfpCN7H58rh1OdWG1AxzeMD9wncMxU9GYnkpTvR902xmANxTOQxgBNtDDo0uy6LZ62AjrNyX/lNAA",
+	"FpeAcrxLIoBJcgDb0JZ3BZL2F/W6yMPmBEFeNkx8DWCSRC5mHTjvMJmzp+L6b15TjI7MtvnX+BaFQAXH",
+	"xF79EYvmlsqhvL3sMs43Jh5ZK2lQ7CWdPI16bOlTdcoXjg6qbetEte2ze/iJRhO/PETrzu4ZRwmrBUuR",
+	"URbNY64tXsGgdnkVzMVB9Hu5D9bDw8NB13FhlfBJtC3XeV3kzSKX9QrfkBPDX5QHxowD6vKsD1soBu8w",
+	"Ko2P9LSq6aH1DC5QE/6l4Qt10fgJU9VF0+mvUlAndwOmu6my0njietBWmDUPSn73ntp7JmJrfDVWj3wX",
+	"by3r3qvVPa8QcedKlFS2TK/RM+/F45eQjLdzwLHQ2b58IsxPR6sE2SF7TrZSOkDynLhatePWiyP8+IE3",
+	"3pT/u8uck/faGq209hf6P5E2t9mP5C8fxvnLcqSE4LlB6tFFx3WJ6MY4x2uzp/SC1lg69m02XrqmqNwx",
+	"LOc1PGb4oE6On94aHSqfa7MIs6M3UW9g865deRtQy59kx6DIK3ePY/W/E8SKeXsoxrfI49aM6sVCeaeq",
+	"CqRw00nPVOh21fvqIIffRxdArKNsW+mRsyEuwl8EZA75jo4t6jlMsgLmURNqzbIWNWtNtjTAe6XGF4fk",
+	"O9AMD2cFZNmDeu9RORLlV4apvpS1ANr03ba8hg4JQTEd6Z8foPnnxPyHZY7Mj1/s1sPVVbvBT38zDpiF",
+	"L6hcXO/WNxYIUqSmZoO7LLRL1dqg31CM/RUrYMLKA3CD5EZBgFyetuBnXXi4UdAJsSwnrPQo3dH1yYbY",
+	"L6VXvcGO7v9gqjwr41Uphctuj/OYia2WbeVXXkoFatcX75jNEZieUqpRHTD5/ZIuf1GSr1DPQ1TqE/tO",
+	"Vk2B/2KyHaes62HZnW6vPzgejuyOvrrHeYBggqiGRzFYRWnMZi0MX6j7UXpKFUENHnT9boGJqDmg4iJ+",
+	"kshwM7YDFuo4OjzY84aYLFG8wKxPOkgQi6lL+RaK2o/iMorn+TeXrOAfL+WZ/Wom7FeJJ4zDMbxLxhgu",
+	"xmOVg2McJgSGLjKXceTjALWLY5ihgqiWQAmiC1OHyCpKQYiyqtjc3hQoVsRCEE2WfxFhFHttARiZ22Rm",
+	"3VMyiwDvEjNJolIxGF79wPTLRQxubVa0QFMRRo6TcbPhUnt3Q+Cea20r8WTz1a+y8uMynTu70lk0q9mP",
+	"yGyQTXWhuwPL4uGjXD12Dqoe/+LZ4/DsY6FziNGxOrZpjUzLntmdsWWNLUvpluTanS7fPDXbbOVG/r/y",
+	"Se1l6iwwASoxNH5X+0v2p4gwaPNGqAv1GpXcp0faKzdi37MlfyjQNTm+VKi78ynCxsxUcdzDI4sgugvr",
+	"01Llhq5pVqoSXt2/Ok7djs6PYrCECQFRDNKlG7F2kwoKuhl9WXC9mvT6/vzk3a+iVv7kcnbQ29HV1NJD",
+	"bZYyjtQGgqchJpjVf8h67bAIeBxJr1DeZlT2RHoROI8KIrBfYYhCe5Qn2Q6VG14XWqg+d9sQpT/mf5W2",
+	"IeUecc/cQ2QrZq7rKyJjRgduLKIQME/Q38LByZbaC7CPDxpD1f6SSc3DuttBukvt4kut1nqNMi3zFEqm",
+	"0AVb0/e6plWNpiH/S9BPpXaxlQKFSqHLOrDyEpW6yoXVipTVpsDfr0p8TvI+k/Z1i8R7SsV82IZPT8Su",
+	"b17Xl/dCisvXoFya0jZwv32Qal7arDdlsrFIFgS/zGbnPcsGEj2A/fwUDCcgjIjacTiKgbBHtxjdoZg3",
+	"6Vq7mTq73eswsTDKSykCKiPPSOImD3zPQo+fAX98Tu5z7hQrCz0WMK2DlqTR39BF/MpnXjtVkJ+11XJW",
+	"Yo9/BGZMUOnLdAfIRHiRJgQ4vPAqcz/ExjpzqY4Yv1ifKyrr/HMq8jguxAxajNlieax4x+zSmOy8ZV2B",
+	"Sn7kRidQHbati5KoA+yUjyuHqEnN4tRWfE6NdK8TQew9tF0YurxxTmPBwwcSF96snR2NSvbwNmYcJilE",
+	"DvKjWGRmU4OOvCNw5vuIl8vDiwXyMCQoWAEtH0/YYOsd70PGWHvPU7jlNroRVYsZWfaSiZiN9rJkIhYY",
+	"cplY0uUfpUmwkq9tJxScXn8JRZ1QUM2yKWArRQfczVGMCs5I7nescTr4HN9PWYGDxppfZISXc0yVFLEd",
+	"bn/hf1CfRlTUxmFC4pSluNTXG5Bl/ni60FT9ZBf8uU1Xh3kBq7BarqGRxykJurPDyZNv+ca1cWXGvMaN",
+	"m8YxCkmwAkF0fc2TGJnzVhfa+hXtxrOUzIv5541qH2uK9LLKjJl/J+BnMG9UeNVE5Q27MbWrxFqqZOnD",
+	"z5SZe4Ai0hVSwzVEbT1SijeDglWr5sPmPUDG7XYQuTCYRwkZD62hxUM2HLSsg0gGItXb4jee2qD8UGyt",
+	"+vDx4f8HAAD//5VW1XjH6gAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
