@@ -64,7 +64,7 @@ export const adminFilterTargetGroupResources = (
  options?: SecondParameter<typeof customInstance>) => {
       return customInstance<ListTargetGroupResourceResponse>(
       {url: `/api/v1/admin/target-groups/${id}/resources/${resourceType}/filters`, method: 'post',
-      headers: {'Content-Type': 'application/json'},
+      headers: {'Content-Type': 'application/json', },
       data: resourceFilter
     },
       options);

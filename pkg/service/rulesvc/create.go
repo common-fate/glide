@@ -144,9 +144,9 @@ func (s *Service) CreateAccessRule(ctx context.Context, userID string, in types.
 	selectedTargets := []string{}
 	for _, target := range in.Targets {
 		selectedTargets = append(selectedTargets, target.TargetGroupId)
-		if len(target.FieldFilterExpessions) > 0 {
-			hasFilterExpression = true
-		}
+		// if len(target.FieldFilterExpessions) > 0 {
+		// 	hasFilterExpression = true
+		// }
 	}
 
 	// analytics event Create Access Rule

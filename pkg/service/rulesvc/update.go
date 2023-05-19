@@ -101,9 +101,9 @@ func (s *Service) UpdateRule(ctx context.Context, in *UpdateOpts) (*rule.AccessR
 	selectedTargets := []string{}
 	for _, target := range in.UpdateRequest.Targets {
 		selectedTargets = append(selectedTargets, target.TargetGroupId)
-		if len(target.FieldFilterExpessions) > 0 {
-			hasFilterExpression = true
-		}
+		// if len(target.FieldFilterExpessions) > 0 {
+		// 	hasFilterExpression = true
+		// }
 	}
 
 	// analytics event Update access rule
