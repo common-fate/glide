@@ -59,9 +59,9 @@ var CreateCommand = cli.Command{
 			return errors.New("target schema was nil")
 		}
 		tg := target.Group{
-			ID:     c.String("id"),
-			From:   target.From{Publisher: c.String("provider")},
-			Schema: (*describe.Schema.Targets)[c.String("kind")],
+			ID:   c.String("id"),
+			From: target.From{Publisher: c.String("provider")},
+			// Schema: (*describe.Schema.Targets)[c.String("kind")],
 		}
 		err = db.Put(ctx, &tg)
 		if err != nil {
