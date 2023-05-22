@@ -22,6 +22,7 @@ var ServiceLogGroupNameMap = map[string]string{
 	"event-handler":  "EventsHandlerLogGroupName",
 	"granter":        "GranterLogGroupName",
 	"slack-notifier": "SlackNotifierLogGroupName",
+	"governance-api": "GovernanceAPILogGroupName",
 	"webhook":        "WebhookLogGroupName",
 	"cache-sync":     "CacheSyncLogGroupName",
 	"healthcheck":    "HealthcheckLogGroupName",
@@ -39,4 +40,5 @@ var ServiceNames = []string{
 	"webhook",
 	"cache-sync",
 	"healthcheck",
+	"governance-api",
 }

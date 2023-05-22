@@ -90,4 +90,7 @@ export class Governance extends Construct {
     // both prepend and append a / so we have to remove one out
     return this._apigateway.url;
   }
+  getGovernanceLogGroupName(): string {
+    return this._governanceLambda.logGroup.logGroupName;
+  }
 }
