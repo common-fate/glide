@@ -23,6 +23,7 @@ const testOutputs: StackOutputs = {
   EventsHandlerLogGroupName: "abcdefg",
   GranterLogGroupName: "abcdefg",
   SlackNotifierLogGroupName: "abcdefg",
+  GovernanceAPILogGroupName: "abcdefg",
   DynamoDBTable: "abcdefg",
   GranterStateMachineArn: "abcdefg",
   EventBusArn: "abcdefg",
