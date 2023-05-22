@@ -20,6 +20,7 @@ export type StackOutputs = {
   EventsHandlerLogGroupName: string;
   GranterLogGroupName: string;
   SlackNotifierLogGroupName: string;
+  GovernanceAPILogGroupName: string;
   DynamoDBTable: string;
   GranterStateMachineArn: string;
   EventBusArn: string;
