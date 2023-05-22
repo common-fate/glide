@@ -53,6 +53,7 @@ func TestOutputStructMatchesTSType(t *testing.T) {
 		EventsHandlerLogGroupName:     "abcdefg",
 		GranterLogGroupName:           "abcdefg",
 		SlackNotifierLogGroupName:     "abcdefg",
+		GovernanceAPILogGroupName:     "abcdefg",
 		DynamoDBTable:                 "abcdefg",
 		GranterStateMachineArn:        "abcdefg",
 		EventBusArn:                   "abcdefg",
