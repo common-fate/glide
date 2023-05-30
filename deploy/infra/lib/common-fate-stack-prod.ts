@@ -340,6 +340,7 @@ export class CommonFateStackProd extends cdk.Stack {
       SlackNotifierLogGroupName: appBackend
         .getNotifiers()
         .getSlackLogGroupName(),
+      GovernanceAPILogGroupName: governance.getGovernanceLogGroupName(),
       DynamoDBTable: appBackend.getDynamoTableName(),
       GranterStateMachineArn: accessHandler.getGranter().getStateMachineARN(),
       EventBusArn: events.getEventBus().eventBusArn,

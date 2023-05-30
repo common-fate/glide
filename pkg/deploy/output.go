@@ -37,6 +37,7 @@ type Output struct {
 	EventsHandlerLogGroupName     string `json:"EventsHandlerLogGroupName"`
 	GranterLogGroupName           string `json:"GranterLogGroupName"`
 	SlackNotifierLogGroupName     string `json:"SlackNotifierLogGroupName"`
+	GovernanceAPILogGroupName     string `json:"GovernanceAPILogGroupName"`
 	DynamoDBTable                 string `json:"DynamoDBTable"`
 	GranterStateMachineArn        string `json:"GranterStateMachineArn"`
 	EventBusArn                   string `json:"EventBusArn"`
