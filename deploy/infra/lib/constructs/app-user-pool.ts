@@ -181,6 +181,7 @@ export class WebUserPool extends Construct {
     // create an app client for the CLI
     this._cliAppClient = this._userPool.addClient("CLI", {
       supportedIdentityProviders: [UserPoolClientIdentityProvider.custom(idp)],
+      accessTokenValidity: cdk.Duration.hours(24),
       oAuth: {
         flows: {
           authorizationCodeGrant: true,
