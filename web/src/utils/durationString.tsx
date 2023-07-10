@@ -23,7 +23,7 @@ export const durationStringHoursMinutes = (d?: Duration): string => {
       return "few seconds";
     }
     return formatDuration(d, {
-      format: ["days", "hours", "minutes"],
+      format: ["years", "months", "weeks", "days", "hours", "minutes"],
     });
   } else return "";
 };
