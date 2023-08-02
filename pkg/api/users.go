@@ -19,7 +19,7 @@ import (
 func (a *API) AdminListUsers(w http.ResponseWriter, r *http.Request, params types.AdminListUsersParams) {
 	ctx := r.Context()
 
-	queryOpts := []func(*ddb.QueryOpts){ddb.Limit(50)}
+	queryOpts := []func(*ddb.QueryOpts){ddb.Limit(5)}
 	if params.NextToken != nil {
 		queryOpts = append(queryOpts, ddb.Page(*params.NextToken))
 	}

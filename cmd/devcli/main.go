@@ -11,6 +11,7 @@ import (
 	"github.com/common-fate/common-fate/cmd/devcli/commands/groups"
 	registry "github.com/common-fate/common-fate/cmd/devcli/commands/provider-registry"
 	"github.com/common-fate/common-fate/cmd/devcli/commands/slack"
+	"github.com/common-fate/common-fate/cmd/devcli/commands/users"
 
 	"github.com/common-fate/common-fate/cmd/devcli/commands/healthcheck"
 	"github.com/fatih/color"
@@ -33,6 +34,7 @@ func main() {
 			&healthcheck.Command,
 			&grants.Command,
 			&registry.Command,
+			&users.UsersCommand,
 		},
 	}
 
