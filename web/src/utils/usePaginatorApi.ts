@@ -90,12 +90,12 @@ export const usePaginatorApi = <
       setNextToken(data.next);
       // Otherwise incrementing internally between pages
     } else {
-      const tokenIfPresent = tokenStack[pageIndex + 1];
-      if (tokenIfPresent) {
-        setNextToken(tokenStack[pageIndex + 1]);
-      } else {
-        setNextToken(data.next);
-      }
+      // const tokenIfPresent = tokenStack[pageIndex + 1];
+      // if (tokenIfPresent) {
+      //   setNextToken(tokenStack[pageIndex + 1]);
+      // } else {
+      setNextToken(data.next);
+      // }
       setPageIndex((curr) => curr + 1);
     }
   };

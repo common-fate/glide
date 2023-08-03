@@ -19,6 +19,7 @@ func (l *ListUsersForStatus) BuildQuery() (*dynamodb.QueryInput, error) {
 	qi := dynamodb.QueryInput{
 		IndexName:              aws.String(keys.IndexNames.GSI1),
 		KeyConditionExpression: aws.String("GSI1PK = :pk1 and begins_with(GSI1SK, :sk1)"),
+
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":pk1": &types.AttributeValueMemberS{Value: keys.Users.GSI1PK},
 			":sk1": &types.AttributeValueMemberS{Value: keys.Users.GSI1SKStatus(string(l.Status))},

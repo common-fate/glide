@@ -18,6 +18,7 @@ export const UsersTable = () => {
 
   const paginator = usePaginatorApi<typeof useAdminListUsers>({
     swrHook: useAdminListUsers,
+    pageSize: 9,
     hookProps: {},
   });
   const cols: Column<User>[] = useMemo(
