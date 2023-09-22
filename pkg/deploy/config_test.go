@@ -33,6 +33,22 @@ func TestParseConfig(t *testing.T) {
 	assert.Equal(t, "commonfate/okta@v1", c.Deployment.Parameters.ProviderConfiguration["okta"].Uses)
 }
 
+func AssertEqualJson(t *testing.T, wantStr string, got interface{}) {
+	gotJSON, err := json.Marshal(got)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var wantObj interface{}
+	err = json.Unmarshal([]byte(wantStr), &wantObj)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want, err := json.Marshal(wantObj)
+
+	assert.Equal(t, string(want), string(gotJSON))
+}
+
 func TestTestCfnParams(t *testing.T) {
 	type testcase struct {
 		name string
@@ -50,7 +66,43 @@ func TestTestCfnParams(t *testing.T) {
 					},
 				},
 			},
-			want: `[{"ParameterKey":"CognitoDomainPrefix","ParameterValue":"test","ResolvedValue":null,"UsePreviousValue":null}]`,
+			want: `
+				[
+					{
+						"ParameterKey": "CognitoDomainPrefix",
+						"ParameterValue": "test",
+						"ResolvedValue": null,
+						"UsePreviousValue": null
+					}
+				]
+			`,
+		},
+		{
+			name: "IdentityGroupFilter",
+			give: Config{
+				Deployment: Deployment{
+					Parameters: Parameters{
+						CognitoDomainPrefix: "test",
+						IdentityGroupFilter: "test",
+					},
+				},
+			},
+			want: `
+				[
+					{
+						"ParameterKey": "CognitoDomainPrefix",
+						"ParameterValue": "test",
+						"ResolvedValue": null,
+						"UsePreviousValue": null
+					},
+					{
+						"ParameterKey": "IdentityGroupFilter",
+						"ParameterValue": "test",
+						"ResolvedValue": null,
+						"UsePreviousValue": null
+					}
+				]
+			`,
 		},
 		{
 			name: "provider config",
@@ -68,7 +120,22 @@ func TestTestCfnParams(t *testing.T) {
 					},
 				},
 			},
-			want: `[{"ParameterKey":"CognitoDomainPrefix","ParameterValue":"","ResolvedValue":null,"UsePreviousValue":null},{"ParameterKey":"ProviderConfiguration","ParameterValue":"{\"okta\":{\"uses\":\"commonfate/okta@v1\",\"with\":{\"orgUrl\":\"test.internal\"}}}","ResolvedValue":null,"UsePreviousValue":null}]`,
+			want: `
+				[
+					{
+						"ParameterKey": "CognitoDomainPrefix",
+						"ParameterValue": "",
+						"ResolvedValue": null,
+						"UsePreviousValue": null
+					},
+					{
+						"ParameterKey": "ProviderConfiguration",
+						"ParameterValue": "{\"okta\":{\"uses\":\"commonfate/okta@v1\",\"with\":{\"orgUrl\":\"test.internal\"}}}",
+						"ResolvedValue": null,
+						"UsePreviousValue": null
+					}
+				]
+			`,
 		},
 	}
 
@@ -78,12 +145,7 @@ func TestTestCfnParams(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			gotJSON, err := json.Marshal(got)
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			assert.Equal(t, tc.want, string(gotJSON))
+			AssertEqualJson(t, tc.want, got)
 		})
 	}
 }
