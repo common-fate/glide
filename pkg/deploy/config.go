@@ -455,6 +455,13 @@ func (c *Config) CfnParams() ([]types.Parameter, error) {
 		})
 	}
 
+	if p.IdentityGroupFilter != "" {
+		res = append(res, types.Parameter{
+			ParameterKey:   aws.String("IdentityGroupFilter"),
+			ParameterValue: &p.IdentityGroupFilter,
+		})
+	}
+
 	if c.Deployment.Parameters.FrontendCertificateARN != "" {
 		res = append(res, types.Parameter{
 			ParameterKey:   aws.String("FrontendCertificateARN"),
