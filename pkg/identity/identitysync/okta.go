@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/common-fate/pkg/gconfig"
@@ -19,12 +20,14 @@ type OktaSync struct {
 	client   *okta.Client
 	orgURL   gconfig.StringValue
 	apiToken gconfig.SecretStringValue
+	groups   gconfig.StringValue
 }
 
 func (s *OktaSync) Config() gconfig.Config {
 	return gconfig.Config{
 		gconfig.StringField("orgUrl", &s.orgURL, "the Okta organization URL"),
 		gconfig.SecretStringField("apiToken", &s.apiToken, "the Okta API token", gconfig.WithNoArgs("/granted/secrets/identity/okta/token")),
+		gconfig.StringField("groups", &s.groups, "Groups that users are synced from."),
 	}
 }
 
@@ -133,28 +136,36 @@ func (o *OktaSync) ListUsers(ctx context.Context) ([]identity.IDPUser, error) {
 
 	log.Debugw("listing all okta users")
 
-	users, res, err := o.client.User.ListUsers(ctx, &query.Params{})
-	if err != nil {
-		// try and log the response body
-		logResponseErr(log, res, err)
-		return nil, errors.Wrap(err, "listing okta users from okta API")
-	}
-
-	log.Debugw("listed all okta users")
-
-	for res.HasNextPage() {
-		var nextUsers []*okta.User
-		res, err = res.Next(ctx, &nextUsers)
+	oktaUsers := make(map[string]*okta.User)
+	for _, groupId := range strings.Split(o.groups.Get(), ",") {
+		log.Infow(fmt.Sprintf("fetching users for groupId = %s", groupId))
+		users, res, err := o.client.Group.ListGroupUsers(ctx, groupId, &query.Params{})
 		if err != nil {
+			// try and log the response body
 			logResponseErr(log, res, err)
-			return nil, err
+			return nil, errors.Wrap(err, "listing okta users from okta API")
 		}
-		users = append(users, nextUsers...)
-		log.Debugw("fetched more users", "nextPage", res.NextPage)
+
+		log.Debugw("listed all okta users")
+
+		for res.HasNextPage() {
+			var nextUsers []*okta.User
+			res, err = res.Next(ctx, &nextUsers)
+			if err != nil {
+				logResponseErr(log, res, err)
+				return nil, err
+			}
+			users = append(users, nextUsers...)
+			log.Debugw("fetched more users", "nextPage", res.NextPage)
+		}
+
+		for _, user := range users {
+			oktaUsers[user.Id] = user
+		}
 	}
 
 	// convert all Okta users to internal users
-	for _, u := range users {
+	for _, u := range oktaUsers {
 		user, err := o.idpUserFromOktaUser(ctx, u)
 		if err != nil {
 			return nil, errors.Wrapf(err, "converting okta user %s to internal user", u.Id)
