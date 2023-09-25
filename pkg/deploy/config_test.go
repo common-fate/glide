@@ -45,6 +45,9 @@ func AssertEqualJson(t *testing.T, wantStr string, got interface{}) {
 		t.Fatal(err)
 	}
 	want, err := json.Marshal(wantObj)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	assert.Equal(t, string(want), string(gotJSON))
 }
