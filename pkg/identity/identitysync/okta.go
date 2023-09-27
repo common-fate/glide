@@ -172,13 +172,56 @@ func (o *OktaSync) listAllUsers(ctx context.Context) ([]identity.IDPUser, error)
 	return idpUsers, nil
 }
 
+func (o *OktaSync) listGroups(ctx context.Context) ([]*okta.Group, error) {
+	log := logger.Get(ctx)
+
+	log.Debugw("listing all okta groups")
+
+	groups, res, err := o.client.Group.ListGroups(ctx, &query.Params{})
+	if err != nil {
+		// try and log the response body
+		logResponseErr(log, res, err)
+		return nil, errors.Wrap(err, "listing okta groups from okta API")
+	}
+
+	log.Debugw("listed all okta groups")
+
+	for res.HasNextPage() {
+		log.Debugw("hasmore")
+		var nextGroups []*okta.Group
+		res, err = res.Next(ctx, &nextGroups)
+		if err != nil {
+			logResponseErr(log, res, err)
+			return nil, err
+		}
+		groups = append(groups, nextGroups...)
+		log.Debugw("fetched more groups", "nextPage", res.NextPage)
+	}
+
+	return groups, nil
+}
+
 func (o *OktaSync) listUsersBasedOnGroups(ctx context.Context) ([]identity.IDPUser, error) {
 	log := logger.Get(ctx)
 	idpUsers := []identity.IDPUser{}
 
 	oktaUsers := make(map[string]*okta.User)
 	userGroupIds := make(map[string][]string)
-	for _, groupId := range strings.Split(o.groups.Get(), ",") {
+
+	var groupIds []string
+	if o.groups.Get() == "*" {
+		oktaGroups, err := o.listGroups(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, oktaGroup := range oktaGroups {
+			groupIds = append(groupIds, oktaGroup.Id)
+		}
+	} else {
+		groupIds = strings.Split(o.groups.Get(), ",")
+	}
+
+	for _, groupId := range groupIds {
 		log.Infow(fmt.Sprintf("fetching users for groupId = %s", groupId))
 		users, res, err := o.client.Group.ListGroupUsers(ctx, groupId, &query.Params{})
 		if err != nil {
@@ -226,33 +269,11 @@ func (o *OktaSync) ListUsers(ctx context.Context) ([]identity.IDPUser, error) {
 }
 
 func (o *OktaSync) ListGroups(ctx context.Context) ([]identity.IDPGroup, error) {
-	log := logger.Get(ctx)
-
-	log.Debugw("listing all okta groups")
-
-	idpGroups := []identity.IDPGroup{}
-
-	groups, res, err := o.client.Group.ListGroups(ctx, &query.Params{})
+	groups, err := o.listGroups(ctx)
 	if err != nil {
-		// try and log the response body
-		logResponseErr(log, res, err)
-		return nil, errors.Wrap(err, "listing okta groups from okta API")
+		return nil, err
 	}
-
-	log.Debugw("listed all okta groups")
-
-	for res.HasNextPage() {
-		log.Debugw("hasmore")
-		var nextGroups []*okta.Group
-		res, err = res.Next(ctx, &nextGroups)
-		if err != nil {
-			logResponseErr(log, res, err)
-			return nil, err
-		}
-		groups = append(groups, nextGroups...)
-		log.Debugw("fetched more groups", "nextPage", res.NextPage)
-	}
-
+	idpGroups := []identity.IDPGroup{}
 	// convert all Okta groups to internal groups
 	for _, g := range groups {
 		idpGroups = append(idpGroups, idpGroupFromOktaGroup(g))
