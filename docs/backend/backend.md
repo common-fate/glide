@@ -46,12 +46,12 @@ When deployed, the backend API runs in AWS Lambda, behind AWS API Gateway. The A
 
 We additionally have a webhook API for third party integrations like Slack. This API is defined in [cmd/lambda/webhook/handler.go](../../cmd/lambda/webhook/handler.go) and does not use Cognito authentication. Our CDK code [app-backend.ts](../../deploy/infra/lib/constructs/app-backend.ts) defines the API Gateway routing for this. Our routing rules are:
 
-| Path                   | Handler         | Authentication |
-| ---------------------- | --------------- | -------------- |
-| `/api/v1/{proxy+}`     | Common Fate API | Cognito        |
-| `/webhook/v1/{proxy+}` | Webhook API     | -              |
+| Path                   | Handler     | Authentication |
+| ---------------------- | ----------- | -------------- |
+| `/api/v1/{proxy+}`     | Glide API   | Cognito        |
+| `/webhook/v1/{proxy+}` | Webhook API | -              |
 
-_Note: `{proxy+}` refers to the [API Gateway Lambda Proxy integration](https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html), where all subpaths still point to the same Lambda. So `/api/v1/grants/gra_123` will still be handled by the Common Fate API._
+_Note: `{proxy+}` refers to the [API Gateway Lambda Proxy integration](https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html), where all subpaths still point to the same Lambda. So `/api/v1/grants/gra_123` will still be handled by the Glide API._
 
 ## Environment Variables
 
