@@ -2,6 +2,7 @@
 
 <h1 align="center">Glide</h1>
 <p align="center">The easiest way to access your cloud.</p>
+<p align="center" ><em>Glide was formerly known as Common Fate.</em></p>
 
 <p align="center">
 <a align="center"  href="https://join.slack.com/t/commonfatecommunity/shared_invite/zt-q4m96ypu-_gYlRWD3k5rIsaSsqP7QMg"><img src="https://img.shields.io/badge/slack-commonfate-1F72FE.svg?logo=slack" alt="slack" /></a>
