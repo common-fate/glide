@@ -124,11 +124,11 @@ func (c *GoogleSync) ListUsersBasedOnGroups(ctx context.Context) ([]identity.IDP
 		var paginationToken string
 		for hasMore {
 
-			userRes, err := c.client.Members.List(groupId).Do()
+			memberRes, err := c.client.Members.List(groupId).Do()
 			if err != nil {
 				return nil, err
 			}
-			for _, u := range userRes.Members {
+			for _, u := range memberRes.Members {
 				userRes, err := c.client.Users.Get(u.Id).Do()
 				if err != nil {
 					return nil, err
@@ -139,7 +139,7 @@ func (c *GoogleSync) ListUsersBasedOnGroups(ctx context.Context) ([]identity.IDP
 				}
 				idpUsers = append(idpUsers, user)
 			}
-			paginationToken = userRes.NextPageToken
+			paginationToken = memberRes.NextPageToken
 			//Check that the next token is not nil so we don't need any more polling
 			hasMore = paginationToken != ""
 		}
