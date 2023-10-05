@@ -44,6 +44,7 @@ func (s *GoogleSync) Init(ctx context.Context) error {
 	s.client = adminService
 	return nil
 }
+
 func (s *GoogleSync) TestConfig(ctx context.Context) error {
 	_, err := s.ListUsers(ctx)
 	if err != nil {
@@ -55,8 +56,8 @@ func (s *GoogleSync) TestConfig(ctx context.Context) error {
 	}
 	return nil
 }
-func (c *GoogleSync) ListGroups(ctx context.Context) ([]identity.IDPGroup, error) {
 
+func (c *GoogleSync) ListGroups(ctx context.Context) ([]identity.IDPGroup, error) {
 	idpGroups := []identity.IDPGroup{}
 	hasMore := true
 	var paginationToken string
@@ -78,8 +79,8 @@ func (c *GoogleSync) ListGroups(ctx context.Context) ([]identity.IDPGroup, error
 	return idpGroups, nil
 }
 
+// ListAllUsers Lists all users in the Workspace
 func (c *GoogleSync) ListAllUsers(ctx context.Context) ([]identity.IDPUser, error) {
-
 	users := []identity.IDPUser{}
 	hasMore := true
 	var paginationToken string
@@ -103,6 +104,7 @@ func (c *GoogleSync) ListAllUsers(ctx context.Context) ([]identity.IDPUser, erro
 	return users, nil
 }
 
+// ListUsersBasedOnGroups lists all users based on groups provided in config
 func (c *GoogleSync) ListUsersBasedOnGroups(ctx context.Context) ([]identity.IDPUser, error) {
 	idpUsers := []identity.IDPUser{}
 	var groupIds []string
@@ -123,13 +125,12 @@ func (c *GoogleSync) ListUsersBasedOnGroups(ctx context.Context) ([]identity.IDP
 		hasMore := true
 		var paginationToken string
 		for hasMore {
-
 			memberRes, err := c.client.Members.List(groupId).Do()
 			if err != nil {
 				return nil, err
 			}
 			for _, u := range memberRes.Members {
-				// Members.List() returns []*admin.Member so the member ID needs to be used to get the user information
+				// Look up the user as *admin.Members returned by Members.List() does not have enough information to cast to *admin.User
 				userRes, err := c.client.Users.Get(u.Id).Do()
 				if err != nil {
 					return nil, err
@@ -148,6 +149,7 @@ func (c *GoogleSync) ListUsersBasedOnGroups(ctx context.Context) ([]identity.IDP
 	return idpUsers, nil
 }
 
+// ListUsers lists all users in workspace unless groups are provided, in which case it will sync all users from the provided groups
 func (c *GoogleSync) ListUsers(ctx context.Context) ([]identity.IDPUser, error) {
 	if c.groups.IsSet() {
 		return c.ListUsersBasedOnGroups(ctx)
@@ -172,7 +174,6 @@ func (c *GoogleSync) idpUserFromGoogleUser(ctx context.Context, googleUser *admi
 	for _, g := range userGroups.Groups {
 		u.Groups = append(u.Groups, g.Id)
 	}
-
 	return u, nil
 }
 
