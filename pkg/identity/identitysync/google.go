@@ -129,6 +129,7 @@ func (c *GoogleSync) ListUsersBasedOnGroups(ctx context.Context) ([]identity.IDP
 				return nil, err
 			}
 			for _, u := range memberRes.Members {
+				// Members.List() returns []*admin.Member so the member ID needs to be used to get the user information
 				userRes, err := c.client.Users.Get(u.Id).Do()
 				if err != nil {
 					return nil, err
@@ -165,7 +166,6 @@ func (c *GoogleSync) idpUserFromGoogleUser(ctx context.Context, googleUser *admi
 	}
 
 	userGroups, err := c.client.Groups.List().UserKey(googleUser.Id).Do()
-
 	if err != nil {
 		return u, err
 	}
