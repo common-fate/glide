@@ -1,6 +1,6 @@
-<p align="center"><img src="./docs/img/logo.svg" height="80" /></p>
+<p align="center"><img src="./docs/img/logo.svg" height="120" /></p>
 
-<h1 align="center">Glide</h1>
+<h1 align="center" style="margin-top:-20px;">Glide</h1>
 <p align="center">The easiest way to access your cloud.</p>
 
 <p align="center">
