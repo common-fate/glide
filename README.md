@@ -1,6 +1,6 @@
 <p align="center"><img src="./docs/img/logo.svg" height="80" /></p>
 
-<h1 align="center">Common Fate</h1>
+<h1 align="center">Glide</h1>
 <p align="center">The easiest way to access your cloud.</p>
 
 <p align="center">
@@ -15,9 +15,9 @@
 
 <br/>
 
-## What is Common Fate?
+## What is Glide?
 
-Common Fate is an open source privileged access management framework which makes requesting roles a breeze.
+Glide is an open source privileged access management framework which makes requesting roles a breeze.
 
 **Get access**: set up rules defining who can request access to what, and the resource owners who can approve access.
 
@@ -45,4 +45,4 @@ See [SECURITY.md](./SECURITY.md) for security information. You can view our full
 
 ## Licence
 
-Common Fate is licenced under [AGPL-3.0](./LICENCE). [Contact us](mailto:hello@commonfate.io) if you'd like to use Common Fate under a different licence.
+Glide is licenced under [AGPL-3.0](./LICENCE). [Contact us](mailto:hello@commonfate.io) if you'd like to use Glide under a different licence.
