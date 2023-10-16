@@ -2,6 +2,7 @@ package identitysync
 
 import (
 	"context"
+	"strings"
 
 	"github.com/common-fate/common-fate/pkg/gconfig"
 	"github.com/common-fate/common-fate/pkg/identity"
@@ -12,10 +13,11 @@ import (
 )
 
 type GoogleSync struct {
-	client     *admin.Service
-	domain     gconfig.StringValue
-	adminEmail gconfig.StringValue
-	apiToken   gconfig.SecretStringValue
+	client          *admin.Service
+	domain          gconfig.StringValue
+	adminEmail      gconfig.StringValue
+	apiToken        gconfig.SecretStringValue
+	usersFromGroups gconfig.OptionalStringValue
 }
 
 func (s *GoogleSync) Config() gconfig.Config {
@@ -23,6 +25,7 @@ func (s *GoogleSync) Config() gconfig.Config {
 		gconfig.StringField("domain", &s.domain, "the Google domain"),
 		gconfig.StringField("adminEmail", &s.adminEmail, "the Google admin email"),
 		gconfig.SecretStringField("apiToken", &s.apiToken, "the Google API token", gconfig.WithNoArgs("/granted/secrets/identity/google/token"), gconfig.WithCLIPrompt(gconfig.CLIPromptTypeFile)),
+		gconfig.OptionalStringField("groups", &s.usersFromGroups, "Groups that users are synced from."),
 	}
 }
 
@@ -31,7 +34,7 @@ func (s *GoogleSync) Init(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	//admin api requires spoofing an admin user to be calling the api, as service accounts cannot be admins
+	// admin api requires spoofing an admin user to be calling the api, as service accounts cannot be admins
 	config.Subject = s.adminEmail.Get()
 	client := config.Client(ctx)
 	adminService, err := admin.NewService(ctx, option.WithHTTPClient(client))
@@ -41,6 +44,7 @@ func (s *GoogleSync) Init(ctx context.Context) error {
 	s.client = adminService
 	return nil
 }
+
 func (s *GoogleSync) TestConfig(ctx context.Context) error {
 	_, err := s.ListUsers(ctx)
 	if err != nil {
@@ -52,8 +56,8 @@ func (s *GoogleSync) TestConfig(ctx context.Context) error {
 	}
 	return nil
 }
-func (c *GoogleSync) ListGroups(ctx context.Context) ([]identity.IDPGroup, error) {
 
+func (c *GoogleSync) ListGroups(ctx context.Context) ([]identity.IDPGroup, error) {
 	idpGroups := []identity.IDPGroup{}
 	hasMore := true
 	var paginationToken string
@@ -69,13 +73,14 @@ func (c *GoogleSync) ListGroups(ctx context.Context) ([]identity.IDPGroup, error
 		}
 		paginationToken = groups.NextPageToken
 
-		//Check that the next token is not nil so we don't need any more polling
+		// Check that the next token is not nil so we don't need any more polling
 		hasMore = paginationToken != ""
 	}
 	return idpGroups, nil
 }
 
-func (c *GoogleSync) ListUsers(ctx context.Context) ([]identity.IDPUser, error) {
+// ListAllUsers Lists all users in the Workspace
+func (c *GoogleSync) ListAllUsers(ctx context.Context) ([]identity.IDPUser, error) {
 	users := []identity.IDPUser{}
 	hasMore := true
 	var paginationToken string
@@ -86,6 +91,7 @@ func (c *GoogleSync) ListUsers(ctx context.Context) ([]identity.IDPUser, error) 
 			return nil, err
 		}
 		for _, u := range userRes.Users {
+
 			user, err := c.idpUserFromGoogleUser(ctx, u)
 			if err != nil {
 				return nil, err
@@ -93,11 +99,63 @@ func (c *GoogleSync) ListUsers(ctx context.Context) ([]identity.IDPUser, error) 
 			users = append(users, user)
 		}
 		paginationToken = userRes.NextPageToken
-		//Check that the next token is not nil so we don't need any more polling
+		// Check that the next token is not nil so we don't need any more polling
 		hasMore = paginationToken != ""
 	}
 	return users, nil
+}
 
+// ListUsersBasedOnGroups lists all users based on groups provided in config
+func (c *GoogleSync) ListUsersBasedOnGroups(ctx context.Context) ([]identity.IDPUser, error) {
+	idpUsers := []identity.IDPUser{}
+	var groupIds []string
+
+	if c.usersFromGroups.Get() == "*" {
+		googleGroups, err := c.ListGroups(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, googleGroup := range googleGroups {
+			groupIds = append(groupIds, googleGroup.ID)
+		}
+	} else {
+		groupIds = strings.Split(c.usersFromGroups.Get(), ",")
+	}
+
+	for _, groupId := range groupIds {
+		hasMore := true
+		var paginationToken string
+		for hasMore {
+			memberRes, err := c.client.Members.List(groupId).Do()
+			if err != nil {
+				return nil, err
+			}
+			for _, m := range memberRes.Members {
+				// Members.List() only returns the User Id, so we need to look up the user to get everything else
+				userRes, err := c.client.Users.Get(m.Id).Do()
+				if err != nil {
+					return nil, err
+				}
+				user, err := c.idpUserFromGoogleUser(ctx, userRes)
+				if err != nil {
+					return nil, err
+				}
+				idpUsers = append(idpUsers, user)
+			}
+			paginationToken = memberRes.NextPageToken
+			// Check that the next token is not nil so we don't need any more polling
+			hasMore = paginationToken != ""
+		}
+	}
+	return idpUsers, nil
+}
+
+// ListUsers lists all users in workspace unless groups are provided, in which case it will sync all users from the provided groups
+func (c *GoogleSync) ListUsers(ctx context.Context) ([]identity.IDPUser, error) {
+	if c.usersFromGroups.IsSet() {
+		return c.ListUsersBasedOnGroups(ctx)
+	}
+	return c.ListAllUsers(ctx)
 }
 
 // idpUserFromGoogleUser converts a Google user to the identityprovider interface user type
@@ -111,14 +169,12 @@ func (c *GoogleSync) idpUserFromGoogleUser(ctx context.Context, googleUser *admi
 	}
 
 	userGroups, err := c.client.Groups.List().UserKey(googleUser.Id).Do()
-
 	if err != nil {
 		return u, err
 	}
 	for _, g := range userGroups.Groups {
 		u.Groups = append(u.Groups, g.Id)
 	}
-
 	return u, nil
 }
 
