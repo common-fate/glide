@@ -2,6 +2,7 @@ package api
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/common-fate/analytics-go"
@@ -271,6 +272,9 @@ func (a *API) UserGetAccessRule(w http.ResponseWriter, r *http.Request, ruleId s
 	u := auth.UserFromContext(ctx)
 
 	result, err := a.Rules.GetRule(ctx, ruleId, u, false)
+	fmt.Println("!!!!!!! UserGetAccessRule")
+	fmt.Println(result.Rule.Name, " ", result.Rule.TicketURL)
+	fmt.Println("!!!!!!! UserGetAccessRule")
 	if err == ddb.ErrNoItems {
 		apio.Error(ctx, w, &apio.APIError{Err: errors.New("this rule doesn't exist or you don't have permission to access it"), Status: http.StatusNotFound})
 		return

@@ -1656,6 +1656,8 @@ components:
           type: boolean
         canRequest:
           type: boolean
+        ticketURL:
+          type: boolean
       required:
         - id
         - version
@@ -2836,6 +2838,8 @@ components:
                 $ref: "#/components/schemas/CreateAccessRuleTarget"
               timeConstraints:
                 $ref: "#/components/schemas/TimeConstraints"
+              ticketURL:
+                type: boolean
             required:
               - groups
               - approval

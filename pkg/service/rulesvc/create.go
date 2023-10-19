@@ -266,6 +266,13 @@ func (s *Service) CreateAccessRule(ctx context.Context, userID string, in types.
 		approvals.Users = *in.Approval.Users
 	}
 
+	var ticketUrl bool
+	if in.TicketURL == nil {
+		ticketUrl = false
+	} else {
+		ticketUrl = *in.TicketURL
+	}
+
 	rul := rule.AccessRule{
 		ID:          id,
 		Approval:    approvals,
@@ -283,13 +290,19 @@ func (s *Service) CreateAccessRule(ctx context.Context, userID string, in types.
 		TimeConstraints: in.TimeConstraints,
 		Version:         types.NewVersionID(),
 		Current:         true,
+		TicketURL:       ticketUrl,
 	}
+
+	fmt.Println("!!!! Creating Access Rule ")
+	fmt.Println("Ticket URL ", ticketUrl)
+	fmt.Println("!!!! Creating Access Rule ")
 
 	log.Debugw("saving access rule", "rule", rul)
 
 	// save the request.
 	err = s.DB.Put(ctx, &rul)
 	if err != nil {
+		fmt.Print("Error ", err)
 		return nil, err
 	}
 

@@ -1,6 +1,7 @@
 package rule
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/common-fate/common-fate/accesshandler/pkg/providerregistry"
@@ -26,6 +27,8 @@ type AccessRule struct {
 	Version     string   `json:"version" dynamodbav:"version"`
 	Status      Status   `json:"status" dynamodbav:"status"`
 	Description string   `json:"description" dynamodbav:"description"`
+
+	TicketURL bool `json:"ticketURL" dynamodbav:"ticketURL"`
 
 	// Array of group names that the access rule applies to
 	Groups          []string              `json:"groups" dynamodbav:"groups"`
@@ -105,6 +108,10 @@ func (a AccessRule) ToAPI() types.AccessRule {
 
 // This is used to serve a user making a request, it contains all the available arguments and options with title, description and labels
 func (a AccessRule) ToRequestAccessRuleAPI(requestArguments map[string]types.RequestArgument, canRequest bool) types.RequestAccessRule {
+	ticketUrl := a.TicketURL
+	fmt.Println("!!!!!")
+	fmt.Println(a.TicketURL)
+	fmt.Println("!!!!!")
 	return types.RequestAccessRule{
 		Version:     a.Version,
 		Description: a.Description,
@@ -119,6 +126,7 @@ func (a AccessRule) ToRequestAccessRuleAPI(requestArguments map[string]types.Req
 		},
 		TimeConstraints: a.TimeConstraints,
 		CanRequest:      canRequest,
+		TicketURL:       &ticketUrl,
 	}
 }
 

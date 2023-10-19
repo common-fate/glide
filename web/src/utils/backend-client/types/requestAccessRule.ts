@@ -23,4 +23,5 @@ When a rule is updated, it's ID remains consistent.
   timeConstraints: TimeConstraints;
   isCurrent: boolean;
   canRequest: boolean;
+  ticketURL?: boolean;
 }

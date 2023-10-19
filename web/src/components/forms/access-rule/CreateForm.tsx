@@ -16,6 +16,7 @@ import { ProviderStep } from "./steps/Provider";
 import { RequestsStep } from "./steps/Request";
 import { TimeStep } from "./steps/Time";
 import { StepsProvider } from "./StepsContext";
+import {TicketURLStep} from "./steps/TicketURL";
 
 export type AccessRuleFormDataTarget = {
   providerId: string;
@@ -80,7 +81,7 @@ const CreateAccessRuleForm = () => {
   // we use this to ensure that data for selected and then deselected providers is not included.
   const methods = useForm<AccessRuleFormData>({ shouldUnregister: true });
   const onSubmit = async (data: AccessRuleFormData) => {
-    console.debug("submit form data", { data });
+    console.log("submit form data", { data });
 
     try {
       await adminCreateAccessRule(accessRuleFormDataToApi(data));
@@ -120,6 +121,7 @@ const CreateAccessRuleForm = () => {
               <TimeStep />
               <RequestsStep />
               <ApprovalStep />
+              <TicketURLStep />
             </StepsProvider>
           </VStack>
         </form>

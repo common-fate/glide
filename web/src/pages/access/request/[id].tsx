@@ -433,6 +433,8 @@ const AccessRequestForm = (props: AccessRequestProps) => {
     clipboard.setValue(u.toString());
   }, [formData]);
 
+  console.log("rule ", rule);
+
   return (
     <>
       <UserLayout>
@@ -631,6 +633,7 @@ const AccessRequestForm = (props: AccessRequestProps) => {
 
                   {/* Don't show approval section if approvers are still loading */}
                   <Approvers approvers={approvers?.users} />
+                  <TicketURL ticketRequired={rule?.ticketURL} />
                   <Box>
                     <Button
                       data-testid="request-submit-button"
@@ -838,6 +841,59 @@ export const AccessRuleArguments: React.FC<{
         </ButtonGroup>
       )}
     </VStack>
+  );
+};
+
+const TicketURL: React.FC<{ ticketRequired?: boolean }> = ({ ticketRequired }) => {
+  const methods = useFormContext();
+
+  if (ticketRequired === undefined) {
+    return <Skeleton w="50%" h={10} />;
+  }
+  if (ticketRequired) {
+    return (
+        <FormControl isInvalid={!!methods.formState.errors.name}>
+          <FormLabel htmlFor="name">
+            <Text textStyle={"Body/Medium"}>Ticket  URL</Text>
+          </FormLabel>
+          <Input
+              bg="neutrals.0"
+
+              {...methods.register("name", {
+                // required: true,
+                validate: (value) => {
+                  const res: string[] = [];
+                  if (!value || value.length == 0) {
+                    res.push("Field is required");
+                  }
+
+                  const urlRegex = new RegExp('(https?://)?([\\da-z.-]+)\\.([a-z.]{2,6})[/\\w .-]*/?');
+                  if (value && !urlRegex.test(value as string)) {
+                    res.push("Invalid URL");
+                  }
+
+                  if (value && value.length > 400) {
+                    res.push("Maximum length is 400 characters");
+                  }
+                  return res.length > 0 ? res.join(", ") : undefined;
+                },
+              })}
+
+              onBlur={() => void methods.trigger("name")}
+          />
+          {methods.formState.errors?.name?.message && (
+              <FormErrorMessage>
+                {methods.formState.errors.name?.message?.toString()}
+              </FormErrorMessage>
+          )}
+        </FormControl>
+    );
+  }
+  return (
+      <Text color="neutrals.600" display="flex" alignItems="center">
+        <InfoIcon mr={2} />
+        Incident ticket URL is not required for this scope
+      </Text>
   );
 };
 

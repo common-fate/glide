@@ -17,4 +17,5 @@ export type CreateAccessRuleRequestBody = {
   description: string;
   target: CreateAccessRuleTarget;
   timeConstraints: TimeConstraints;
+  ticketURL?: boolean;
 };
