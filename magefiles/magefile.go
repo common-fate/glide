@@ -84,6 +84,14 @@ func (Build) Backend() error {
 	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/commonfate", "cmd/lambda/commonfate/handler.go")
 }
 
+func (Build) Autoapprover() error {
+	env := map[string]string{
+		"GOOS":   "linux",
+		"GOARCH": "amd64",
+	}
+	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/autoapprover", "cmd/lambda/autoapprover/handler.go")
+}
+
 func (Build) Granter() error {
 	env := map[string]string{
 		"GOOS":   "linux",
@@ -214,6 +222,11 @@ func (Build) Frontend() error {
 func PackageBackend() error {
 	mg.Deps(Build.Backend)
 	return sh.Run("zip", "--junk-paths", "bin/commonfate.zip", "bin/commonfate")
+}
+
+func PackageAutoapprover() error {
+	mg.Deps(Build.Autoapprover)
+	return sh.Run("zip", "--junk-paths", "bin/autoapprover.zip", "bin/autoapprover")
 }
 
 // PackageTargetGroupGranter zips the Go TargetGroupGranter so that it can be deployed to Lambda.

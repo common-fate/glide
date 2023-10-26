@@ -3,6 +3,7 @@ package accesssvc
 import (
 	"context"
 	"errors"
+	"github.com/common-fate/common-fate/pkg/autoapproval"
 	"net/http"
 	"sync"
 
@@ -206,8 +207,10 @@ func (s *Service) createRequest(ctx context.Context, in createRequestOpts) (Crea
 		return CreateRequestResult{}, err
 	}
 
+	autoapproved, err := autoapproval.Service{}.Autoapprove(in.User, in.Rule, "123")
+
 	// check to see if it valid for instant approval
-	if !in.Rule.Approval.IsRequired() {
+	if !in.Rule.Approval.IsRequired() || autoapproved {
 		log.Debugw("auto-approving", "request", req, "reviewers", reviewers)
 		grant, err := s.Workflow.Grant(ctx, req, in.Rule)
 		if err != nil {
@@ -233,7 +236,7 @@ func (s *Service) createRequest(ctx context.Context, in createRequestOpts) (Crea
 		RuleID:           req.Rule,
 		Timing:           req.RequestedTiming.ToAnalytics(),
 		HasReason:        req.HasReason(),
-		RequiresApproval: in.Rule.Approval.IsRequired(),
+		RequiresApproval: in.Rule.Approval.IsRequired() && !autoapproved,
 	})
 
 	return CreateRequestResult{
