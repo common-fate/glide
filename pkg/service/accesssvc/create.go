@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/common-fate/common-fate/pkg/autoapproval"
 	"net/http"
+	"os"
 	"sync"
 
 	"github.com/common-fate/analytics-go"
@@ -206,8 +207,15 @@ func (s *Service) createRequest(ctx context.Context, in createRequestOpts) (Crea
 	if err != nil {
 		return CreateRequestResult{}, err
 	}
-
-	autoapproved, err := autoapproval.Service{}.Autoapprove(in.User, in.Rule, "123")
+	// TODO(IvanVan) Get it from config
+	arn := os.Getenv("COMMONFATE_AUTO_APPROVAL_LAMBDA_ARN")
+	var autoapproved bool
+	if arn != "" {
+		autoapproved, err = autoapproval.Service{}.Autoapprove(in.User, in.Rule, "123")
+		if err != nil {
+			log.Errorw("error happened when calling auto-approval lambda", "err", err)
+		}
+	}
 
 	// check to see if it valid for instant approval
 	if !in.Rule.Approval.IsRequired() || autoapproved {

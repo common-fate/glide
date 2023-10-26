@@ -25,9 +25,10 @@ type Config struct {
 	RemoteConfigURL               string `env:"COMMONFATE_ACCESS_REMOTE_CONFIG_URL"`
 	RemoteConfigHeaders           string `env:"COMMONFATE_REMOTE_CONFIG_HEADERS"`
 	// a regex string that is used to filter the identity groups that are returned from the IDP
-	IdentityGroupFilter string `env:"COMMONFATE_IDENTITY_GROUP_FILTER"`
-	NoAuthEmail         string `env:"NO_AUTH_EMAIL"`
-	StateMachineARN     string `env:"COMMONFATE_GRANTER_V2_STATE_MACHINE_ARN"`
+	IdentityGroupFilter   string `env:"COMMONFATE_IDENTITY_GROUP_FILTER"`
+	NoAuthEmail           string `env:"NO_AUTH_EMAIL"`
+	StateMachineARN       string `env:"COMMONFATE_GRANTER_V2_STATE_MACHINE_ARN"`
+	AutoApprovalLambdaArn string `env:"COMMONFATE_AUTO_APPROVAL_LAMBDA_ARN"`
 }
 
 type NotificationsConfig struct {
