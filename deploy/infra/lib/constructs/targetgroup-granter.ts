@@ -7,11 +7,13 @@ import * as path from "path";
 import { EventBus } from "aws-cdk-lib/aws-events";
 import { grantAssumeHandlerRole } from "../helpers/permissions";
 import { Table } from "aws-cdk-lib/aws-dynamodb";
+import * as ec2 from 'aws-cdk-lib/aws-ec2'
 
 interface Props {
   eventBusSourceName: string;
   dynamoTable: Table;
   eventBus: EventBus;
+  lambdaVpcId: string,
 }
 export class TargetGroupGranter extends Construct {
   private _stateMachine: sfn.StateMachine;
@@ -30,6 +32,10 @@ export class TargetGroupGranter extends Construct {
       )
     );
 
+    const vpc = ec2.Vpc.fromLookup(this, 'Vpc', {
+      vpcId: props.lambdaVpcId,
+    });
+
     this._lambda = new lambda.Function(this, "StepHandlerFunction", {
       code,
       timeout: Duration.minutes(5),
@@ -40,6 +46,7 @@ export class TargetGroupGranter extends Construct {
       },
       runtime: lambda.Runtime.GO_1_X,
       handler: "targetgroup-granter",
+      vpc: vpc,
     });
 
     props.dynamoTable.grantReadWriteData(this._lambda);

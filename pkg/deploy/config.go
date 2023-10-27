@@ -190,6 +190,7 @@ type Parameters struct {
 	IDPSyncSchedule                 string         `yaml:"IDPSyncSchedule,omitempty"`
 	IDPSyncMemory                   string         `yaml:"IDPSyncMemory,omitempty"`
 	AutoApprovalLambdaARN           string         `yaml:"AutoApprovalLambdaARN,omitempty"`
+	LambdaVpcId                     string         `yaml:"LambdaVpcId,omitempty"`
 }
 
 // UnmarshalFeatureMap parses the JSON configuration data and returns
