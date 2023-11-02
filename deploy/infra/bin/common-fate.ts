@@ -18,6 +18,7 @@ const samlMetadata = app.node.tryGetContext("samlMetadata");
 const adminGroupId = app.node.tryGetContext("adminGroupId");
 const providerConfig = app.node.tryGetContext("providerConfiguration");
 const identityConfig = app.node.tryGetContext("identityConfiguration");
+const autoApprovalLambdaARN = app.node.tryGetContext("autoApprovalLambdaARN");
 const notificationsConfiguration = app.node.tryGetContext(
   "notificationsConfiguration"
 );
@@ -106,6 +107,7 @@ if (stackTarget === "dev") {
     idpSyncMemory: idpSyncMemory || 128,
     idpSyncSchedule: idpSyncSchedule || "rate(5 minutes)",
     idpSyncTimeoutSeconds: idpSyncTimeoutSeconds || 30,
+    autoApprovalLambdaARN: autoApprovalLambdaARN,
   });
 } else if (stackTarget === "prod") {
   new CommonFateStackProd(app, "Granted", {
