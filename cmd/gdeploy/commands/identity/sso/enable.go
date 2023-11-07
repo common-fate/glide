@@ -143,7 +143,7 @@ func updateOrAddSSO(c *cli.Context, idpType string) error {
 			}
 		case fromString:
 			p5 := &survey.Input{Message: "Metadata XML String"}
-			err = survey.AskOne(p5, &dc.Deployment.Parameters.SamlSSOMetadataURL)
+			err = survey.AskOne(p5, &dc.Deployment.Parameters.SamlSSOMetadata)
 			if err != nil {
 				return err
 			}
