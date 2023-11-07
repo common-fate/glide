@@ -231,7 +231,7 @@ export const Navbar: React.FC = () => {
                     <MenuItem icon={<ExternalLinkIcon boxSize="15px" />}>
                       <ChakraLink
                         isExternal
-                        href="https://docs.commonfate.io/common-fate/introduction/"
+                        href="https://docs.commonfate.io/glide/introduction/"
                         textDecoration="none"
                         _hover={{ textDecoration: "none" }}
                       >

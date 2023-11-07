@@ -1,14 +1,16 @@
 <p align="center"><img src="./docs/img/logo.svg" height="120" /></p>
 
+
 <h1 align="center" style="margin-top:-20px;">Glide</h1>
 <p align="center">The easiest way to access your cloud.</p>
+<p align="center" ><em>Glide was formerly known as Common Fate.</em></p>
 
 <p align="center">
 <a align="center"  href="https://join.slack.com/t/commonfatecommunity/shared_invite/zt-q4m96ypu-_gYlRWD3k5rIsaSsqP7QMg"><img src="https://img.shields.io/badge/slack-commonfate-1F72FE.svg?logo=slack" alt="slack" /></a>
 </p>
 
 <p align="center">
-    <a href="https://docs.commonfate.io/granted-approvals/introduction" alt="visit the Common Fate documentation website">
+    <a href="https://docs.commonfate.io/granted-approvals/introduction" alt="visit the Glide documentation website">
         <img src="./docs/img/approvals-1.png">
     </a>
 </p>
@@ -41,7 +43,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for information on how to contribute. W
 
 ## Security
 
-See [SECURITY.md](./SECURITY.md) for security information. You can view our full security documentation on the [Common Fate website](https://docs.commonfate.io/granted-approvals/security-architecture).
+See [SECURITY.md](./SECURITY.md) for security information. You can view our full security documentation on the [Glide website](https://docs.commonfate.io/granted-approvals/security-architecture).
 
 ## Licence
 
