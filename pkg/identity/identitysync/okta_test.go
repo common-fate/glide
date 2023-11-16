@@ -232,19 +232,15 @@ func TestOktaSync_Wildcard(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, users, 3)
 
-	assert.Equal(t, 3, len(users[0].Groups))
-	assert.Equal(t, 2, len(users[1].Groups))
-	assert.Equal(t, 1, len(users[2].Groups))
-
-	// user 1
-	assert.Equal(t, listOfGroups[0].Id, users[0].Groups[0])
-	assert.Equal(t, listOfGroups[1].Id, users[0].Groups[1])
-	assert.Equal(t, listOfGroups[2].Id, users[0].Groups[2])
-
-	//user 2
-	assert.Equal(t, listOfGroups[1].Id, users[1].Groups[0])
-	assert.Equal(t, listOfGroups[2].Id, users[1].Groups[1])
-
-	//user 3
-	assert.Equal(t, listOfGroups[2].Id, users[2].Groups[0])
+	// Check users groups by ids, ignoring the order
+	for _, u := range users {
+		switch u.ID {
+		case listOfUsers[0].Id:
+			assert.ElementsMatch(t, u.Groups, []string{listOfGroups[0].Id, listOfGroups[1].Id, listOfGroups[2].Id})
+		case listOfUsers[1].Id:
+			assert.ElementsMatch(t, u.Groups, []string{listOfGroups[1].Id, listOfGroups[2].Id})
+		case listOfUsers[2].Id:
+			assert.ElementsMatch(t, u.Groups, []string{listOfGroups[2].Id})
+		}
+	}
 }
