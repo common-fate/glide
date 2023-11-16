@@ -4,7 +4,7 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Bucket } from "aws-cdk-lib/aws-s3";
 import { Construct } from "constructs";
 import * as path from "path";
-import {BaseLambdaFunction} from "../helpers/base-lambda";
+import { BaseLambdaFunction } from "../helpers/base-lambda";
 
 interface Props {
   cfReleaseBucket: string;
@@ -57,7 +57,7 @@ export class ProductionFrontendDeployer extends Construct {
         runtime: lambda.Runtime.GO_1_X,
         handler: "frontend-deployer",
       },
-      vpcConfig: props.vpcConfig
+      vpcConfig: props.vpcConfig,
     });
 
     // Allow the deployer to deploy to the frontend bucket

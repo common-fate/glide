@@ -5,7 +5,7 @@ import { Construct } from "constructs";
 import { Duration, Stack } from "aws-cdk-lib";
 import * as path from "path";
 import { EventBus } from "aws-cdk-lib/aws-events";
-import {BaseLambdaFunction} from "../helpers/base-lambda";
+import { BaseLambdaFunction } from "../helpers/base-lambda";
 
 interface Props {
   eventBusSourceName: string;

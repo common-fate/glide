@@ -7,8 +7,7 @@ import * as path from "path";
 import { EventBus } from "aws-cdk-lib/aws-events";
 import { grantAssumeHandlerRole } from "../helpers/permissions";
 import { Table } from "aws-cdk-lib/aws-dynamodb";
-import * as ec2 from 'aws-cdk-lib/aws-ec2'
-import {BaseLambdaFunction} from "../helpers/base-lambda";
+import { BaseLambdaFunction } from "../helpers/base-lambda";
 
 interface Props {
   eventBusSourceName: string;
@@ -32,7 +31,6 @@ export class TargetGroupGranter extends Construct {
         "targetgroup-granter.zip"
       )
     );
-
 
     this._lambda = new BaseLambdaFunction(this, "StepHandlerFunction", {
       functionProps: {

@@ -39,7 +39,7 @@ export class CacheSync extends Construct {
         runtime: lambda.Runtime.GO_1_X,
         handler: "cache-sync",
       },
-      vpcConfig: props.vpcConfig
+      vpcConfig: props.vpcConfig,
     });
 
     props.dynamoTable.grantReadWriteData(this._lambda);

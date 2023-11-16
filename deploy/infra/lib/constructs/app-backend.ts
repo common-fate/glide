@@ -1,5 +1,5 @@
 import * as cdk from "aws-cdk-lib";
-import {aws_vpclattice, CfnCondition, Duration, Stack} from "aws-cdk-lib";
+import { CfnCondition, Duration, Stack } from "aws-cdk-lib";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import { EventBus } from "aws-cdk-lib/aws-events";
@@ -22,7 +22,7 @@ import {
   grantAssumeHandlerRole,
   grantAssumeIdentitySyncRole,
 } from "../helpers/permissions";
-import {BaseLambdaFunction} from "../helpers/base-lambda";
+import { BaseLambdaFunction } from "../helpers/base-lambda";
 
 interface Props {
   appName: string;
@@ -152,7 +152,7 @@ export class AppBackend extends Construct {
         runtime: lambda.Runtime.GO_1_X,
         handler: "commonfate",
       },
-      vpcConfig: props.vpcConfig
+      vpcConfig: props.vpcConfig,
     });
 
     this._KMSkey.grantEncryptDecrypt(this._lambda);

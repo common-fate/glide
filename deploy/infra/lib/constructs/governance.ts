@@ -7,7 +7,7 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
 import * as path from "path";
 import { AccessHandler } from "./access-handler";
-import {BaseLambdaFunction} from "../helpers/base-lambda";
+import { BaseLambdaFunction } from "../helpers/base-lambda";
 
 interface Props {
   appName: string;
@@ -44,23 +44,23 @@ export class Governance extends Construct {
     this._governanceLambda = new BaseLambdaFunction(
       this,
       "GovernanceAPIHandlerFunction",
-        {
-          functionProps: {
-            code,
-            timeout: Duration.seconds(60),
-            environment: {
-              COMMONFATE_TABLE_NAME: this._dynamoTable.tableName,
-              COMMONFATE_MOCK_ACCESS_HANDLER: "false",
-              COMMONFATE_ACCESS_HANDLER_URL: props.accessHandler.getApiUrl(),
-              COMMONFATE_PROVIDER_CONFIG: props.providerConfig,
+      {
+        functionProps: {
+          code,
+          timeout: Duration.seconds(60),
+          environment: {
+            COMMONFATE_TABLE_NAME: this._dynamoTable.tableName,
+            COMMONFATE_MOCK_ACCESS_HANDLER: "false",
+            COMMONFATE_ACCESS_HANDLER_URL: props.accessHandler.getApiUrl(),
+            COMMONFATE_PROVIDER_CONFIG: props.providerConfig,
 
-              COMMONFATE_PAGINATION_KMS_KEY_ARN: this._KMSkey.keyArn,
-            },
-            runtime: lambda.Runtime.GO_1_X,
-            handler: "governance",
+            COMMONFATE_PAGINATION_KMS_KEY_ARN: this._KMSkey.keyArn,
           },
-          vpcConfig: props.vpcConfig,
-        }
+          runtime: lambda.Runtime.GO_1_X,
+          handler: "governance",
+        },
+        vpcConfig: props.vpcConfig,
+      }
     );
     this._dynamoTable.grantReadWriteData(this._governanceLambda);
     this._KMSkey.grantEncryptDecrypt(this._governanceLambda);

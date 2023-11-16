@@ -7,7 +7,7 @@ import { AppFrontend } from "./constructs/app-frontend";
 import { WebUserPool } from "./constructs/app-user-pool";
 import * as kms from "aws-cdk-lib/aws-kms";
 
-import {CfnCondition, CfnParameter} from "aws-cdk-lib";
+import { CfnCondition, CfnParameter } from "aws-cdk-lib";
 import { EventBus } from "./constructs/events";
 import { ProductionFrontendDeployer } from "./constructs/production-frontend-deployer";
 import { generateOutputs } from "./helpers/outputs";
@@ -217,51 +217,48 @@ export class CommonFateStackProd extends cdk.Stack {
         }
     );
 
-    const subnetIds = new CfnParameter(
-        this,
-        "SubnetIds",
-        {
-          type: "String",
-          description: "A list of subnet ids that are used by lambda functions",
-          default: "",
-        }
-    );
+    const subnetIds = new CfnParameter(this, "SubnetIds", {
+      type: "String",
+      description: "A list of subnet ids that are used by lambda functions",
+      default: "",
+    });
 
-    const securityGroups = new CfnParameter(
-        this,
-        "SecurityGroups",
-        {
-          type: "String",
-          description: "A list of security groups that are used by lambda functions",
-          default: "",
-        }
-    );
+    const securityGroups = new CfnParameter(this, "SecurityGroups", {
+      type: "String",
+      description:
+        "A list of security groups that are used by lambda functions",
+      default: "",
+    });
 
     const attachLambdaToVpcCondition = new CfnCondition(
-        this,
-        "AttachLambdaToVpcCondition",
-        {
-          expression: cdk.Fn.conditionAnd(
-              cdk.Fn.conditionNot(cdk.Fn.conditionEquals(subnetIds.valueAsString, "")),
-              cdk.Fn.conditionNot(cdk.Fn.conditionEquals(securityGroups.valueAsString, ""))
+      this,
+      "AttachLambdaToVpcCondition",
+      {
+        expression: cdk.Fn.conditionAnd(
+          cdk.Fn.conditionNot(
+            cdk.Fn.conditionEquals(subnetIds.valueAsString, "")
+          ),
+          cdk.Fn.conditionNot(
+            cdk.Fn.conditionEquals(securityGroups.valueAsString, "")
           )
-        }
-    )
+        ),
+      }
+    );
 
     const vpcConfig = cdk.Fn.conditionIf(
-        attachLambdaToVpcCondition.logicalId,
-        {
-          SubnetIds: subnetIds.valueAsString.split(","),
-          SecurityGroupIds: subnetIds.valueAsString.split(","),
-        },
-        // Instead of using AWS::NoValue, we use [] because
-        // if we use AWS::NoValue and the subnets and security groups have already been attached,
-        // they will not be overwritten.
-        {
-          SubnetIds: [],
-          SecurityGroupIds: [],
-        }
-    )
+      attachLambdaToVpcCondition.logicalId,
+      {
+        SubnetIds: subnetIds.valueAsString.split(","),
+        SecurityGroupIds: subnetIds.valueAsString.split(","),
+      },
+      // Instead of using AWS::NoValue, we use [] because
+      // if we use AWS::NoValue and the subnets and security groups have already been attached,
+      // they will not be overwritten.
+      {
+        SubnetIds: [],
+        SecurityGroupIds: [],
+      }
+    );
 
     const appName = this.stackName + suffix.valueAsString;
 

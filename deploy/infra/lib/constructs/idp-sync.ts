@@ -8,7 +8,7 @@ import { Construct } from "constructs";
 import * as path from "path";
 import { grantAssumeIdentitySyncRole } from "../helpers/permissions";
 import { WebUserPool } from "./app-user-pool";
-import {BaseLambdaFunction} from "../helpers/base-lambda";
+import { BaseLambdaFunction } from "../helpers/base-lambda";
 
 interface Props {
   dynamoTable: Table;

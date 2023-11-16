@@ -14,9 +14,7 @@ import { generateOutputs } from "./helpers/outputs";
 import { IdentityProviderTypes } from "./helpers/registry";
 import { Governance } from "./constructs/governance";
 import { TargetGroupGranter } from "./constructs/targetgroup-granter";
-import { Vpc } from 'aws-cdk-lib/aws-ec2';
-import * as console from "console";
-import {CfnCondition, CfnParameter, Stack} from "aws-cdk-lib";
+import { CfnCondition } from "aws-cdk-lib";
 
 interface Props extends cdk.StackProps {
   stage: string;
@@ -77,30 +75,30 @@ export class CommonFateStackDev extends cdk.Stack {
     } = props;
     const appName = `common-fate-${stage}`;
     const attachLambdaToVpcCondition = new CfnCondition(
-        this,
-        "AttachLambdaToVpcCondition",
-        {
-          expression: cdk.Fn.conditionAnd(
-              cdk.Fn.conditionNot(cdk.Fn.conditionEquals(props.subnetIds, "")),
-              cdk.Fn.conditionNot(cdk.Fn.conditionEquals(props.securityGroups, ""))
-          )
-        }
-    )
+      this,
+      "AttachLambdaToVpcCondition",
+      {
+        expression: cdk.Fn.conditionAnd(
+          cdk.Fn.conditionNot(cdk.Fn.conditionEquals(props.subnetIds, "")),
+          cdk.Fn.conditionNot(cdk.Fn.conditionEquals(props.securityGroups, ""))
+        ),
+      }
+    );
 
     const vpcConfig = cdk.Fn.conditionIf(
-        attachLambdaToVpcCondition.logicalId,
-        {
-          SubnetIds: props.subnetIds.split(","),
-          SecurityGroupIds: props.securityGroups.split(","),
-        },
-        // Instead of using AWS::NoValue, we use [] because
-        // if we use AWS::NoValue and the subnets and security groups have already been attached,
-        // they will not be overwritten.
-        {
-          SubnetIds: [],
-          SecurityGroupIds: [],
-        }
-    )
+      attachLambdaToVpcCondition.logicalId,
+      {
+        SubnetIds: props.subnetIds.split(","),
+        SecurityGroupIds: props.securityGroups.split(","),
+      },
+      // Instead of using AWS::NoValue, we use [] because
+      // if we use AWS::NoValue and the subnets and security groups have already been attached,
+      // they will not be overwritten.
+      {
+        SubnetIds: [],
+        SecurityGroupIds: [],
+      }
+    );
 
 
     const db = new Database(this, "Database", {

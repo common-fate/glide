@@ -7,7 +7,7 @@ import { Construct } from "constructs";
 import * as path from "path";
 import { PolicyStatement } from "aws-cdk-lib/aws-iam";
 import { grantAssumeHandlerRole } from "../helpers/permissions";
-import {BaseLambdaFunction} from "../helpers/base-lambda";
+import { BaseLambdaFunction } from "../helpers/base-lambda";
 
 interface Props {
   dynamoTable: Table;
@@ -25,19 +25,18 @@ export class HealthChecker extends Construct {
       path.join(__dirname, "..", "..", "..", "..", "bin", "healthcheck.zip")
     );
 
-    this._lambda = new BaseLambdaFunction(this, "HandlerFunction",
-        {
-          functionProps: {
-            code,
-            timeout: Duration.minutes(1),
-            environment: {
-              COMMONFATE_TABLE_NAME: props.dynamoTable.tableName,
-            },
-            runtime: lambda.Runtime.GO_1_X,
-            handler: "healthcheck",
-          },
-          vpcConfig: props.vpcConfig,
-        });
+    this._lambda = new BaseLambdaFunction(this, "HandlerFunction", {
+      functionProps: {
+        code,
+        timeout: Duration.minutes(1),
+        environment: {
+          COMMONFATE_TABLE_NAME: props.dynamoTable.tableName,
+        },
+        runtime: lambda.Runtime.GO_1_X,
+        handler: "healthcheck",
+      },
+      vpcConfig: props.vpcConfig,
+    });
 
     props.dynamoTable.grantReadWriteData(this._lambda);
 

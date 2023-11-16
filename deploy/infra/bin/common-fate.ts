@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 import { App, DefaultStackSynthesizer } from "aws-cdk-lib";
-import {Aws} from 'aws-cdk-lib/core'
 import "source-map-support/register";
 import { CommonFateStackDev } from "../lib/common-fate-stack-dev";
 import { CommonFateStackProd } from "../lib/common-fate-stack-prod";
@@ -9,7 +8,6 @@ import {
   DevEnvironments,
 } from "../lib/helpers/dev-accounts";
 import { IdentityProviderRegistry } from "../lib/helpers/registry";
-// import * as process from "process";
 
 const app = new App();
 const stage = app.node.tryGetContext("stage");
