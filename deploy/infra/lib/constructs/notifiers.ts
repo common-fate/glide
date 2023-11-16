@@ -8,6 +8,7 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
 import * as path from "path";
 import { WebUserPool } from "./app-user-pool";
+import {BaseLambdaFunction} from "../helpers/base-lambda";
 
 interface Props {
   eventBusSourceName: string;
@@ -18,6 +19,7 @@ interface Props {
   notificationsConfig: string;
   remoteConfigUrl: string;
   remoteConfigHeaders: string;
+  vpcConfig: any;
 }
 export class Notifiers extends Construct {
   private _slackLambda: lambda.Function;
@@ -28,19 +30,22 @@ export class Notifiers extends Construct {
     const code = lambda.Code.fromAsset(
       path.join(__dirname, "..", "..", "..", "..", "bin", "slack-notifier.zip")
     );
-    this._slackLambda = new lambda.Function(this, "SlackNotifierFunction", {
-      code,
-      timeout: Duration.seconds(20),
-      environment: {
-        COMMONFATE_TABLE_NAME: props.dynamoTable.tableName,
-        COMMONFATE_FRONTEND_URL: props.frontendUrl,
-        COMMONFATE_COGNITO_USER_POOL_ID: props.userPool.getUserPoolId(),
-        COMMONFATE_NOTIFICATIONS_SETTINGS: props.notificationsConfig,
-        COMMONFATE_ACCESS_REMOTE_CONFIG_URL: props.remoteConfigUrl,
-        COMMONFATE_REMOTE_CONFIG_HEADERS: props.remoteConfigHeaders,
+    this._slackLambda = new BaseLambdaFunction(this, "SlackNotifierFunction", {
+      functionProps: {
+        code,
+        timeout: Duration.seconds(20),
+        environment: {
+          COMMONFATE_TABLE_NAME: props.dynamoTable.tableName,
+          COMMONFATE_FRONTEND_URL: props.frontendUrl,
+          COMMONFATE_COGNITO_USER_POOL_ID: props.userPool.getUserPoolId(),
+          COMMONFATE_NOTIFICATIONS_SETTINGS: props.notificationsConfig,
+          COMMONFATE_ACCESS_REMOTE_CONFIG_URL: props.remoteConfigUrl,
+          COMMONFATE_REMOTE_CONFIG_HEADERS: props.remoteConfigHeaders,
+        },
+        runtime: lambda.Runtime.GO_1_X,
+        handler: "slack-notifier",
       },
-      runtime: lambda.Runtime.GO_1_X,
-      handler: "slack-notifier",
+      vpcConfig: props.vpcConfig,
     });
 
     this._slackLambda.addToRolePolicy(

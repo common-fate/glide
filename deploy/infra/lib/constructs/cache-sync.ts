@@ -8,12 +8,14 @@ import { Construct } from "constructs";
 import * as path from "path";
 import { AccessHandler } from "./access-handler";
 import { grantAssumeHandlerRole } from "../helpers/permissions";
+import { BaseLambdaFunction } from "../helpers/base-lambda";
 
 interface Props {
   dynamoTable: Table;
   accessHandler: AccessHandler;
   shouldRunAsCron: boolean;
   identityGroupFilter: string;
+  vpcConfig: any;
 }
 
 export class CacheSync extends Construct {
@@ -26,15 +28,18 @@ export class CacheSync extends Construct {
       path.join(__dirname, "..", "..", "..", "..", "bin", "cache-sync.zip")
     );
 
-    this._lambda = new lambda.Function(this, "HandlerFunction", {
-      code,
-      timeout: Duration.seconds(60),
-      environment: {
-        COMMONFATE_ACCESS_HANDLER_URL: props.accessHandler.getApiUrl(),
-        COMMONFATE_TABLE_NAME: props.dynamoTable.tableName,
+    this._lambda = new BaseLambdaFunction(this, "HandlerFunction", {
+      functionProps: {
+        code,
+        timeout: Duration.seconds(60),
+        environment: {
+          COMMONFATE_ACCESS_HANDLER_URL: props.accessHandler.getApiUrl(),
+          COMMONFATE_TABLE_NAME: props.dynamoTable.tableName,
+        },
+        runtime: lambda.Runtime.GO_1_X,
+        handler: "cache-sync",
       },
-      runtime: lambda.Runtime.GO_1_X,
-      handler: "cache-sync",
+      vpcConfig: props.vpcConfig
     });
 
     props.dynamoTable.grantReadWriteData(this._lambda);

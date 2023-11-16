@@ -5,6 +5,7 @@ import { Construct } from "constructs";
 import { Duration, Stack } from "aws-cdk-lib";
 import * as path from "path";
 import { EventBus } from "aws-cdk-lib/aws-events";
+import {BaseLambdaFunction} from "../helpers/base-lambda";
 
 interface Props {
   eventBusSourceName: string;
@@ -13,6 +14,7 @@ interface Props {
   executionRole: iam.Role;
   remoteConfigUrl: string;
   remoteConfigHeaders: string;
+  vpcConfig: any;
 }
 export class Granter extends Construct {
   private _stateMachine: sfn.StateMachine;
@@ -23,19 +25,22 @@ export class Granter extends Construct {
       path.join(__dirname, "..", "..", "..", "..", "bin", "granter.zip")
     );
 
-    this._lambda = new lambda.Function(this, "StepHandlerFunction", {
-      code,
-      timeout: Duration.minutes(5),
-      environment: {
-        COMMONFATE_EVENT_BUS_ARN: props.eventBus.eventBusArn,
-        COMMONFATE_EVENT_BUS_SOURCE: props.eventBusSourceName,
-        COMMONFATE_PROVIDER_CONFIG: props.providerConfig,
-        COMMONFATE_ACCESS_REMOTE_CONFIG_URL: props.remoteConfigUrl,
-        COMMONFATE_REMOTE_CONFIG_HEADERS: props.remoteConfigHeaders,
+    this._lambda = new BaseLambdaFunction(this, "StepHandlerFunction", {
+      functionProps: {
+        code,
+        timeout: Duration.minutes(5),
+        environment: {
+          COMMONFATE_EVENT_BUS_ARN: props.eventBus.eventBusArn,
+          COMMONFATE_EVENT_BUS_SOURCE: props.eventBusSourceName,
+          COMMONFATE_PROVIDER_CONFIG: props.providerConfig,
+          COMMONFATE_ACCESS_REMOTE_CONFIG_URL: props.remoteConfigUrl,
+          COMMONFATE_REMOTE_CONFIG_HEADERS: props.remoteConfigHeaders,
+        },
+        runtime: lambda.Runtime.GO_1_X,
+        handler: "granter",
+        role: props.executionRole,
       },
-      runtime: lambda.Runtime.GO_1_X,
-      handler: "granter",
-      role: props.executionRole,
+      vpcConfig: props.vpcConfig,
     });
 
     const definition = {

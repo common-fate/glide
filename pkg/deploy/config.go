@@ -190,7 +190,8 @@ type Parameters struct {
 	IDPSyncSchedule                 string         `yaml:"IDPSyncSchedule,omitempty"`
 	IDPSyncMemory                   string         `yaml:"IDPSyncMemory,omitempty"`
 	AutoApprovalLambdaARN           string         `yaml:"AutoApprovalLambdaARN,omitempty"`
-	LambdaVpcId                     string         `yaml:"LambdaVpcId,omitempty"`
+	LambdaSubnetIds                 []string       `yaml:"LambdaSubnetIds,omitempty"`
+	LambdaSecurityGroups            []string       `yaml:"LambdaSecurityGroups,omitempty"`
 }
 
 // UnmarshalFeatureMap parses the JSON configuration data and returns
@@ -545,7 +546,19 @@ func (c *Config) CfnParams() ([]types.Parameter, error) {
 			ParameterValue: &p.IDPSyncTimeoutSeconds,
 		})
 	}
+	if len(c.Deployment.Parameters.LambdaSubnetIds) != 0 {
+		res = append(res, types.Parameter{
+			ParameterKey:   aws.String("LambdaSubnetIds"),
+			ParameterValue: aws.String(strings.Join(p.LambdaSubnetIds, ",")),
+		})
+	}
 
+	if len(c.Deployment.Parameters.LambdaSecurityGroups) != 0 {
+		res = append(res, types.Parameter{
+			ParameterKey:   aws.String("LambdaSecurityGroups"),
+			ParameterValue: aws.String(strings.Join(p.LambdaSecurityGroups, ",")),
+		})
+	}
 	return res, nil
 }
 

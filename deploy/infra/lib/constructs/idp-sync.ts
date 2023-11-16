@@ -8,6 +8,7 @@ import { Construct } from "constructs";
 import * as path from "path";
 import { grantAssumeIdentitySyncRole } from "../helpers/permissions";
 import { WebUserPool } from "./app-user-pool";
+import {BaseLambdaFunction} from "../helpers/base-lambda";
 
 interface Props {
   dynamoTable: Table;
@@ -21,6 +22,7 @@ interface Props {
   idpSyncTimeoutSeconds: number;
   idpSyncSchedule: string;
   idpSyncMemory: number;
+  vpcConfig: any;
 }
 
 export class IdpSync extends Construct {
@@ -33,24 +35,27 @@ export class IdpSync extends Construct {
       path.join(__dirname, "..", "..", "..", "..", "bin", "syncer.zip")
     );
 
-    this._lambda = new lambda.Function(this, "HandlerFunction", {
-      code,
-      timeout: Duration.seconds(props.idpSyncTimeoutSeconds),
-      memorySize: props.idpSyncMemory,
+    this._lambda = new BaseLambdaFunction(this, "HandlerFunction", {
+      functionProps: {
+        code,
+        timeout: Duration.seconds(props.idpSyncTimeoutSeconds),
+        memorySize: props.idpSyncMemory,
 
-      environment: {
-        COMMONFATE_TABLE_NAME: props.dynamoTable.tableName,
-        COMMONFATE_IDENTITY_PROVIDER: props.userPool.getIdpType(),
-        COMMONFATE_COGNITO_USER_POOL_ID: props.userPool.getUserPoolId(),
-        COMMONFATE_IDENTITY_SETTINGS: props.identityProviderSyncConfiguration,
-        CF_ANALYTICS_DISABLED: props.analyticsDisabled,
-        CF_ANALYTICS_URL: props.analyticsUrl,
-        CF_ANALYTICS_LOG_LEVEL: props.analyticsLogLevel,
-        CF_ANALYTICS_DEPLOYMENT_STAGE: props.analyticsDeploymentStage,
-        COMMONFATE_IDENTITY_GROUP_FILTER: props.identityGroupFilter,
+        environment: {
+          COMMONFATE_TABLE_NAME: props.dynamoTable.tableName,
+          COMMONFATE_IDENTITY_PROVIDER: props.userPool.getIdpType(),
+          COMMONFATE_COGNITO_USER_POOL_ID: props.userPool.getUserPoolId(),
+          COMMONFATE_IDENTITY_SETTINGS: props.identityProviderSyncConfiguration,
+          CF_ANALYTICS_DISABLED: props.analyticsDisabled,
+          CF_ANALYTICS_URL: props.analyticsUrl,
+          CF_ANALYTICS_LOG_LEVEL: props.analyticsLogLevel,
+          CF_ANALYTICS_DEPLOYMENT_STAGE: props.analyticsDeploymentStage,
+          COMMONFATE_IDENTITY_GROUP_FILTER: props.identityGroupFilter,
+        },
+        runtime: lambda.Runtime.GO_1_X,
+        handler: "syncer",
       },
-      runtime: lambda.Runtime.GO_1_X,
-      handler: "syncer",
+      vpcConfig: props.vpcConfig,
     });
 
     props.dynamoTable.grantReadWriteData(this._lambda);

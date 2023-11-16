@@ -1,5 +1,5 @@
 import * as cdk from "aws-cdk-lib";
-import { CfnCondition, Duration, Stack } from "aws-cdk-lib";
+import {aws_vpclattice, CfnCondition, Duration, Stack} from "aws-cdk-lib";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import { EventBus } from "aws-cdk-lib/aws-events";
@@ -22,6 +22,7 @@ import {
   grantAssumeHandlerRole,
   grantAssumeIdentitySyncRole,
 } from "../helpers/permissions";
+import {BaseLambdaFunction} from "../helpers/base-lambda";
 
 interface Props {
   appName: string;
@@ -52,6 +53,7 @@ interface Props {
   targetGroupGranter: TargetGroupGranter;
   identityGroupFilter: string;
   autoApprovalLambdaARN: string;
+  vpcConfig: any;
 }
 
 export class AppBackend extends Construct {
@@ -115,39 +117,42 @@ export class AppBackend extends Construct {
       path.join(__dirname, "..", "..", "..", "..", "bin", "commonfate.zip")
     );
 
-    this._lambda = new lambda.Function(this, "RestAPIHandlerFunction", {
-      code,
-      timeout: Duration.seconds(60),
-      environment: {
-        COMMONFATE_TABLE_NAME: this._dynamoTable.tableName,
-        COMMONFATE_FRONTEND_URL: props.frontendUrl,
-        COMMONFATE_COGNITO_USER_POOL_ID: props.userPool.getUserPoolId(),
-        COMMONFATE_IDENTITY_PROVIDER: props.userPool.getIdpType(),
-        COMMONFATE_ADMIN_GROUP: props.adminGroupId,
-        COMMONFATE_MOCK_ACCESS_HANDLER: "false",
-        COMMONFATE_ACCESS_HANDLER_URL: props.accessHandler.getApiUrl(),
-        COMMONFATE_PROVIDER_CONFIG: props.providerConfig,
-        // COMMONFATE_SENTRY_DSN: can be added here
-        COMMONFATE_EVENT_BUS_ARN: props.eventBus.eventBusArn,
-        COMMONFATE_EVENT_BUS_SOURCE: props.eventBusSourceName,
-        COMMONFATE_IDENTITY_SETTINGS: props.identityProviderSyncConfiguration,
-        COMMONFATE_PAGINATION_KMS_KEY_ARN: this._KMSkey.keyArn,
-        COMMONFATE_ACCESS_HANDLER_EXECUTION_ROLE_ARN:
-          props.accessHandler.getAccessHandlerExecutionRoleArn(),
-        COMMONFATE_DEPLOYMENT_SUFFIX: props.deploymentSuffix,
-        COMMONFATE_GRANTER_V2_STATE_MACHINE_ARN:
-          props.targetGroupGranter.getStateMachineARN(),
-        COMMONFATE_ACCESS_REMOTE_CONFIG_URL: props.remoteConfigUrl,
-        COMMONFATE_REMOTE_CONFIG_HEADERS: props.remoteConfigHeaders,
-        CF_ANALYTICS_DISABLED: props.analyticsDisabled,
-        CF_ANALYTICS_URL: props.analyticsUrl,
-        CF_ANALYTICS_LOG_LEVEL: props.analyticsLogLevel,
-        CF_ANALYTICS_DEPLOYMENT_STAGE: props.analyticsDeploymentStage,
-        COMMONFATE_IDENTITY_GROUP_FILTER: props.identityGroupFilter,
-        COMMONFATE_AUTO_APPROVAL_LAMBDA_ARN: props.autoApprovalLambdaARN,
+    this._lambda = new BaseLambdaFunction(this, "RestAPIHandlerFunction", {
+      functionProps: {
+        code,
+        timeout: Duration.seconds(60),
+        environment: {
+          COMMONFATE_TABLE_NAME: this._dynamoTable.tableName,
+          COMMONFATE_FRONTEND_URL: props.frontendUrl,
+          COMMONFATE_COGNITO_USER_POOL_ID: props.userPool.getUserPoolId(),
+          COMMONFATE_IDENTITY_PROVIDER: props.userPool.getIdpType(),
+          COMMONFATE_ADMIN_GROUP: props.adminGroupId,
+          COMMONFATE_MOCK_ACCESS_HANDLER: "false",
+          COMMONFATE_ACCESS_HANDLER_URL: props.accessHandler.getApiUrl(),
+          COMMONFATE_PROVIDER_CONFIG: props.providerConfig,
+          // COMMONFATE_SENTRY_DSN: can be added here
+          COMMONFATE_EVENT_BUS_ARN: props.eventBus.eventBusArn,
+          COMMONFATE_EVENT_BUS_SOURCE: props.eventBusSourceName,
+          COMMONFATE_IDENTITY_SETTINGS: props.identityProviderSyncConfiguration,
+          COMMONFATE_PAGINATION_KMS_KEY_ARN: this._KMSkey.keyArn,
+          COMMONFATE_ACCESS_HANDLER_EXECUTION_ROLE_ARN:
+            props.accessHandler.getAccessHandlerExecutionRoleArn(),
+          COMMONFATE_DEPLOYMENT_SUFFIX: props.deploymentSuffix,
+          COMMONFATE_GRANTER_V2_STATE_MACHINE_ARN:
+            props.targetGroupGranter.getStateMachineARN(),
+          COMMONFATE_ACCESS_REMOTE_CONFIG_URL: props.remoteConfigUrl,
+          COMMONFATE_REMOTE_CONFIG_HEADERS: props.remoteConfigHeaders,
+          CF_ANALYTICS_DISABLED: props.analyticsDisabled,
+          CF_ANALYTICS_URL: props.analyticsUrl,
+          CF_ANALYTICS_LOG_LEVEL: props.analyticsLogLevel,
+          CF_ANALYTICS_DEPLOYMENT_STAGE: props.analyticsDeploymentStage,
+          COMMONFATE_IDENTITY_GROUP_FILTER: props.identityGroupFilter,
+          COMMONFATE_AUTO_APPROVAL_LAMBDA_ARN: props.autoApprovalLambdaARN,
+        },
+        runtime: lambda.Runtime.GO_1_X,
+        handler: "commonfate",
       },
-      runtime: lambda.Runtime.GO_1_X,
-      handler: "commonfate",
+      vpcConfig: props.vpcConfig
     });
 
     this._KMSkey.grantEncryptDecrypt(this._lambda);
@@ -309,6 +314,7 @@ export class AppBackend extends Construct {
       dynamoTable: this._dynamoTable,
       eventBus: props.eventBus,
       eventBusSourceName: props.eventBusSourceName,
+      vpcConfig: props.vpcConfig,
     });
     this._notifiers = new Notifiers(this, "Notifiers", {
       dynamoTable: this._dynamoTable,
@@ -319,6 +325,7 @@ export class AppBackend extends Construct {
       notificationsConfig: props.notificationsConfiguration,
       remoteConfigUrl: props.remoteConfigUrl,
       remoteConfigHeaders: props.remoteConfigHeaders,
+      vpcConfig: props.vpcConfig,
     });
 
     this._idpSync = new IdpSync(this, "IdpSync", {
@@ -334,16 +341,19 @@ export class AppBackend extends Construct {
       idpSyncMemory: props.idpSyncMemory,
       idpSyncSchedule: props.idpSyncSchedule,
       idpSyncTimeoutSeconds: props.idpSyncTimeoutSeconds,
+      vpcConfig: props.vpcConfig,
     });
     this._cacheSync = new CacheSync(this, "CacheSync", {
       dynamoTable: this._dynamoTable,
       accessHandler: props.accessHandler,
       shouldRunAsCron: props.shouldRunCronHealthCheckCacheSync,
       identityGroupFilter: props.identityGroupFilter,
+      vpcConfig: props.vpcConfig,
     });
     this._healthChecker = new HealthChecker(this, "HealthCheck", {
       dynamoTable: this._dynamoTable,
       shouldRunAsCron: props.shouldRunCronHealthCheckCacheSync,
+      vpcConfig: props.vpcConfig,
     });
   }
 
