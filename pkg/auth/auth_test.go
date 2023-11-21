@@ -86,7 +86,8 @@ func TestAdminAuthorizer(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			r := chi.NewRouter()
 
@@ -182,7 +183,8 @@ func TestMiddleware(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			r := chi.NewRouter()
 			c := ddbmock.New(t)

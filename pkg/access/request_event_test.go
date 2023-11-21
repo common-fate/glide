@@ -25,7 +25,8 @@ func TestRequestEventMarshalDDB(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			item, err := tc.give.DDBKeys()
 			if err != nil {

@@ -62,7 +62,8 @@ func TestValidateGrant(t *testing.T) {
 	// testing time is 1st Jan 2022, 10:00am UTC
 	now := time.Date(2022, 1, 1, 10, 0, 0, 0, time.UTC)
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			_, err := tc.input.Validate(ctx, now)
 			if tc.wantErr == nil && err != nil {

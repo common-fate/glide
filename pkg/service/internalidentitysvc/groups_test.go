@@ -59,7 +59,8 @@ func TestCreateGroup(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			db := ddbmock.New(t)
 			db.MockQuery(&tc.withListUsers)
@@ -188,7 +189,8 @@ func TestUpdateGroup(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			db := ddbmock.New(t)
 			db.MockQuery(&tc.withListUsers)

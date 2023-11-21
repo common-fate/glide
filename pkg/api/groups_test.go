@@ -49,7 +49,8 @@ func TestListGroups(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			db := ddbmock.New(t)
@@ -112,7 +113,8 @@ func TestGetGroup(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			db := ddbmock.New(t)
@@ -191,7 +193,8 @@ func TestCreateGroup(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			db := ddbmock.New(t)
@@ -296,7 +299,8 @@ func TestUpdateGroup(t *testing.T) {
 			expectCreateGroupError: internalidentitysvc.UserNotFoundError{}},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			db := ddbmock.New(t)
@@ -366,7 +370,8 @@ func TestDeleteGroup(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			db := ddbmock.New(t)

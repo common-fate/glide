@@ -20,7 +20,8 @@ func TestHealth(t *testing.T) {
 		{name: "ok", wantCode: http.StatusOK, wantBody: `{"health":{"error":null,"healthy":true,"id":"okta"}}`},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			handler := newTestServer(t)

@@ -100,7 +100,8 @@ func TestConfigureProviders(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			cfg, err := deploy.UnmarshalProviderMap(tc.give)
 			if err != nil {
@@ -182,7 +183,8 @@ func TestProviderFromUses(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			got, err := providerFromUses(tc.give)
 			if err != nil && tc.wantErr == nil {

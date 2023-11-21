@@ -142,7 +142,8 @@ func TestTestCfnParams(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			got, err := tc.give.CfnParams()
 			if err != nil {
@@ -194,7 +195,8 @@ func TestCfnTemplateURL(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			got := tc.give.CfnTemplateURL()
 			assert.Equal(t, tc.want, got)
@@ -303,7 +305,8 @@ func TestGetIDForNewProvider(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			got := tc.give.Deployment.Parameters.ProviderConfiguration.GetIDForNewProvider(tc.giveID)
 			assert.Equal(t, tc.want, got)

@@ -56,7 +56,8 @@ func TestShouldRefresh(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 
 			outcome := ShouldRefreshToken(tc.token, tc.now.Now())

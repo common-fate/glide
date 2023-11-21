@@ -76,7 +76,8 @@ func TestCreateTargetGroup(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			// t.Parallel()
 			ctrl := gomock.NewController(t)
@@ -170,7 +171,8 @@ func TestListTargetGroup(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			db := ddbmock.New(t)
@@ -225,7 +227,8 @@ func TestGetTargetGroup(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			db := ddbmock.New(t)
@@ -298,8 +301,9 @@ func TestTargetGroupLink(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
-		tc := tc
+	for i := range testcases {
+		tc := testcases[i]
+
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			db := ddbmock.New(t)
@@ -364,8 +368,8 @@ func TestRemoveTargetGroupLink(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
-		tc := tc
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			db := ddbmock.New(t)
@@ -428,8 +432,9 @@ func TestDeleteTargetGroup(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
-		tc := tc
+	for i := range testcases {
+		tc := testcases[i]
+
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			db := ddbmock.New(t)
@@ -517,7 +522,8 @@ func TestListTargetGroupRoutes(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			db := ddbmock.New(t)

@@ -41,7 +41,8 @@ func TestHealthcheckHandler(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 
@@ -151,9 +152,8 @@ func TestRegisterHandler(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
-
-		tc := tc
+	for i := range testcases {
+		tc := testcases[i]
 
 		t.Run(tc.name, func(t *testing.T) {
 			// t.Parallel()
@@ -247,10 +247,8 @@ func TestListHandlers(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
-
-		// assign tc to a new variable so that it is not overwritten in the loop
-		tc := tc
+	for i := range testcases {
+		tc := testcases[i]
 
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
@@ -312,7 +310,8 @@ func TestGetHandler(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			db := ddbmock.New(t)
@@ -382,7 +381,8 @@ func TestDeleteHandler(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			db := ddbmock.New(t)

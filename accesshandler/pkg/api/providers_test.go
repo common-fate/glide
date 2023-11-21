@@ -38,7 +38,8 @@ func TestGetProvider(t *testing.T) {
 		},
 	})
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			handler := newTestServer(t)
@@ -78,7 +79,8 @@ func TestListProviders(t *testing.T) {
 			Provider: &testgroups.Provider{},
 		},
 	})
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			handler := newTestServer(t)
@@ -127,7 +129,8 @@ func TestGetProviderArgs(t *testing.T) {
 		{name: "not found", giveProviderId: "badid", wantCode: http.StatusNotFound, wantErr: notFoundErr.Error()},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			handler := newTestServer(t)
@@ -196,7 +199,8 @@ func TestListProviderArgOptions(t *testing.T) {
 		{name: "arg not found", giveProviderId: "test", giveArgId: "notexist", wantCode: http.StatusNotFound, wantErr: invalidArgErr.Error()},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			handler := newTestServer(t)

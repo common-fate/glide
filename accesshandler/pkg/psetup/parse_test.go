@@ -67,7 +67,8 @@ Test second line`,
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			got, err := ParseDocsFS(tc.fs, tc.cfg, tc.td)
 			if err != nil && tc.wantErr == nil {
@@ -98,7 +99,8 @@ func TestStepCountFS(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			got, err := StepCountFS(tc.fs)
 			if err != nil && tc.wantErr == nil {

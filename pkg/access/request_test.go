@@ -109,7 +109,8 @@ func TestRequestMarshalDDB(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			item, err := tc.give.DDBKeys()
 			if err != nil {
@@ -196,7 +197,8 @@ func TestRequestGetInterval(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			opts := []func(*GetIntervalOpts){}
 			if tc.withNow != nil {

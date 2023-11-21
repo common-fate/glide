@@ -81,7 +81,8 @@ func TestFromCLIOption(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			gotKey, got, err := testRegistry.FromCLIOption(tc.give)
 			if err != nil && tc.wantErr == nil {
@@ -201,7 +202,8 @@ func TestGetLatestByType(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			ver, got, err := tc.give.GetLatestByType(tc.providerType)
 			assert.Equal(t, tc.want, got)

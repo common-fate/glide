@@ -46,7 +46,8 @@ func TestRequestWithCombination(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			got, err := tc.crw.ArgumentCombinations()
 			assert.ElementsMatch(t, tc.want, got)
@@ -107,7 +108,8 @@ func TestHasDuplicates(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			got := tc.rac.HasDuplicates()
 			assert.Equal(t, tc.want, got)

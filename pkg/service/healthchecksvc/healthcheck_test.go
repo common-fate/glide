@@ -31,8 +31,8 @@ func TestValidateProviderSchema(t *testing.T) {
 		{name: "different-invalid", schema1: a, schema2: b, valid_want: false},
 		{name: "resource-name-nil-valid", schema1: c, schema2: c, valid_want: true},
 	}
-	for _, tc := range testcases {
-		tc := tc
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			validity := validateProviderSchema(tc.schema1, tc.schema2)
 			assert.Equal(t, tc.valid_want, validity)
@@ -85,8 +85,8 @@ func TestValidateRoute(t *testing.T) {
 			want: test2Route.SetValidity(true),
 		},
 	}
-	for _, tc := range testcases {
-		tc := tc
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			route := validateRoute(tc.route, tc.group, tc.providerDescription)
 			assert.Equal(t, tc.want, route)
@@ -170,8 +170,8 @@ func TestDescribe(t *testing.T) {
 			}).SetProviderDescription(&incompatibleSchemaDescribe),
 		},
 	}
-	for _, tc := range testcases {
-		tc := tc
+	for i := range testcases {
+		tc := testcases[i]
 
 		ctrl := gomock.NewController(t)
 		r := mocks.NewMockRuntime(ctrl)
@@ -215,8 +215,8 @@ func TestGetRuntime(t *testing.T) {
 			want:    test1Handler,
 		},
 	}
-	for _, tc := range testcases {
-		tc := tc
+	for i := range testcases {
+		tc := testcases[i]
 
 		s := Service{
 			RuntimeGetter: mockRuntimeGetter{err: tc.getErr},
@@ -280,9 +280,8 @@ func TestGetRuntime(t *testing.T) {
 // 		},
 // 	}
 
-// 	for _, tc := range testcases {
-
-// 		tc := tc
+// 	for i := range testcases {
+//		tc := testcases[i]
 
 // 		t.Run(tc.name, func(t *testing.T) {
 

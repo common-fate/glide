@@ -20,7 +20,7 @@ func TestIsReleaseVersionDifferent(t *testing.T) {
 		wantIsGreater  bool
 	}
 
-	testCases := []testcase{
+	testcases := []testcase{
 		{
 			name:     "Ok",
 			gVersion: "v2.10.11",
@@ -93,7 +93,8 @@ func TestIsReleaseVersionDifferent(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testCases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			isDifferent, isGreater, err := middleware.IsReleaseVersionDifferent(tc.dConfig, tc.gVersion, tc.ignoreMismatch)
 			if tc.wantError != nil {
