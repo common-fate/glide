@@ -127,7 +127,7 @@ func (s *Server) oauthCallback(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err.Error())
 		s.response <- Response{Err: err}
-
+		// nosemgrep
 		_, err = w.Write([]byte("there was a problem logging in to Common Fate: " + err.Error()))
 		if err != nil {
 			log.Printf("write error: %s", err.Error())
