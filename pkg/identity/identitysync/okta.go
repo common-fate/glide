@@ -16,8 +16,55 @@ import (
 	"go.uber.org/zap"
 )
 
+type OktaResponse interface {
+	HasNextPage() bool
+	Next(ctx context.Context, v interface{}) (*okta.Response, error)
+}
+
+type OktaResponseWrapper struct {
+	oktaResponse *okta.Response
+}
+
+func (o OktaResponseWrapper) HasNextPage() bool {
+	return o.HasNextPage()
+}
+
+func (o OktaResponseWrapper) Next(ctx context.Context, v interface{}) (*okta.Response, error) {
+	return o.Next(ctx, v)
+}
+
+type OktaClient interface {
+	ListUserGroups(ctx context.Context, userId string) ([]*okta.Group, OktaResponse, error)
+	ListUsers(ctx context.Context, qp *query.Params) ([]*okta.User, OktaResponse, error)
+	ListGroupUsers(ctx context.Context, groupId string, qp *query.Params) ([]*okta.User, OktaResponse, error)
+	ListGroups(ctx context.Context, qp *query.Params) ([]*okta.Group, OktaResponse, error)
+}
+
+type OktaClientWrapper struct {
+	client *okta.Client
+}
+
+func (o OktaClientWrapper) ListUserGroups(ctx context.Context, userId string) ([]*okta.Group, OktaResponse, error) {
+	groups, oktaResponse, err := o.client.User.ListUserGroups(ctx, userId)
+	var oktaResponseWrapper OktaResponseWrapper
+	oktaResponseWrapper.oktaResponse = oktaResponse
+	return groups, oktaResponse, err
+}
+
+func (o OktaClientWrapper) ListUsers(ctx context.Context, qp *query.Params) ([]*okta.User, OktaResponse, error) {
+	return o.client.User.ListUsers(ctx, qp)
+}
+
+func (o OktaClientWrapper) ListGroupUsers(ctx context.Context, groupId string, qp *query.Params) ([]*okta.User, OktaResponse, error) {
+	return o.client.Group.ListGroupUsers(ctx, groupId, qp)
+}
+
+func (o OktaClientWrapper) ListGroups(ctx context.Context, qp *query.Params) ([]*okta.Group, OktaResponse, error) {
+	return o.client.Group.ListGroups(ctx, qp)
+}
+
 type OktaSync struct {
-	client   *okta.Client
+	client   OktaClient
 	orgURL   gconfig.StringValue
 	apiToken gconfig.SecretStringValue
 	groups   gconfig.OptionalStringValue
@@ -32,7 +79,7 @@ func (s *OktaSync) Config() gconfig.Config {
 }
 
 func (s *OktaSync) Init(ctx context.Context) error {
-	_, client, err := okta.NewClient(
+	_, oktaClient, err := okta.NewClient(
 		ctx,
 		okta.WithOrgUrl(s.orgURL.Get()),
 		okta.WithToken(s.apiToken.Get()),
@@ -40,7 +87,10 @@ func (s *OktaSync) Init(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	s.client = client
+	var clientWrapper OktaClientWrapper
+	clientWrapper.client = oktaClient
+
+	s.client = clientWrapper
 	return nil
 }
 
@@ -100,7 +150,7 @@ func (o *OktaSync) idpUserFromOktaUser(ctx context.Context, oktaUser *okta.User,
 	if userIdToGroupIds != nil {
 		u.Groups = append(u.Groups, userIdToGroupIds[oktaUser.Id]...)
 	} else {
-		userGroups, _, err := o.client.User.ListUserGroups(ctx, oktaUser.Id)
+		userGroups, _, err := o.client.ListUserGroups(ctx, oktaUser.Id)
 		if err != nil {
 			return u, errors.Wrapf(err, "listing groups for okta user %s", oktaUser.Id)
 		}
@@ -123,7 +173,13 @@ func idpGroupFromOktaGroup(oktaGroup *okta.Group) identity.IDPGroup {
 	}
 }
 
-func logResponseErr(log *zap.SugaredLogger, res *okta.Response, err error) {
+func logResponseErr(log *zap.SugaredLogger, oktaRes OktaResponse, err error) {
+	res, ok := oktaRes.(*okta.Response)
+
+	if !ok {
+		log.Errorw("can't cast OktaResponse to *okta.Response")
+	}
+
 	b, readErr := io.ReadAll(res.Body)
 	if readErr != nil {
 		log.Errorw("error reading Okta error response body", zap.Error(readErr))
@@ -140,10 +196,10 @@ func (o *OktaSync) listAllUsers(ctx context.Context) ([]identity.IDPUser, error)
 
 	log.Debugw("listing all okta users")
 
-	users, res, err := o.client.User.ListUsers(ctx, &query.Params{})
+	users, res, err := o.client.ListUsers(ctx, &query.Params{})
 	if err != nil {
 		// try and log the response body
-		logResponseErr(log, res, err)
+		logResponseErr(log, res.(*okta.Response), err)
 		return nil, errors.Wrap(err, "listing okta users from okta API")
 	}
 
@@ -153,11 +209,11 @@ func (o *OktaSync) listAllUsers(ctx context.Context) ([]identity.IDPUser, error)
 		var nextUsers []*okta.User
 		res, err = res.Next(ctx, &nextUsers)
 		if err != nil {
-			logResponseErr(log, res, err)
+			logResponseErr(log, res.(*okta.Response), err)
 			return nil, err
 		}
 		users = append(users, nextUsers...)
-		log.Debugw("fetched more users", "nextPage", res.NextPage)
+		log.Debugw("fetched more users - ", len(nextUsers))
 	}
 
 	// convert all Okta users to internal users
@@ -177,7 +233,7 @@ func (o *OktaSync) listGroups(ctx context.Context) ([]*okta.Group, error) {
 
 	log.Debugw("listing all okta groups")
 
-	groups, res, err := o.client.Group.ListGroups(ctx, &query.Params{})
+	groups, res, err := o.client.ListGroups(ctx, &query.Params{})
 	if err != nil {
 		// try and log the response body
 		logResponseErr(log, res, err)
@@ -195,7 +251,7 @@ func (o *OktaSync) listGroups(ctx context.Context) ([]*okta.Group, error) {
 			return nil, err
 		}
 		groups = append(groups, nextGroups...)
-		log.Debugw("fetched more groups", "nextPage", res.NextPage)
+		log.Debugw("fetched more groups - ", len(groups))
 	}
 
 	return groups, nil
@@ -223,10 +279,10 @@ func (o *OktaSync) listUsersBasedOnGroups(ctx context.Context) ([]identity.IDPUs
 
 	for _, groupId := range groupIds {
 		log.Infow(fmt.Sprintf("fetching users for groupId = %s", groupId))
-		users, res, err := o.client.Group.ListGroupUsers(ctx, groupId, &query.Params{})
+		users, res, err := o.client.ListGroupUsers(ctx, groupId, &query.Params{})
 		if err != nil {
 			// try and log the response body
-			logResponseErr(log, res, err)
+			logResponseErr(log, res.(*okta.Response), err)
 			return nil, errors.Wrap(err, "listing okta users from okta API")
 		}
 
@@ -236,11 +292,11 @@ func (o *OktaSync) listUsersBasedOnGroups(ctx context.Context) ([]identity.IDPUs
 			var nextUsers []*okta.User
 			res, err = res.Next(ctx, &nextUsers)
 			if err != nil {
-				logResponseErr(log, res, err)
+				logResponseErr(log, res.(*okta.Response), err)
 				return nil, err
 			}
 			users = append(users, nextUsers...)
-			log.Debugw("fetched more users", "nextPage", res.NextPage)
+			log.Debugw("fetched more users - ", len(nextUsers))
 		}
 
 		for _, user := range users {
