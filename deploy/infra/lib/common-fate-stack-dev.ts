@@ -72,9 +72,6 @@ export class CommonFateStackDev extends cdk.Stack {
     } = props;
     const appName = `common-fate-${stage}`;
 
-    console.log("!!!!")
-    console.log(autoApprovalLambdaARN)
-    console.log("!!!!")
 
     const db = new Database(this, "Database", {
       appName,

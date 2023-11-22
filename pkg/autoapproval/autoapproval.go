@@ -34,9 +34,6 @@ type Service struct {
 
 func (s Service) Autoapprove(user identity.User, rule rule.AccessRule, lambdaArn string) (bool, error) {
 	sess, err := session.NewSession()
-	//	&aws.Config{
-	//	Region: aws.String("us-west-2"), // Replace with your region
-	//}
 
 	if err != nil {
 		return false, err
