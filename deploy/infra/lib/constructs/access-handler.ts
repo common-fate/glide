@@ -7,7 +7,7 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
 import * as path from "path";
 import { Granter } from "./granter";
-import { BaseLambdaFunction } from "../helpers/base-lambda";
+import { BaseLambdaFunction, VpcConfig } from "../helpers/base-lambda";
 interface Props {
   appName: string;
   eventBusSourceName: string;
@@ -16,7 +16,7 @@ interface Props {
   remoteConfigHeaders: string;
   /** A JSON payload of the access provider configuration. */
   providerConfig: string;
-  vpcConfig: any;
+  vpcConfig: VpcConfig;
 }
 
 export class AccessHandler extends Construct {

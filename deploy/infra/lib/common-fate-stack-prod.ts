@@ -18,6 +18,7 @@ import {
 import { Database } from "./constructs/database";
 import { Governance } from "./constructs/governance";
 import { TargetGroupGranter } from "./constructs/targetgroup-granter";
+import { VpcConfig } from "./helpers/base-lambda";
 
 interface Props extends cdk.StackProps {
   productionReleasesBucket: string;
@@ -245,20 +246,10 @@ export class CommonFateStackProd extends cdk.Stack {
       }
     );
 
-    const vpcConfig = cdk.Fn.conditionIf(
-      attachLambdaToVpcCondition.logicalId,
-      {
-        SubnetIds: subnetIds.valueAsString.split(","),
-        SecurityGroupIds: subnetIds.valueAsString.split(","),
-      },
-      // Instead of using AWS::NoValue, we use [] because
-      // if we use AWS::NoValue and the subnets and security groups have already been attached,
-      // they will not be overwritten.
-      {
-        SubnetIds: [],
-        SecurityGroupIds: [],
-      }
-    );
+    const vpcConfig: VpcConfig = {
+      subnetIds: cdk.Fn.conditionIf(attachLambdaToVpcCondition.logicalId, subnetIds.valueAsString.split(","), []),
+      securityGroupIds: cdk.Fn.conditionIf(attachLambdaToVpcCondition.logicalId, securityGroups.valueAsString.split(","), [])
+    }
 
     const appName = this.stackName + suffix.valueAsString;
 

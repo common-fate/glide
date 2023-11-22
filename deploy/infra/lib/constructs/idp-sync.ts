@@ -8,7 +8,7 @@ import { Construct } from "constructs";
 import * as path from "path";
 import { grantAssumeIdentitySyncRole } from "../helpers/permissions";
 import { WebUserPool } from "./app-user-pool";
-import { BaseLambdaFunction } from "../helpers/base-lambda";
+import { BaseLambdaFunction, VpcConfig } from "../helpers/base-lambda";
 
 interface Props {
   dynamoTable: Table;
@@ -22,7 +22,7 @@ interface Props {
   idpSyncTimeoutSeconds: number;
   idpSyncSchedule: string;
   idpSyncMemory: number;
-  vpcConfig: any;
+  vpcConfig: VpcConfig;
 }
 
 export class IdpSync extends Construct {

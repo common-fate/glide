@@ -8,14 +8,14 @@ import { Construct } from "constructs";
 import * as path from "path";
 import { AccessHandler } from "./access-handler";
 import { grantAssumeHandlerRole } from "../helpers/permissions";
-import { BaseLambdaFunction } from "../helpers/base-lambda";
+import { BaseLambdaFunction, VpcConfig } from "../helpers/base-lambda";
 
 interface Props {
   dynamoTable: Table;
   accessHandler: AccessHandler;
   shouldRunAsCron: boolean;
   identityGroupFilter: string;
-  vpcConfig: any;
+  vpcConfig: VpcConfig;
 }
 
 export class CacheSync extends Construct {

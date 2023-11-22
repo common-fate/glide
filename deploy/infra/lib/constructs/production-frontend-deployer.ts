@@ -4,7 +4,7 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Bucket } from "aws-cdk-lib/aws-s3";
 import { Construct } from "constructs";
 import * as path from "path";
-import { BaseLambdaFunction } from "../helpers/base-lambda";
+import { BaseLambdaFunction, VpcConfig } from "../helpers/base-lambda";
 
 interface Props {
   cfReleaseBucket: string;
@@ -17,7 +17,7 @@ interface Props {
   frontendDomain: string;
   cloudfrontDistributionId: string;
   apiUrl: string;
-  vpcConfig: any;
+  vpcConfig: VpcConfig;
 }
 export class ProductionFrontendDeployer extends Construct {
   private _lambda: lambda.Function;

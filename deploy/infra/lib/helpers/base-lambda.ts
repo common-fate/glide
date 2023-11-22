@@ -2,9 +2,17 @@ import * as cdk from "aws-cdk-lib";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import { PolicyStatement } from "aws-cdk-lib/aws-iam";
 
+export type VpcConfig = {
+  // The intended data type for the SubnetIds and SecurityGroupIds fields is a list of strings.
+  // However, in the production stack, the type of these fields is ICfnRuleConditionExpression, while in the development stack, it is string[].
+  // To accommodate this difference, we are currently using 'any' data type to represent these fields.
+  subnetIds: any;
+  securityGroupIds: any;
+};
+
 export interface BaseLambdaFunProps {
   functionProps: lambda.FunctionProps;
-  vpcConfig: any;
+  vpcConfig: VpcConfig;
 }
 
 export class BaseLambdaFunction extends lambda.Function {

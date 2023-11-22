@@ -7,13 +7,13 @@ import * as path from "path";
 import { EventBus } from "aws-cdk-lib/aws-events";
 import { grantAssumeHandlerRole } from "../helpers/permissions";
 import { Table } from "aws-cdk-lib/aws-dynamodb";
-import { BaseLambdaFunction } from "../helpers/base-lambda";
+import { BaseLambdaFunction, VpcConfig } from "../helpers/base-lambda";
 
 interface Props {
   eventBusSourceName: string;
   dynamoTable: Table;
   eventBus: EventBus;
-  vpcConfig: any;
+  vpcConfig: VpcConfig;
 }
 export class TargetGroupGranter extends Construct {
   private _stateMachine: sfn.StateMachine;

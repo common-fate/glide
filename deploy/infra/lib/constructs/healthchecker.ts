@@ -5,14 +5,13 @@ import * as targets from "aws-cdk-lib/aws-events-targets";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
 import * as path from "path";
-import { PolicyStatement } from "aws-cdk-lib/aws-iam";
 import { grantAssumeHandlerRole } from "../helpers/permissions";
-import { BaseLambdaFunction } from "../helpers/base-lambda";
+import { BaseLambdaFunction, VpcConfig } from "../helpers/base-lambda";
 
 interface Props {
   dynamoTable: Table;
   shouldRunAsCron: boolean;
-  vpcConfig: any;
+  vpcConfig: VpcConfig;
 }
 
 export class HealthChecker extends Construct {

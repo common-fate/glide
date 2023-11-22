@@ -22,7 +22,7 @@ import {
   grantAssumeHandlerRole,
   grantAssumeIdentitySyncRole,
 } from "../helpers/permissions";
-import { BaseLambdaFunction } from "../helpers/base-lambda";
+import { BaseLambdaFunction, VpcConfig } from "../helpers/base-lambda";
 
 interface Props {
   appName: string;
@@ -53,7 +53,7 @@ interface Props {
   targetGroupGranter: TargetGroupGranter;
   identityGroupFilter: string;
   autoApprovalLambdaARN: string;
-  vpcConfig: any;
+  vpcConfig: VpcConfig;
 }
 
 export class AppBackend extends Construct {
