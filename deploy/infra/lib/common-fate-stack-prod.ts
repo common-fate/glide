@@ -207,6 +207,16 @@ export class CommonFateStackProd extends cdk.Stack {
       }
     );
 
+    const autoApprovalLambdaARN = new CfnParameter(
+        this,
+        "AutoApprovalLambdaARN",
+        {
+          type: "String",
+          description: "ARN of a lambda function that is triggered when an access request is created.",
+          default: "",
+        }
+    )
+
     const appName = this.stackName + suffix.valueAsString;
 
     const db = new Database(this, "Database", {
@@ -302,6 +312,7 @@ export class CommonFateStackProd extends cdk.Stack {
       idpSyncTimeoutSeconds: idpSyncTimeoutSeconds.valueAsNumber,
       targetGroupGranter: targetGroupGranter,
       identityGroupFilter: identityGroupFilter.valueAsString,
+      autoApprovalLambdaARN: autoApprovalLambdaARN.valueAsString
     });
 
     new ProductionFrontendDeployer(this, "FrontendDeployer", {
