@@ -39,6 +39,7 @@ interface Props extends cdk.StackProps {
   idpSyncTimeoutSeconds: number;
   idpSyncSchedule: string;
   idpSyncMemory: number;
+  autoApprovalLambdaARN: string;
 }
 
 export class CommonFateStackDev extends cdk.Stack {
@@ -67,8 +68,10 @@ export class CommonFateStackDev extends cdk.Stack {
       idpSyncTimeoutSeconds,
       idpSyncSchedule,
       idpSyncMemory,
+      autoApprovalLambdaARN,
     } = props;
     const appName = `common-fate-${stage}`;
+
 
     const db = new Database(this, "Database", {
       appName,
@@ -161,6 +164,7 @@ export class CommonFateStackDev extends cdk.Stack {
         props.shouldRunCronHealthCheckCacheSync || false,
       targetGroupGranter: targetGroupGranter,
       identityGroupFilter,
+      autoApprovalLambdaARN: autoApprovalLambdaARN
     });
 
     /* Outputs */

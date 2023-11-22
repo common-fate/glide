@@ -51,6 +51,7 @@ interface Props {
   idpSyncMemory: number;
   targetGroupGranter: TargetGroupGranter;
   identityGroupFilter: string;
+  autoApprovalLambdaARN: string;
 }
 
 export class AppBackend extends Construct {
@@ -143,12 +144,24 @@ export class AppBackend extends Construct {
         CF_ANALYTICS_LOG_LEVEL: props.analyticsLogLevel,
         CF_ANALYTICS_DEPLOYMENT_STAGE: props.analyticsDeploymentStage,
         COMMONFATE_IDENTITY_GROUP_FILTER: props.identityGroupFilter,
+        COMMONFATE_AUTO_APPROVAL_LAMBDA_ARN: props.autoApprovalLambdaARN,
       },
       runtime: lambda.Runtime.GO_1_X,
       handler: "commonfate",
     });
 
     this._KMSkey.grantEncryptDecrypt(this._lambda);
+
+    // If an auto-approval lambda ARN is specified we need to grant permissions to RestAPIHandlerFunction to invoke it.
+    if (props.autoApprovalLambdaARN.length !== 0) {
+      this._lambda.addToRolePolicy(
+          new PolicyStatement({
+            effect: iam.Effect.ALLOW,
+            resources: [props.autoApprovalLambdaARN],
+            actions: ['lambda:InvokeFunction'],
+          })
+      );
+    }
 
     this._lambda.addToRolePolicy(
       new PolicyStatement({

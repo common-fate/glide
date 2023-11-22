@@ -95,6 +95,10 @@ func (c Config) CDKContextArgs() []string {
 		args = append(args, "-c", fmt.Sprintf("idpSyncTimeoutSeconds=%s", string(c.Deployment.Parameters.IDPSyncTimeoutSeconds)))
 	}
 
+	if c.Deployment.Parameters.AutoApprovalLambdaARN != "" {
+		args = append(args, "-c", fmt.Sprintf("autoApprovalLambdaARN=%s", string(c.Deployment.Parameters.AutoApprovalLambdaARN)))
+	}
+
 	// CDK deploys always use the dev analytics endpoint and debug mode
 	args = append(args, "-c", "analyticsUrl=https://t-dev.commonfate.io")
 	args = append(args, "-c", "analyticsDeploymentStage=dev")
