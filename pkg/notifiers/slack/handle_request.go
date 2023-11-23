@@ -64,14 +64,6 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 				return errors.Wrap(err, "building review URL")
 			}
 
-			reviewers := storage.ListRequestReviewers{RequestID: request.ID}
-			_, err = n.DB.Query(ctx, &reviewers)
-			if err != nil && err != ddb.ErrNoItems {
-				return errors.Wrap(err, "getting reviewers")
-			}
-
-			log.Infow("messaging reviewers", "reviewers", reviewers)
-
 			requestArguments, err := n.RenderRequestArguments(ctx, log, request, requestedRule)
 			if err != nil {
 				log.Errorw("failed to generate request arguments, skipping including them in the slack message", "error", err)
@@ -129,6 +121,14 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 					//TODO: Handle error!!
 
 				} else {
+
+					reviewers := storage.ListRequestReviewers{RequestID: request.ID}
+					_, err = n.DB.Query(ctx, &reviewers)
+					if err != nil && err != ddb.ErrNoItems {
+						return errors.Wrap(err, "getting reviewers")
+					}
+
+					log.Infow("messaging reviewers", "reviewers", reviewers)
 
 					var wg sync.WaitGroup
 					for _, usr := range reviewers.Result {
