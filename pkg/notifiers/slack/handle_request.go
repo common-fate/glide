@@ -110,16 +110,18 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 					IsWebhook:        false,
 				})
 
-				r, _ := regexp.Compile("@slack-(#[^ ]+)")
+				r := regexp.MustCompile("@slack-#([^ ]+)")
 
-				matches := r.FindStringSubmatch(requestedRule.Description)
-
-				if len(matches) > 0 {
-					channelName := matches[0]
+				if r.MatchString(requestedRule.Description) {
+					matches := r.FindStringSubmatch(requestedRule.Description)
+					channelName := matches[1]
+					zap.S().Infow("Sending slack message to:", "chan", channelName)
 
 					err = n.notifySlackGroup(ctx, reviewerMsg, reviewerSummary, channelName)
-					//TODO: Handle error!!
 
+					if err != nil {
+						zap.S().Infow("failed to send slack message to slack group", "channelId", channelName, zap.Error(err))
+					}
 				} else {
 
 					reviewers := storage.ListRequestReviewers{RequestID: request.ID}
@@ -193,8 +195,11 @@ func (n *SlackNotifier) notifySlackGroup(ctx context.Context, message slack.Mess
 		slack.MsgOptionText(summary, false))
 
 	if err != nil {
+		zap.S().Infow("Received error", err)
 		return err
 	}
+
+	zap.S().Infow("Successfully sent slack message", channelName)
 
 	return nil
 }
