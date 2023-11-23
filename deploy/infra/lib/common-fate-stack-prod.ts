@@ -214,7 +214,7 @@ export class CommonFateStackProd extends cdk.Stack {
         {
           type: "String",
           description: "ARN of a lambda function that is triggered when an access request is created.",
-            default: "",
+          default: "",
         }
     );
 
