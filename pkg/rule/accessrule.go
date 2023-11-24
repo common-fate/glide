@@ -313,8 +313,9 @@ func (t Target) ToAPIDetail() types.AccessRuleTargetDetail {
 	return at
 }
 
-var slackRegex = regexp.MustCompile("@slack-#(\\w+) (@\\w+)?")
+var slackRegex = regexp.MustCompile("@slack-(#[\\w-]+) (@\\w+)?")
 
+// TODO: Rename this method.
 func (r *AccessRule) ToSlackInfo() (string, string) {
 	groups := slackRegex.FindStringSubmatch(r.Description)
 

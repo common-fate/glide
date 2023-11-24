@@ -724,13 +724,19 @@ func TestToSlackInfo(t *testing.T) {
 		{
 			name:                 "Matches only slack channel",
 			rule:                 rule.TestAccessRule(rule.WithDescription("Here is my generic description.\n This rule notifies @slack-#1234")),
-			expectedSlackChannel: "1234",
+			expectedSlackChannel: "#1234",
 			expectedSlackGroup:   "",
 		},
 		{
 			name:                 "Has slack channel and group",
 			rule:                 rule.TestAccessRule(rule.WithDescription("Here is my generic description.\n This rule notifies @slack-#1234 @foo")),
-			expectedSlackChannel: "1234",
+			expectedSlackChannel: "#1234",
+			expectedSlackGroup:   "@foo",
+		},
+		{
+			name:                 "Allows hyphens in channel name",
+			rule:                 rule.TestAccessRule(rule.WithDescription("Here is my generic description.\n This rule notifies @slack-#12-34 @foo")),
+			expectedSlackChannel: "#12-34",
 			expectedSlackGroup:   "@foo",
 		},
 	}

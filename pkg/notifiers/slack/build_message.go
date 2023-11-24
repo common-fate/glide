@@ -34,7 +34,9 @@ type RequestMessageOpts struct {
 	RequestorEmail   string
 	WasReviewed      bool
 	RequestReviewer  *identity.User
-	IsWebhook        bool
+	//Optional field for a user or group to be tagged in the message.
+	TaggedUser string
+	IsWebhook  bool
 }
 
 /**
@@ -88,6 +90,14 @@ func BuildRequestReviewMessage(o RequestMessageOpts) (summary string, msg slack.
 		requestDetails = append(requestDetails, &slack.TextBlockObject{
 			Type: "mrkdwn",
 			Text: fmt.Sprintf("*Request Reason:*\n%s", *o.Request.Data.Reason),
+		})
+	}
+
+	//If a tagged user is specified then add it to the message.
+	if o.TaggedUser != "" {
+		requestDetails = append(requestDetails, &slack.TextBlockObject{
+			Type: "mrkdwn",
+			Text: fmt.Sprintf("*Approver:*\n%s", o.TaggedUser),
 		})
 	}
 
