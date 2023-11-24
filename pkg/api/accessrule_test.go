@@ -705,3 +705,44 @@ func TestLookupAccessRules(t *testing.T) {
 		})
 	}
 }
+
+func TestToSlackInfo(t *testing.T) {
+	type testcase struct {
+		name                 string
+		rule                 rule.AccessRule
+		expectedSlackChannel string
+		expectedSlackGroup   string
+	}
+
+	testCases := []testcase{
+		{
+			name:                 "No matches",
+			rule:                 rule.TestAccessRule(rule.WithDescription("Here is my generic description.")),
+			expectedSlackChannel: "",
+			expectedSlackGroup:   "",
+		},
+		{
+			name:                 "Matches only slack channel",
+			rule:                 rule.TestAccessRule(rule.WithDescription("Here is my generic description.\n This rule notifies @slack-#1234")),
+			expectedSlackChannel: "1234",
+			expectedSlackGroup:   "",
+		},
+		{
+			name:                 "Has slack channel and group",
+			rule:                 rule.TestAccessRule(rule.WithDescription("Here is my generic description.\n This rule notifies @slack-#1234 @foo")),
+			expectedSlackChannel: "1234",
+			expectedSlackGroup:   "@foo",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			actualSlackChannel, actualSlackGroup := tc.rule.ToSlackInfo()
+
+			assert.Equal(t, tc.expectedSlackChannel, actualSlackChannel)
+			assert.Equal(t, tc.expectedSlackGroup, actualSlackGroup)
+		})
+	}
+}

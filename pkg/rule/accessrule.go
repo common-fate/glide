@@ -1,6 +1,7 @@
 package rule
 
 import (
+	"regexp"
 	"time"
 
 	"github.com/common-fate/common-fate/accesshandler/pkg/providerregistry"
@@ -310,6 +311,20 @@ func (t Target) ToAPIDetail() types.AccessRuleTargetDetail {
 	}
 
 	return at
+}
+
+var slackRegex = regexp.MustCompile("@slack-#(\\w+) (@\\w+)?")
+
+func (r *AccessRule) ToSlackInfo() (string, string) {
+	groups := slackRegex.FindStringSubmatch(r.Description)
+
+	if len(groups) == 0 {
+		return "", ""
+	} else if len(groups) == 2 {
+		return groups[1], ""
+	} else {
+		return groups[1], groups[2]
+	}
 }
 
 func (r *AccessRule) DDBKeys() (ddb.Keys, error) {

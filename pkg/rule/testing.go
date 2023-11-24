@@ -47,6 +47,12 @@ func WithGroups(groups ...string) func(*AccessRule) {
 	}
 }
 
+func WithDescription(description string) func(*AccessRule) {
+	return func(ar *AccessRule) {
+		ar.Description = description
+	}
+}
+
 // WithName sets the name of the AccessRule.
 func WithName(name string) func(*AccessRule) {
 	return func(ar *AccessRule) {

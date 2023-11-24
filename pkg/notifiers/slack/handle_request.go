@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/slack-go/slack"
 	"regexp"
 	"sort"
 	"sync"
+
+	"github.com/slack-go/slack"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/common-fate/common-fate/accesshandler/pkg/providerregistry"
@@ -90,6 +91,7 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 					log.Errorw("failed to send review message to incomingWebhook channel", "error", err)
 				}
 			}
+
 			if n.directMessageClient != nil {
 				// get the requestor's Slack user ID if it exists to render it nicely in the message to approvers.
 				var slackUserID string
