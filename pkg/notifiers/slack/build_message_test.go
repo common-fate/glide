@@ -2,7 +2,6 @@ package slacknotifier
 
 import (
 	"encoding/json"
-	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -11,14 +10,6 @@ import (
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/stretchr/testify/assert"
 )
-
-func TestExtractSlackGroup(t *testing.T) {
-	r, _ := regexp.Compile("@slack-#([^ ]+)")
-
-	matches := r.FindStringSubmatch("@slack-#something \nHere is the rest")
-
-	assert.Equal(t, "something", matches[1])
-}
 
 func TestBuildRequestMessage(t *testing.T) {
 	reason := "reason"
