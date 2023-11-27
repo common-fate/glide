@@ -16,6 +16,7 @@ import (
 type SlackNotifier struct {
 	DB          ddb.Storage
 	FrontendURL string
+	Logger      *zap.SugaredLogger
 	// webhooks is a list of Slack incoming webhooks to send messages to (limited in functionality compared to DMs)
 	webhooks []*SlackIncomingWebhook
 	// directMessageClient is client that uses the OAuth token to send direct messages to users

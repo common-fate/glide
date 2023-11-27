@@ -313,19 +313,20 @@ func (t Target) ToAPIDetail() types.AccessRuleTargetDetail {
 	return at
 }
 
-var slackRegex = regexp.MustCompile("@slack-(#[\\w-]+) (@\\w+)?")
+var slackRegex = regexp.MustCompile("@slack-(C[\\w-]+) (@\\w+)?")
 
-// TODO: Rename this method.
-func (r *AccessRule) ToSlackInfo() (string, string) {
+// ExtractSlackMentions attempt to pull any slack tags from the rule description. Slack mentions are specified in the format
+// of @slack-CHANNEL_ID @USER. The @USER tag is optional
+func (r *AccessRule) ExtractSlackMentions() (channel string, user string) {
 	groups := slackRegex.FindStringSubmatch(r.Description)
 
-	if len(groups) == 0 {
-		return "", ""
-	} else if len(groups) == 2 {
+	if len(groups) == 2 {
 		return groups[1], ""
-	} else {
+	} else if len(groups) == 3 {
 		return groups[1], groups[2]
 	}
+
+	return "", ""
 }
 
 func (r *AccessRule) DDBKeys() (ddb.Keys, error) {

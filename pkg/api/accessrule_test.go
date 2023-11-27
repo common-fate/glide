@@ -706,7 +706,7 @@ func TestLookupAccessRules(t *testing.T) {
 	}
 }
 
-func TestToSlackInfo(t *testing.T) {
+func TestExtractSlackMentions(t *testing.T) {
 	type testcase struct {
 		name                 string
 		rule                 rule.AccessRule
@@ -723,20 +723,20 @@ func TestToSlackInfo(t *testing.T) {
 		},
 		{
 			name:                 "Matches only slack channel",
-			rule:                 rule.TestAccessRule(rule.WithDescription("Here is my generic description.\n This rule notifies @slack-#1234")),
-			expectedSlackChannel: "#1234",
+			rule:                 rule.TestAccessRule(rule.WithDescription("Here is my generic description.\n This rule notifies @slack-C1234")),
+			expectedSlackChannel: "C1234",
 			expectedSlackGroup:   "",
 		},
 		{
 			name:                 "Has slack channel and group",
-			rule:                 rule.TestAccessRule(rule.WithDescription("Here is my generic description.\n This rule notifies @slack-#1234 @foo")),
-			expectedSlackChannel: "#1234",
+			rule:                 rule.TestAccessRule(rule.WithDescription("Here is my generic description.\n This rule notifies @slack-C1234 @foo")),
+			expectedSlackChannel: "C1234",
 			expectedSlackGroup:   "@foo",
 		},
 		{
 			name:                 "Allows hyphens in channel name",
-			rule:                 rule.TestAccessRule(rule.WithDescription("Here is my generic description.\n This rule notifies @slack-#12-34 @foo")),
-			expectedSlackChannel: "#12-34",
+			rule:                 rule.TestAccessRule(rule.WithDescription("Here is my generic description.\n This rule notifies @slack-C12-34 @foo")),
+			expectedSlackChannel: "C12-34",
 			expectedSlackGroup:   "@foo",
 		},
 	}
@@ -745,7 +745,7 @@ func TestToSlackInfo(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			actualSlackChannel, actualSlackGroup := tc.rule.ToSlackInfo()
+			actualSlackChannel, actualSlackGroup := tc.rule.ExtractSlackMentions()
 
 			assert.Equal(t, tc.expectedSlackChannel, actualSlackChannel)
 			assert.Equal(t, tc.expectedSlackGroup, actualSlackGroup)
