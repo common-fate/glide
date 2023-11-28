@@ -193,8 +193,17 @@ func TestListProviderArgOptions(t *testing.T) {
 			Provider: tg,
 		},
 	})
+
+	description := "a category containing all groups"
+	groups := &types.Groups{
+		AdditionalProperties: make(map[string][]types.GroupOption),
+	}
+
+	groups.AdditionalProperties["category"] = []types.GroupOption{
+		{Label: "all", Children: []string{"group1"}, Description: &description, Value: "all"},
+	}
 	testcases := []testcase{
-		{name: "ok", giveProviderId: "test", giveArgId: "group", wantCode: http.StatusOK, wantBody: types.ArgOptionsResponse{Options: options}},
+		{name: "ok", giveProviderId: "test", giveArgId: "group", wantCode: http.StatusOK, wantBody: types.ArgOptionsResponse{Options: options, Groups: groups}},
 		{name: "provider not found", giveProviderId: "badid", giveArgId: "notexist", wantCode: http.StatusNotFound, wantErr: notFoundErr.Error()},
 		{name: "arg not found", giveProviderId: "test", giveArgId: "notexist", wantCode: http.StatusNotFound, wantErr: invalidArgErr.Error()},
 	}
@@ -202,7 +211,7 @@ func TestListProviderArgOptions(t *testing.T) {
 	for i := range testcases {
 		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+			// t.Parallel()
 			handler := newTestServer(t)
 
 			req, err := http.NewRequest("GET", "/api/v1/providers/"+tc.giveProviderId+"/args/"+tc.giveArgId+"/options", nil)
