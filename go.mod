@@ -7,19 +7,19 @@ require (
 	github.com/AzureAD/microsoft-authentication-library-for-go v0.5.3
 	github.com/aws/aws-sdk-go v1.44.213
 	github.com/aws/aws-sdk-go-v2 v1.23.1
-	github.com/aws/aws-sdk-go-v2/config v1.25.4
-	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.14.1
-	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.22.2
-	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.33.1
-	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.19.7
-	github.com/aws/aws-sdk-go-v2/service/ecs v1.33.2
-	github.com/aws/aws-sdk-go-v2/service/eks v1.33.2
-	github.com/aws/aws-sdk-go-v2/service/iam v1.27.3
-	github.com/aws/aws-sdk-go-v2/service/identitystore v1.15.5
-	github.com/aws/aws-sdk-go-v2/service/organizations v1.22.3
-	github.com/aws/aws-sdk-go-v2/service/route53 v1.21.5
-	github.com/aws/aws-sdk-go-v2/service/ssm v1.28.0
-	github.com/aws/aws-sdk-go-v2/service/ssoadmin v1.22.1
+	github.com/aws/aws-sdk-go-v2/config v1.25.6
+	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.14.4
+	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.40.2
+	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.34.1
+	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.25.4
+	github.com/aws/aws-sdk-go-v2/service/ecs v1.34.1
+	github.com/aws/aws-sdk-go-v2/service/eks v1.34.1
+	github.com/aws/aws-sdk-go-v2/service/iam v1.27.4
+	github.com/aws/aws-sdk-go-v2/service/identitystore v1.20.4
+	github.com/aws/aws-sdk-go-v2/service/organizations v1.22.4
+	github.com/aws/aws-sdk-go-v2/service/route53 v1.34.4
+	github.com/aws/aws-sdk-go-v2/service/ssm v1.43.2
+	github.com/aws/aws-sdk-go-v2/service/ssoadmin v1.22.2
 	github.com/awslabs/aws-lambda-go-api-proxy v0.13.3
 	github.com/bitfield/script v0.20.2
 	github.com/common-fate/apikit v0.2.1-0.20220526131641-1d860b34f6ed
@@ -59,11 +59,12 @@ require (
 	github.com/TylerBrock/colorjson v0.0.0-20200706003622-8a50f05110d2 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.5.1 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.2.4 // indirect
-	github.com/aws/aws-sdk-go-v2/service/dynamodbstreams v1.14.11 // indirect
+	github.com/aws/aws-sdk-go-v2/service/dynamodbstreams v1.17.4 // indirect
+	github.com/aws/aws-sdk-go-v2/service/ec2 v1.137.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.2.4 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.16.4 // indirect
-	github.com/aws/aws-sdk-go-v2/service/kms v1.17.4 // indirect
-	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.20.1 // indirect
+	github.com/aws/aws-sdk-go-v2/service/kms v1.26.4 // indirect
+	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.20.2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.1.3 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
@@ -156,16 +157,16 @@ require (
 )
 
 require (
-	github.com/aws/aws-sdk-go-v2/credentials v1.16.3
+	github.com/aws/aws-sdk-go-v2/credentials v1.16.5
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.14.5 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.2.4 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.5.4 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.7.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.10.1 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery v1.7.27 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery v1.8.4 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.10.4 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sso v1.17.3 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sts v1.25.4
+	github.com/aws/aws-sdk-go-v2/service/sso v1.17.4 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sts v1.25.5
 	github.com/aws/smithy-go v1.17.0
 	github.com/benbjohnson/clock v1.3.0
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1 // indirect
@@ -193,14 +194,14 @@ require (
 	github.com/TylerBrock/saw v0.2.2
 	github.com/aws-cloudformation/rain v1.2.0 // indirect
 	github.com/aws/aws-lambda-go v1.32.0
-	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.10.25
-	github.com/aws/aws-sdk-go-v2/service/cloudfront v1.18.2
-	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.10
-	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.15.4
-	github.com/aws/aws-sdk-go-v2/service/eventbridge v1.16.2
-	github.com/aws/aws-sdk-go-v2/service/lambda v1.30.0
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.43.1
-	github.com/aws/aws-sdk-go-v2/service/sfn v1.17.10
+	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.12.4
+	github.com/aws/aws-sdk-go-v2/service/cloudfront v1.31.1
+	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.28.1
+	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.30.4
+	github.com/aws/aws-sdk-go-v2/service/eventbridge v1.25.2
+	github.com/aws/aws-sdk-go-v2/service/lambda v1.48.2
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.45.1
+	github.com/aws/aws-sdk-go-v2/service/sfn v1.23.1
 	github.com/briandowns/spinner v1.23.0
 	github.com/common-fate/analytics-go v0.2.0
 	github.com/common-fate/clio v1.1.0
