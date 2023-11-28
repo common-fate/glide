@@ -54,7 +54,6 @@ func (h *handler) handleEvent(ctx context.Context, event events.CloudWatchEvent)
 	notifier := &slacknotifier.SlackNotifier{
 		DB:          h.DB,
 		FrontendURL: h.FrontendURL,
-		Logger:      h.Log,
 	}
 
 	dc, err := deploy.GetDeploymentConfig()

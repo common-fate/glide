@@ -315,7 +315,7 @@ func (t Target) ToAPIDetail() types.AccessRuleTargetDetail {
 
 var slackRegex = regexp.MustCompile("@slack-(C[\\w-]+) (@\\w+)?")
 
-// ExtractSlackMentions attempt to pull any slack tags from the rule description. Slack mentions are specified in the format
+// ExtractSlackMentions attempts to pull any slack tags from the rule description. Slack mentions are specified in the format
 // of @slack-CHANNEL_ID @USER. The @USER tag is optional
 func (r *AccessRule) ExtractSlackMentions() (channel string, user string) {
 	groups := slackRegex.FindStringSubmatch(r.Description)
