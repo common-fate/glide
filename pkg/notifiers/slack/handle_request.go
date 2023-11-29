@@ -54,7 +54,7 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 		if !requestedRule.Approval.IsRequired() {
 			return nil
 		}
-		
+
 		msg := fmt.Sprintf("Your request to access *%s* requires approval. We've notified the approvers and will let you know once your request has been reviewed.", requestedRule.Name)
 		fallback := fmt.Sprintf("Your request to access %s requires approval.", requestedRule.Name)
 		if n.directMessageClient != nil {
@@ -111,86 +111,96 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 			slackUserID = requestor.ID
 		}
 
-		slackChannel, slackMention := requestedRule.ExtractSlackMentions()
+		mentions := extractSlackMentions(&requestedRule)
 
-		if slackChannel != "" {
+		if len(mentions) > 0 {
 
-			reviewerSummary, reviewerMsg := BuildRequestReviewMessage(RequestMessageOpts{
+			var wg sync.WaitGroup
+
+			for _, m := range mentions {
+
+				wg.Add(1)
+
+				go func(m slackMention) {
+					defer wg.Done()
+					reviewerSummary, reviewerMsg := BuildRequestReviewMessage(RequestMessageOpts{
+						Request:          request,
+						RequestArguments: requestArguments,
+						Rule:             requestedRule,
+						RequestorSlackID: slackUserID,
+						RequestorEmail:   requestingUser.Email,
+						ReviewURLs:       reviewURL,
+						MentionUser:      m.User,
+						IsWebhook:        false,
+					})
+					_, _, err := n.directMessageClient.client.PostMessageContext(
+						ctx,
+						m.Channel,
+						slack.MsgOptionBlocks(reviewerMsg.Blocks.BlockSet...),
+						slack.MsgOptionText(reviewerSummary, false))
+
+					if err != nil {
+						log.Errorw("failed to message slack channel", "channelId", m.Channel)
+					}
+				}(m)
+			}
+
+			wg.Wait()
+
+		} else {
+			reviewers := storage.ListRequestReviewers{RequestID: request.ID}
+			_, err = n.DB.Query(ctx, &reviewers)
+			if err != nil && err != ddb.ErrNoItems {
+				return errors.Wrap(err, "getting reviewers")
+			}
+
+			log.Infow("messaging reviewers", "reviewers", reviewers)
+
+			reviewerSummary, reviewerMsg = BuildRequestReviewMessage(RequestMessageOpts{
 				Request:          request,
 				RequestArguments: requestArguments,
 				Rule:             requestedRule,
 				RequestorSlackID: slackUserID,
 				RequestorEmail:   requestingUser.Email,
 				ReviewURLs:       reviewURL,
-				MentionUser:      slackMention,
 				IsWebhook:        false,
 			})
 
-			_, _, err := n.directMessageClient.client.PostMessageContext(
-				ctx,
-				slackChannel,
-				slack.MsgOptionBlocks(reviewerMsg.Blocks.BlockSet...),
-				slack.MsgOptionText(reviewerSummary, false))
+			var wg sync.WaitGroup
+			for _, usr := range reviewers.Result {
+				if usr.ReviewerID == request.RequestedBy {
+					log.Infow("skipping sending approval message to requestor", "user.id", usr)
+					continue
+				}
+				wg.Add(1)
+				go func(usr access.Reviewer) {
+					defer wg.Done()
+					approver := storage.GetUser{ID: usr.ReviewerID}
+					_, err := n.DB.Query(ctx, &approver)
+					if err != nil {
+						log.Errorw("failed to fetch user by id while trying to send message in slack", "user.id", usr, zap.Error(err))
+						return
+					}
+					ts, err := SendMessageBlocks(ctx, n.directMessageClient.client, approver.Result.Email, reviewerMsg, reviewerSummary)
+					if err != nil {
+						log.Errorw("failed to send request approval message", "user", usr, "msg", msg, zap.Error(err))
+					}
 
-			if err != nil {
-				log.Errorw("failed to message slack channel", "channelId", slackChannel)
-			} else {
-				return nil
+					updatedUsr := usr
+					updatedUsr.Notifications = access.Notifications{
+						SlackMessageID: &ts,
+					}
+					log.Infow("updating reviewer with slack msg id", "updatedUsr.SlackMessageID", ts)
+
+					err = n.DB.Put(ctx, &updatedUsr)
+
+					if err != nil {
+						log.Errorw("failed to update reviewer", "user", usr, zap.Error(err))
+					}
+				}(usr)
 			}
+			wg.Wait()
 		}
-
-		reviewers := storage.ListRequestReviewers{RequestID: request.ID}
-		_, err = n.DB.Query(ctx, &reviewers)
-		if err != nil && err != ddb.ErrNoItems {
-			return errors.Wrap(err, "getting reviewers")
-		}
-
-		log.Infow("messaging reviewers", "reviewers", reviewers)
-
-		reviewerSummary, reviewerMsg = BuildRequestReviewMessage(RequestMessageOpts{
-			Request:          request,
-			RequestArguments: requestArguments,
-			Rule:             requestedRule,
-			RequestorSlackID: slackUserID,
-			RequestorEmail:   requestingUser.Email,
-			ReviewURLs:       reviewURL,
-			IsWebhook:        false,
-		})
-
-		var wg sync.WaitGroup
-		for _, usr := range reviewers.Result {
-			if usr.ReviewerID == request.RequestedBy {
-				log.Infow("skipping sending approval message to requestor", "user.id", usr)
-				continue
-			}
-			wg.Add(1)
-			go func(usr access.Reviewer) {
-				defer wg.Done()
-				approver := storage.GetUser{ID: usr.ReviewerID}
-				_, err := n.DB.Query(ctx, &approver)
-				if err != nil {
-					log.Errorw("failed to fetch user by id while trying to send message in slack", "user.id", usr, zap.Error(err))
-					return
-				}
-				ts, err := SendMessageBlocks(ctx, n.directMessageClient.client, approver.Result.Email, reviewerMsg, reviewerSummary)
-				if err != nil {
-					log.Errorw("failed to send request approval message", "user", usr, "msg", msg, zap.Error(err))
-				}
-
-				updatedUsr := usr
-				updatedUsr.Notifications = access.Notifications{
-					SlackMessageID: &ts,
-				}
-				log.Infow("updating reviewer with slack msg id", "updatedUsr.SlackMessageID", ts)
-
-				err = n.DB.Put(ctx, &updatedUsr)
-
-				if err != nil {
-					log.Errorw("failed to update reviewer", "user", usr, zap.Error(err))
-				}
-			}(usr)
-		}
-		wg.Wait()
 	case gevent.RequestApprovedType:
 		msg := fmt.Sprintf(":white_check_mark: Your request to access *%s* has been approved.", requestedRule.Name)
 		fallback := fmt.Sprintf("Your request to access %s has been approved.", requestedRule.Name)

@@ -1,7 +1,6 @@
 package rule
 
 import (
-	"regexp"
 	"time"
 
 	"github.com/common-fate/common-fate/accesshandler/pkg/providerregistry"
@@ -311,22 +310,6 @@ func (t Target) ToAPIDetail() types.AccessRuleTargetDetail {
 	}
 
 	return at
-}
-
-var slackRegex = regexp.MustCompile("@slack-(C[\\w-]+) (@\\w+)?")
-
-// ExtractSlackMentions attempts to pull any slack tags from the rule description. Slack mentions are specified in the format
-// of @slack-CHANNEL_ID @USER. The @USER tag is optional
-func (r *AccessRule) ExtractSlackMentions() (channel string, user string) {
-	groups := slackRegex.FindStringSubmatch(r.Description)
-
-	if len(groups) == 2 {
-		return groups[1], ""
-	} else if len(groups) == 3 {
-		return groups[1], groups[2]
-	}
-
-	return "", ""
 }
 
 func (r *AccessRule) DDBKeys() (ddb.Keys, error) {
