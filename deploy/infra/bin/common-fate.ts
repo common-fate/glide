@@ -108,7 +108,7 @@ if (stackTarget === "dev") {
     idpSyncMemory: idpSyncMemory || 128,
     idpSyncSchedule: idpSyncSchedule || "rate(5 minutes)",
     idpSyncTimeoutSeconds: idpSyncTimeoutSeconds || 30,
-    autoApprovalLambdaARN: autoApprovalLambdaARN,
+    autoApprovalLambdaARN: autoApprovalLambdaARN || "",
     subnetIds: subnetIds || "",
     securityGroups: securityGroups || "",
   });
