@@ -7,6 +7,7 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
 import * as path from "path";
 import { Granter } from "./granter";
+import { BaseLambdaFunction, VpcConfig } from "../helpers/base-lambda";
 interface Props {
   appName: string;
   eventBusSourceName: string;
@@ -15,6 +16,7 @@ interface Props {
   remoteConfigHeaders: string;
   /** A JSON payload of the access provider configuration. */
   providerConfig: string;
+  vpcConfig: VpcConfig;
 }
 
 export class AccessHandler extends Construct {
@@ -84,27 +86,31 @@ export class AccessHandler extends Construct {
       executionRole: this._executionRole,
       remoteConfigUrl: props.remoteConfigUrl,
       remoteConfigHeaders: props.remoteConfigHeaders,
+      vpcConfig: props.vpcConfig,
     });
 
     const code = lambda.Code.fromAsset(
       path.join(__dirname, "..", "..", "..", "..", "bin", "access-handler.zip")
     );
 
-    this._lambda = new lambda.Function(this, "RestAPIHandlerFunction", {
-      code,
-      timeout: Duration.seconds(60),
-      environment: {
-        COMMONFATE_ACCESS_HANDLER_RUNTIME: "lambda",
-        COMMONFATE_STATE_MACHINE_ARN: this._granter.getStateMachineARN(),
-        COMMONFATE_EVENT_BUS_ARN: props.eventBus.eventBusArn,
-        COMMONFATE_EVENT_BUS_SOURCE: props.eventBusSourceName,
-        COMMONFATE_PROVIDER_CONFIG: props.providerConfig,
-        COMMONFATE_ACCESS_REMOTE_CONFIG_URL: props.remoteConfigUrl,
-        COMMONFATE_REMOTE_CONFIG_HEADERS: props.remoteConfigHeaders,
+    this._lambda = new BaseLambdaFunction(this, "RestAPIHandlerFunction", {
+      functionProps: {
+        code,
+        timeout: Duration.seconds(60),
+        environment: {
+          COMMONFATE_ACCESS_HANDLER_RUNTIME: "lambda",
+          COMMONFATE_STATE_MACHINE_ARN: this._granter.getStateMachineARN(),
+          COMMONFATE_EVENT_BUS_ARN: props.eventBus.eventBusArn,
+          COMMONFATE_EVENT_BUS_SOURCE: props.eventBusSourceName,
+          COMMONFATE_PROVIDER_CONFIG: props.providerConfig,
+          COMMONFATE_ACCESS_REMOTE_CONFIG_URL: props.remoteConfigUrl,
+          COMMONFATE_REMOTE_CONFIG_HEADERS: props.remoteConfigHeaders,
+        },
+        runtime: lambda.Runtime.GO_1_X,
+        handler: "access-handler",
+        role: this._executionRole,
       },
-      runtime: lambda.Runtime.GO_1_X,
-      handler: "access-handler",
-      role: this._executionRole,
+      vpcConfig: props.vpcConfig,
     });
 
     this._apigateway = new apigateway.RestApi(this, "RestAPI", {

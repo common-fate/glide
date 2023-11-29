@@ -7,7 +7,7 @@ import { AppFrontend } from "./constructs/app-frontend";
 import { WebUserPool } from "./constructs/app-user-pool";
 import * as kms from "aws-cdk-lib/aws-kms";
 
-import { CfnParameter } from "aws-cdk-lib";
+import { CfnCondition, CfnParameter } from "aws-cdk-lib";
 import { EventBus } from "./constructs/events";
 import { ProductionFrontendDeployer } from "./constructs/production-frontend-deployer";
 import { generateOutputs } from "./helpers/outputs";
@@ -18,6 +18,7 @@ import {
 import { Database } from "./constructs/database";
 import { Governance } from "./constructs/governance";
 import { TargetGroupGranter } from "./constructs/targetgroup-granter";
+import { VpcConfig } from "./helpers/base-lambda";
 
 interface Props extends cdk.StackProps {
   productionReleasesBucket: string;
@@ -215,7 +216,40 @@ export class CommonFateStackProd extends cdk.Stack {
           description: "ARN of a lambda function that is triggered when an access request is created.",
           default: "",
         }
-    )
+    );
+
+    const subnetIds = new CfnParameter(this, "SubnetIds", {
+      type: "String",
+      description: "A list of subnet ids that are used by lambda functions",
+      default: "",
+    });
+
+    const securityGroups = new CfnParameter(this, "SecurityGroups", {
+      type: "String",
+      description:
+        "A list of security groups that are used by lambda functions",
+      default: "",
+    });
+
+    const attachLambdaToVpcCondition = new CfnCondition(
+      this,
+      "AttachLambdaToVpcCondition",
+      {
+        expression: cdk.Fn.conditionAnd(
+          cdk.Fn.conditionNot(
+            cdk.Fn.conditionEquals(subnetIds.valueAsString, "")
+          ),
+          cdk.Fn.conditionNot(
+            cdk.Fn.conditionEquals(securityGroups.valueAsString, "")
+          )
+        ),
+      }
+    );
+
+    const vpcConfig: VpcConfig = {
+      subnetIds: cdk.Fn.conditionIf(attachLambdaToVpcCondition.logicalId, subnetIds.valueAsString.split(","), []),
+      securityGroupIds: cdk.Fn.conditionIf(attachLambdaToVpcCondition.logicalId, securityGroups.valueAsString.split(","), [])
+    }
 
     const appName = this.stackName + suffix.valueAsString;
 
@@ -257,6 +291,7 @@ export class CommonFateStackProd extends cdk.Stack {
       providerConfig: providerConfig.valueAsString,
       remoteConfigUrl: remoteConfigUrl.valueAsString,
       remoteConfigHeaders: remoteConfigHeaders.valueAsString,
+      vpcConfig: vpcConfig,
     });
 
     //KMS key is used in governance api as well as appBackend - both for tokinization for ddb use
@@ -274,6 +309,7 @@ export class CommonFateStackProd extends cdk.Stack {
       kmsKey: kmsKey,
       providerConfig: providerConfig.valueAsString,
       dynamoTable: db.getTable(),
+      vpcConfig: vpcConfig,
     });
     const targetGroupGranter = new TargetGroupGranter(
       this,
@@ -282,6 +318,7 @@ export class CommonFateStackProd extends cdk.Stack {
         eventBus: events.getEventBus(),
         eventBusSourceName: events.getEventBusSourceName(),
         dynamoTable: db.getTable(),
+        vpcConfig: vpcConfig,
       }
     );
     const appBackend = new AppBackend(this, "API", {
@@ -312,7 +349,8 @@ export class CommonFateStackProd extends cdk.Stack {
       idpSyncTimeoutSeconds: idpSyncTimeoutSeconds.valueAsNumber,
       targetGroupGranter: targetGroupGranter,
       identityGroupFilter: identityGroupFilter.valueAsString,
-      autoApprovalLambdaARN: autoApprovalLambdaARN.valueAsString
+      autoApprovalLambdaARN: autoApprovalLambdaARN.valueAsString,
+      vpcConfig: vpcConfig,
     });
 
     new ProductionFrontendDeployer(this, "FrontendDeployer", {
@@ -327,6 +365,7 @@ export class CommonFateStackProd extends cdk.Stack {
       cfReleaseBucketFrontendAssetObjectPrefix:
         props.productionFrontendAssetObjectPrefix,
       cliClientId: userPool.getCLIAppClient().userPoolClientId,
+      vpcConfig: vpcConfig,
     });
 
     /* Outputs */

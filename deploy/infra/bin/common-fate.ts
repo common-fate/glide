@@ -46,6 +46,8 @@ const analyticsDeploymentStage = app.node.tryGetContext(
   "analyticsDeploymentStage"
 );
 const identityGroupFilter = app.node.tryGetContext("identityGroupFilter");
+const subnetIds = app.node.tryGetContext("subnetIds");
+const securityGroups = app.node.tryGetContext("securityGroups");
 
 let shouldRunCronHealthCheckCacheSync = app.node.tryGetContext(
   "enableCronHealthCheck"
@@ -77,7 +79,6 @@ if (stackTarget === "dev") {
     }
     devConfig = conf;
   }
-
   // I don't think we can change the same of this stack without it completely disrupting existing deployments.
   // So for now, we will stick with GrantedDev and Granted rather than CommonFate
   new CommonFateStackDev(app, "GrantedDev", {
@@ -108,6 +109,8 @@ if (stackTarget === "dev") {
     idpSyncSchedule: idpSyncSchedule || "rate(5 minutes)",
     idpSyncTimeoutSeconds: idpSyncTimeoutSeconds || 30,
     autoApprovalLambdaARN: autoApprovalLambdaARN,
+    subnetIds: subnetIds || "",
+    securityGroups: securityGroups || "",
   });
 } else if (stackTarget === "prod") {
   new CommonFateStackProd(app, "Granted", {

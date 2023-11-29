@@ -4,6 +4,7 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Bucket } from "aws-cdk-lib/aws-s3";
 import { Construct } from "constructs";
 import * as path from "path";
+import { BaseLambdaFunction, VpcConfig } from "../helpers/base-lambda";
 
 interface Props {
   cfReleaseBucket: string;
@@ -16,6 +17,7 @@ interface Props {
   frontendDomain: string;
   cloudfrontDistributionId: string;
   apiUrl: string;
+  vpcConfig: VpcConfig;
 }
 export class ProductionFrontendDeployer extends Construct {
   private _lambda: lambda.Function;
@@ -32,27 +34,30 @@ export class ProductionFrontendDeployer extends Construct {
         "frontend-deployer.zip"
       )
     );
-    this._lambda = new lambda.Function(this, "Function", {
-      code,
-      // The frontend deployer has a 7 minute timeout
-      // internally, the deployer has a 5 minute retry backoff around the invalidation cloudfront method
-      // at worst execution would take around 5 mins 30s
-      timeout: Duration.seconds(60 * 7),
-      environment: {
-        CF_RELEASES_BUCKET: props.cfReleaseBucket,
-        CF_RELEASES_FRONTEND_ASSET_OBJECT_PREFIX:
-          props.cfReleaseBucketFrontendAssetObjectPrefix,
-        COMMONFATE_FRONTEND_BUCKET: props.frontendBucket.bucketName,
-        COMMONFATE_COGNITO_USER_POOL_ID: props.cognitoUserPoolId,
-        COMMONFATE_COGNITO_CLIENT_ID: props.cognitoClientId,
-        COMMONFATE_USER_POOL_DOMAIN: props.userPoolDomain,
-        COMMONFATE_FRONTEND_DOMAIN: props.frontendDomain,
-        COMMONFATE_CLOUDFRONT_DISTRIBUTION_ID: props.cloudfrontDistributionId,
-        COMMONFATE_CLI_CLIENT_ID: props.cliClientId,
-        COMMONFATE_API_URL: props.apiUrl,
+    this._lambda = new BaseLambdaFunction(this, "Function", {
+      functionProps: {
+        code,
+        // The frontend deployer has a 7 minute timeout
+        // internally, the deployer has a 5 minute retry backoff around the invalidation cloudfront method
+        // at worst execution would take around 5 mins 30s
+        timeout: Duration.seconds(60 * 7),
+        environment: {
+          CF_RELEASES_BUCKET: props.cfReleaseBucket,
+          CF_RELEASES_FRONTEND_ASSET_OBJECT_PREFIX:
+            props.cfReleaseBucketFrontendAssetObjectPrefix,
+          COMMONFATE_FRONTEND_BUCKET: props.frontendBucket.bucketName,
+          COMMONFATE_COGNITO_USER_POOL_ID: props.cognitoUserPoolId,
+          COMMONFATE_COGNITO_CLIENT_ID: props.cognitoClientId,
+          COMMONFATE_USER_POOL_DOMAIN: props.userPoolDomain,
+          COMMONFATE_FRONTEND_DOMAIN: props.frontendDomain,
+          COMMONFATE_CLOUDFRONT_DISTRIBUTION_ID: props.cloudfrontDistributionId,
+          COMMONFATE_CLI_CLIENT_ID: props.cliClientId,
+          COMMONFATE_API_URL: props.apiUrl,
+        },
+        runtime: lambda.Runtime.GO_1_X,
+        handler: "frontend-deployer",
       },
-      runtime: lambda.Runtime.GO_1_X,
-      handler: "frontend-deployer",
+      vpcConfig: props.vpcConfig,
     });
 
     // Allow the deployer to deploy to the frontend bucket
