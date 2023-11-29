@@ -7,11 +7,13 @@ import * as path from "path";
 import { EventBus } from "aws-cdk-lib/aws-events";
 import { grantAssumeHandlerRole } from "../helpers/permissions";
 import { Table } from "aws-cdk-lib/aws-dynamodb";
+import { BaseLambdaFunction, VpcConfig } from "../helpers/base-lambda";
 
 interface Props {
   eventBusSourceName: string;
   dynamoTable: Table;
   eventBus: EventBus;
+  vpcConfig: VpcConfig;
 }
 export class TargetGroupGranter extends Construct {
   private _stateMachine: sfn.StateMachine;
@@ -30,16 +32,19 @@ export class TargetGroupGranter extends Construct {
       )
     );
 
-    this._lambda = new lambda.Function(this, "StepHandlerFunction", {
-      code,
-      timeout: Duration.minutes(5),
-      environment: {
-        COMMONFATE_EVENT_BUS_ARN: props.eventBus.eventBusArn,
-        COMMONFATE_EVENT_BUS_SOURCE: props.eventBusSourceName,
-        COMMONFATE_TABLE_NAME: props.dynamoTable.tableName,
+    this._lambda = new BaseLambdaFunction(this, "StepHandlerFunction", {
+      functionProps: {
+        code,
+        timeout: Duration.minutes(5),
+        environment: {
+          COMMONFATE_EVENT_BUS_ARN: props.eventBus.eventBusArn,
+          COMMONFATE_EVENT_BUS_SOURCE: props.eventBusSourceName,
+          COMMONFATE_TABLE_NAME: props.dynamoTable.tableName,
+        },
+        runtime: lambda.Runtime.GO_1_X,
+        handler: "targetgroup-granter",
       },
-      runtime: lambda.Runtime.GO_1_X,
-      handler: "targetgroup-granter",
+      vpcConfig: props.vpcConfig,
     });
 
     props.dynamoTable.grantReadWriteData(this._lambda);

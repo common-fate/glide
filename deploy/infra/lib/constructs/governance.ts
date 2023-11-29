@@ -7,6 +7,7 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
 import * as path from "path";
 import { AccessHandler } from "./access-handler";
+import { BaseLambdaFunction, VpcConfig } from "../helpers/base-lambda";
 
 interface Props {
   appName: string;
@@ -14,6 +15,7 @@ interface Props {
   providerConfig: string;
   dynamoTable: dynamodb.Table;
   kmsKey: cdk.aws_kms.Key;
+  vpcConfig: VpcConfig;
 }
 
 export class Governance extends Construct {
@@ -39,22 +41,25 @@ export class Governance extends Construct {
       path.join(__dirname, "..", "..", "..", "..", "bin", "governance.zip")
     );
 
-    this._governanceLambda = new lambda.Function(
+    this._governanceLambda = new BaseLambdaFunction(
       this,
       "GovernanceAPIHandlerFunction",
       {
-        code,
-        timeout: Duration.seconds(60),
-        environment: {
-          COMMONFATE_TABLE_NAME: this._dynamoTable.tableName,
-          COMMONFATE_MOCK_ACCESS_HANDLER: "false",
-          COMMONFATE_ACCESS_HANDLER_URL: props.accessHandler.getApiUrl(),
-          COMMONFATE_PROVIDER_CONFIG: props.providerConfig,
+        functionProps: {
+          code,
+          timeout: Duration.seconds(60),
+          environment: {
+            COMMONFATE_TABLE_NAME: this._dynamoTable.tableName,
+            COMMONFATE_MOCK_ACCESS_HANDLER: "false",
+            COMMONFATE_ACCESS_HANDLER_URL: props.accessHandler.getApiUrl(),
+            COMMONFATE_PROVIDER_CONFIG: props.providerConfig,
 
-          COMMONFATE_PAGINATION_KMS_KEY_ARN: this._KMSkey.keyArn,
+            COMMONFATE_PAGINATION_KMS_KEY_ARN: this._KMSkey.keyArn,
+          },
+          runtime: lambda.Runtime.GO_1_X,
+          handler: "governance",
         },
-        runtime: lambda.Runtime.GO_1_X,
-        handler: "governance",
+        vpcConfig: props.vpcConfig,
       }
     );
     this._dynamoTable.grantReadWriteData(this._governanceLambda);

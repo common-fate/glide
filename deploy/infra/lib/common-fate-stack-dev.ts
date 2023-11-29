@@ -14,6 +14,8 @@ import { generateOutputs } from "./helpers/outputs";
 import { IdentityProviderTypes } from "./helpers/registry";
 import { Governance } from "./constructs/governance";
 import { TargetGroupGranter } from "./constructs/targetgroup-granter";
+import { CfnCondition } from "aws-cdk-lib";
+import { VpcConfig } from "./helpers/base-lambda";
 
 interface Props extends cdk.StackProps {
   stage: string;
@@ -40,6 +42,8 @@ interface Props extends cdk.StackProps {
   idpSyncSchedule: string;
   idpSyncMemory: number;
   autoApprovalLambdaARN: string;
+  subnetIds: string;
+  securityGroups: string;
 }
 
 export class CommonFateStackDev extends cdk.Stack {
@@ -71,6 +75,21 @@ export class CommonFateStackDev extends cdk.Stack {
       autoApprovalLambdaARN,
     } = props;
     const appName = `common-fate-${stage}`;
+    const attachLambdaToVpcCondition = new CfnCondition(
+      this,
+      "AttachLambdaToVpcCondition",
+      {
+        expression: cdk.Fn.conditionAnd(
+          cdk.Fn.conditionNot(cdk.Fn.conditionEquals(props.subnetIds, "")),
+          cdk.Fn.conditionNot(cdk.Fn.conditionEquals(props.securityGroups, ""))
+        ),
+      }
+    );
+
+    const vpcConfig: VpcConfig = {
+      subnetIds: cdk.Fn.conditionIf(attachLambdaToVpcCondition.logicalId, props.subnetIds.split(","), []),
+      securityGroupIds: cdk.Fn.conditionIf(attachLambdaToVpcCondition.logicalId, props.securityGroups.split(","), []),
+    }
 
 
     const db = new Database(this, "Database", {
@@ -103,6 +122,7 @@ export class CommonFateStackDev extends cdk.Stack {
       eventBus: events.getEventBus(),
       eventBusSourceName: events.getEventBusSourceName(),
       providerConfig: props.providerConfig,
+      vpcConfig: vpcConfig,
       remoteConfigUrl,
       remoteConfigHeaders,
     });
@@ -125,6 +145,7 @@ export class CommonFateStackDev extends cdk.Stack {
       providerConfig: props.providerConfig,
 
       dynamoTable: db.getTable(),
+      vpcConfig: vpcConfig,
     });
     const targetGroupGranter = new TargetGroupGranter(
       this,
@@ -133,6 +154,7 @@ export class CommonFateStackDev extends cdk.Stack {
         eventBus: events.getEventBus(),
         eventBusSourceName: events.getEventBusSourceName(),
         dynamoTable: db.getTable(),
+        vpcConfig: vpcConfig,
       }
     );
     const appBackend = new AppBackend(this, "API", {
@@ -164,7 +186,8 @@ export class CommonFateStackDev extends cdk.Stack {
         props.shouldRunCronHealthCheckCacheSync || false,
       targetGroupGranter: targetGroupGranter,
       identityGroupFilter,
-      autoApprovalLambdaARN: autoApprovalLambdaARN
+      autoApprovalLambdaARN: autoApprovalLambdaARN,
+      vpcConfig: vpcConfig,
     });
 
     /* Outputs */

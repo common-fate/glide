@@ -94,6 +94,12 @@ func (c Config) CDKContextArgs() []string {
 	if c.Deployment.Parameters.IDPSyncTimeoutSeconds != "" {
 		args = append(args, "-c", fmt.Sprintf("idpSyncTimeoutSeconds=%s", string(c.Deployment.Parameters.IDPSyncTimeoutSeconds)))
 	}
+	if len(c.Deployment.Parameters.LambdaSubnetIds) != 0 {
+		args = append(args, "-c", fmt.Sprintf("subnetIds=%s", strings.Join(c.Deployment.Parameters.LambdaSubnetIds, ",")))
+	}
+	if len(c.Deployment.Parameters.LambdaSecurityGroups) != 0 {
+		args = append(args, "-c", fmt.Sprintf("securityGroups=%s", strings.Join(c.Deployment.Parameters.LambdaSecurityGroups, ",")))
+	}
 
 	if c.Deployment.Parameters.AutoApprovalLambdaARN != "" {
 		args = append(args, "-c", fmt.Sprintf("autoApprovalLambdaARN=%s", string(c.Deployment.Parameters.AutoApprovalLambdaARN)))
