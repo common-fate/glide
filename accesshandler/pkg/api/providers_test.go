@@ -41,7 +41,7 @@ func TestGetProvider(t *testing.T) {
 	for i := range testcases {
 		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			handler := newTestServer(t)
 
 			req, err := http.NewRequest("GET", "/api/v1/providers/"+tc.giveProviderId, nil)
@@ -82,7 +82,6 @@ func TestListProviders(t *testing.T) {
 	for i := range testcases {
 		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
 			handler := newTestServer(t)
 
 			req, err := http.NewRequest("GET", "/api/v1/providers", nil)
@@ -132,7 +131,7 @@ func TestGetProviderArgs(t *testing.T) {
 	for i := range testcases {
 		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			handler := newTestServer(t)
 
 			req, err := http.NewRequest("GET", "/api/v1/providers/"+tc.giveProviderId+"/args", nil)
@@ -211,7 +210,7 @@ func TestListProviderArgOptions(t *testing.T) {
 	for i := range testcases {
 		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			// t.Parallel()
+			//
 			handler := newTestServer(t)
 
 			req, err := http.NewRequest("GET", "/api/v1/providers/"+tc.giveProviderId+"/args/"+tc.giveArgId+"/options", nil)

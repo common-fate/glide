@@ -1,6 +1,6 @@
 module github.com/common-fate/common-fate
 
-go 1.19
+go 1.21.3
 
 require (
 	github.com/99designs/keyring v1.2.2
@@ -60,7 +60,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.5.1 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.2.4 // indirect
 	github.com/aws/aws-sdk-go-v2/service/dynamodbstreams v1.17.4 // indirect
-	github.com/aws/aws-sdk-go-v2/service/ec2 v1.137.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.2.4 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.16.4 // indirect
 	github.com/aws/aws-sdk-go-v2/service/kms v1.26.4 // indirect

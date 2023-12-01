@@ -53,7 +53,7 @@ func TestGetUsers(t *testing.T) {
 	for i := range testcases {
 		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&storage.ListUsersForStatus{Result: tc.idpUsers}, tc.idpErr)
 
@@ -116,7 +116,7 @@ func TestGetUser(t *testing.T) {
 	for i := range testcases {
 		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&storage.GetUser{Result: tc.idpUser}, tc.idpErr)
 
@@ -186,7 +186,6 @@ func TestPostApiV1AdminUsers(t *testing.T) {
 	for i := range testcases {
 		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
 
 			a := API{AdminGroup: adminGroup}
 			if !tc.notEnabled {

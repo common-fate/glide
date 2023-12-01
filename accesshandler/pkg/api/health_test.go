@@ -23,7 +23,7 @@ func TestHealth(t *testing.T) {
 	for i := range testcases {
 		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			handler := newTestServer(t)
 
 			req, err := http.NewRequest("GET", "/api/v1/health", nil)

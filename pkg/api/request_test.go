@@ -72,7 +72,7 @@ func TestUserCreateRequest(t *testing.T) {
 	for i := range testcases {
 		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 			mockAccess := mocks.NewMockAccessService(ctrl)
 			mockAccess.EXPECT().CreateRequests(gomock.Any(), gomock.Any()).Return(nil, tc.mockCreateErr).AnyTimes()
@@ -151,7 +151,7 @@ func TestUserCancelRequest(t *testing.T) {
 	for i := range testcases {
 		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 			mockAccess := mocks.NewMockAccessService(ctrl)
 			mockAccess.EXPECT().CancelRequest(gomock.Any(), gomock.Any()).Return(tc.mockCancelErr).AnyTimes()
@@ -214,7 +214,7 @@ func TestUserGetRequest(t *testing.T) {
 			mockGetAccessRuleVersion:     &rule.AccessRule{ID: "test"},
 			withRequestArgumentsResponse: make(map[string]types.RequestArgument),
 			// canReview is false in the response
-			wantBody: `{"accessRule":{"description":"","id":"test","isCurrent":false,"name":"","target":{"provider":{"id":"","type":""}},"timeConstraints":{"maxDurationSeconds":0},"version":""},"arguments":{},"canReview":false,"id":"req_123","requestedAt":"0001-01-01T00:00:00Z","requestor":"","status":"PENDING","timing":{"durationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z"}`,
+			wantBody: `{"accessRule":{"createdAt":"0001-01-01T00:00:00Z","description":"","id":"test","isCurrent":false,"name":"","target":{"provider":{"id":"","type":""}},"timeConstraints":{"maxDurationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z","version":""},"arguments":{},"canReview":false,"id":"req_123","requestedAt":"0001-01-01T00:00:00Z","requestor":"","status":"PENDING","timing":{"durationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z"}`,
 		},
 		{
 			name:     "reviewer can see request they can review",
@@ -236,7 +236,7 @@ func TestUserGetRequest(t *testing.T) {
 				RuleVersion: "efgh",
 			}},
 			// note canReview is true in the response
-			wantBody: `{"accessRule":{"description":"","id":"test","isCurrent":false,"name":"","target":{"provider":{"id":"","type":""}},"timeConstraints":{"maxDurationSeconds":0},"version":""},"arguments":{},"canReview":true,"id":"req_123","requestedAt":"0001-01-01T00:00:00Z","requestor":"","status":"PENDING","timing":{"durationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z"}`,
+			wantBody: `{"accessRule":{"createdAt":"0001-01-01T00:00:00Z","description":"","id":"test","isCurrent":false,"name":"","target":{"provider":{"id":"","type":""}},"timeConstraints":{"maxDurationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z","version":""},"arguments":{},"canReview":true,"id":"req_123","requestedAt":"0001-01-01T00:00:00Z","requestor":"","status":"PENDING","timing":{"durationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z"}`,
 		},
 		{
 			name:              "noRequestFound",
@@ -264,7 +264,7 @@ func TestUserGetRequest(t *testing.T) {
 	for i := range testcases {
 		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&storage.GetRequest{Result: tc.mockGetRequest}, tc.mockGetRequestErr)
 			db.MockQueryWithErr(&storage.GetRequestReviewer{Result: tc.mockGetReviewer}, tc.mockGetReviewerErr)
@@ -426,7 +426,7 @@ func TestUserListRequests(t *testing.T) {
 	for i := range testcases {
 		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(tc.mockDBQuery, tc.mockDBQueryErr)
 			a := API{DB: db}
@@ -666,7 +666,7 @@ func TestUserListRequestEvents(t *testing.T) {
 	for i := range testcases {
 		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&tc.mockGetRequest, tc.mockGetRequestErr)
 			db.MockQueryWithErr(&tc.mockListEvents, tc.mockListEventsErr)

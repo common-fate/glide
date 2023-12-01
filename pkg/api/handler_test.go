@@ -156,7 +156,7 @@ func TestRegisterHandler(t *testing.T) {
 		tc := testcases[i]
 
 		t.Run(tc.name, func(t *testing.T) {
-			// t.Parallel()
+			//
 
 			ctrl := gomock.NewController(t)
 
@@ -251,7 +251,7 @@ func TestListHandlers(t *testing.T) {
 		tc := testcases[i]
 
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&storage.ListHandlers{Result: tc.handlers}, tc.mockListErr)
 
@@ -294,7 +294,7 @@ func TestGetHandler(t *testing.T) {
 			name:                          "ok",
 			wantCode:                      http.StatusOK,
 			mockGetTargetGroupDepResponse: handler.Handler{ID: "123"},
-			want:                          `{"icon":"","id":"123","targetDeployments":null,"targetSchema":{"From":"","Schema":{}}}`,
+			want:                          `{"awsAccount":"","awsRegion":"","diagnostics":[],"functionArn":"arn:aws:lambda:::function:123","healthy":false,"id":"123","runtime":""}`,
 		},
 		{
 			name:                     "deployment not found",
@@ -313,7 +313,7 @@ func TestGetHandler(t *testing.T) {
 	for i := range testcases {
 		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&storage.GetHandler{Result: &tc.mockGetTargetGroupDepResponse}, tc.mockGetTargetGroupDepErr)
 
@@ -384,7 +384,7 @@ func TestDeleteHandler(t *testing.T) {
 	for i := range testcases {
 		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&storage.GetHandler{Result: &tc.mockGetHandlerResponse}, tc.mockGetHandlerErr)
 			ctrl := gomock.NewController(t)

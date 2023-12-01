@@ -79,7 +79,7 @@ func TestCreateTargetGroup(t *testing.T) {
 	for i := range testcases {
 		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			// t.Parallel()
+			//
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
@@ -151,7 +151,7 @@ func TestListTargetGroup(t *testing.T) {
 				},
 			},
 
-			want: `{"targetGroups":[{"icon":"test","id":"tg1","targetDeployments":[{"Diagnostics":null,"Id":"reg1","Priority":0,"Valid":false}],"targetSchema":{"From":"test","Schema":{}}},{"icon":"test","id":"tg2","targetDeployments":[{"Diagnostics":null,"Id":"reg1","Priority":0,"Valid":false}],"targetSchema":{"From":"test","Schema":{}}}]}`,
+			want: `{"targetGroups":[{"createdAt":"0001-01-01T00:00:00Z","from":{"kind":"Kind","name":"test","publisher":"common-fate","version":"v1"},"icon":"test","id":"tg1","schema":{},"updatedAt":"0001-01-01T00:00:00Z"},{"createdAt":"0001-01-01T00:00:00Z","from":{"kind":"Kind","name":"second","publisher":"common-fate","version":"v2"},"icon":"test","id":"tg2","schema":{},"updatedAt":"0001-01-01T00:00:00Z"}]}`,
 		},
 		{
 			name:         "no target groups returns an empty list not an error",
@@ -174,7 +174,7 @@ func TestListTargetGroup(t *testing.T) {
 	for i := range testcases {
 		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&storage.ListTargetGroups{Result: tc.targetgroups}, tc.mockListErr)
 
@@ -216,7 +216,7 @@ func TestGetTargetGroup(t *testing.T) {
 			name:                       "ok",
 			wantCode:                   http.StatusOK,
 			mockGetTargetGroupResponse: target.Group{ID: "123"},
-			want:                       `{"icon":"","id":"123","targetDeployments":null,"targetSchema":{"From":"","Schema":{}}}`,
+			want:                       `{"createdAt":"0001-01-01T00:00:00Z","from":{"kind":"","name":"","publisher":"","version":""},"icon":"","id":"123","schema":{},"updatedAt":"0001-01-01T00:00:00Z"}`,
 		},
 		{
 			name:                  "group not found",
@@ -230,7 +230,7 @@ func TestGetTargetGroup(t *testing.T) {
 	for i := range testcases {
 		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&storage.GetTargetGroup{Result: &tc.mockGetTargetGroupResponse}, tc.mockGetTargetGroupErr)
 
@@ -305,7 +305,7 @@ func TestTargetGroupLink(t *testing.T) {
 		tc := testcases[i]
 
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&storage.GetTargetGroup{Result: &tc.mockGetTargetGroupResponse}, tc.mockGetTargetGroupErr)
 			db.MockQueryWithErr(&storage.GetHandler{Result: &tc.mockGetTargetGroupDeploymentResponse}, tc.mockGetTargetGroupErr)
@@ -371,7 +371,7 @@ func TestRemoveTargetGroupLink(t *testing.T) {
 	for i := range testcases {
 		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&storage.GetTargetGroup{Result: &tc.mockGetTargetGroupResponse}, tc.mockGetTargetGroupErr)
 			db.MockQueryWithErr(&storage.GetHandler{Result: &tc.mockGetTargetGroupDeploymentResponse}, tc.mockGetTargetGroupErr)
@@ -436,7 +436,7 @@ func TestDeleteTargetGroup(t *testing.T) {
 		tc := testcases[i]
 
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&storage.GetTargetGroup{Result: tc.mockGetTargetGroup}, tc.mockGetTargetGroupErr)
 			ctrl := gomock.NewController(t)
@@ -525,7 +525,7 @@ func TestListTargetGroupRoutes(t *testing.T) {
 	for i := range testcases {
 		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&storage.ListTargetRoutesForGroup{Result: tc.routes}, tc.mockListErr)
 
