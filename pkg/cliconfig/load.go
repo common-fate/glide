@@ -23,10 +23,10 @@ func CurrentContext() (*Context, error) {
 }
 
 func Load() (*Config, error) {
-	// if COMMONFATE_CONFIG_FILE is set, use a custom file path
+	// if COMMONFATE_GDEPLOY_CONFIG_FILE is set, use a custom file path
 	// for the config file location.
 	// the file specified must exist.
-	customPath := os.Getenv("COMMONFATE_CONFIG_FILE")
+	customPath := os.Getenv("COMMONFATE_GDEPLOY_CONFIG_FILE")
 	if customPath != "" {
 		return openConfigFile(customPath)
 	}
@@ -36,7 +36,7 @@ func Load() (*Config, error) {
 		return nil, err
 	}
 
-	fp := filepath.Join(home, ".commonfate", "config")
+	fp := filepath.Join(home, ".commonfate", "gdeploy")
 	cfg, err := openConfigFile(fp)
 	if os.IsNotExist(err) {
 		// return an empty config if the file doesn't exist
