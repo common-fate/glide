@@ -395,6 +395,8 @@ github.com/common-fate/ddb v0.15.1-0.20230424033643-2558c36a3a5e h1:UF6bcAPtqLg0
 github.com/common-fate/ddb v0.15.1-0.20230424033643-2558c36a3a5e/go.mod h1:f4DsPkqiZrFLuN8RC9ta5n6LS2GbaXraWlpzNDdYHDI=
 github.com/common-fate/frontmatter v0.0.0-20220825121704-2d2ec51f9c73 h1:JZt+aGTp9AghUxzIQ5M1sDvpiyAi857P2DkbmY19KpI=
 github.com/common-fate/frontmatter v0.0.0-20220825121704-2d2ec51f9c73/go.mod h1:wzIx7x7HUJ7wtLG1pTgRJhHkPqxntv7r45t19obL/gQ=
+github.com/common-fate/grab v1.0.0 h1:uRtMdWJcxWHdawIjlI7Q65BFfPrquKKKCiLd6ezfbhQ=
+github.com/common-fate/grab v1.0.0/go.mod h1:L0qa03RwqOMZz9PrrWw9eI145i5FQRf+iLtNSJypQvY=
 github.com/common-fate/iso8601 v1.1.1 h1:IRl4ZRFM6wfPD+YKcjrtFh6Wlr4pkiPb3VCgcT8bmpY=
 github.com/common-fate/iso8601 v1.1.1/go.mod h1:OHz9nvJN4s3x69rlImm8pkVXL/leyDqs5jdKUtLk5ZQ=
 github.com/common-fate/provider-registry-sdk-go v0.17.1 h1:pzF/xeODk1/lJcAmy75vvj3zP39vj1H2eKs+2nRdxy4=
