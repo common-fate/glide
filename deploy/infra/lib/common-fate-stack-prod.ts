@@ -140,10 +140,6 @@ export class CommonFateStackProd extends cdk.Stack {
       }
     );
 
-    //     IDPSyncTimeoutSeconds
-    // IDPSyncSchedule
-    // IDPSyncMemory
-
     const idpSyncTimeoutSeconds = new CfnParameter(
       this,
       "IDPSyncTimeoutSeconds",
@@ -247,8 +243,8 @@ export class CommonFateStackProd extends cdk.Stack {
     );
 
     const vpcConfig: VpcConfig = {
-      subnetIds: cdk.Fn.conditionIf(attachLambdaToVpcCondition.logicalId, subnetIds.valueAsString.split(","), []),
-      securityGroupIds: cdk.Fn.conditionIf(attachLambdaToVpcCondition.logicalId, securityGroups.valueAsString.split(","), [])
+      SubnetIds: cdk.Fn.conditionIf(attachLambdaToVpcCondition.logicalId, subnetIds.valueAsString.split(","), []),
+      SecurityGroupIds: cdk.Fn.conditionIf(attachLambdaToVpcCondition.logicalId, securityGroups.valueAsString.split(","), [])
     }
 
     const appName = this.stackName + suffix.valueAsString;

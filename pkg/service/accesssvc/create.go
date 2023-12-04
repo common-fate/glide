@@ -211,7 +211,7 @@ func (s *Service) createRequest(ctx context.Context, in createRequestOpts) (Crea
 	arn := os.Getenv("COMMONFATE_AUTO_APPROVAL_LAMBDA_ARN")
 	var autoapproved bool
 	if arn != "" {
-		autoapproved, err = autoapproval.Service{}.Autoapprove(in.User, in.Rule, "123")
+		autoapproved, err = autoapproval.Service{}.Autoapprove(in.User, in.Rule, arn)
 		if err != nil {
 			log.Errorw("error happened when calling auto-approval lambda", "err", err)
 		}
