@@ -1,6 +1,6 @@
 module github.com/common-fate/common-fate
 
-go 1.19
+go 1.21.3
 
 require (
 	github.com/99designs/keyring v1.2.2
@@ -193,7 +193,7 @@ require (
 	github.com/TylerBrock/saw v0.2.2
 	github.com/aws-cloudformation/rain v1.2.0 // indirect
 	github.com/aws/aws-lambda-go v1.32.0
-	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.12.4
+	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.9.6
 	github.com/aws/aws-sdk-go-v2/service/cloudfront v1.31.1
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.28.1
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.30.4
@@ -206,7 +206,7 @@ require (
 	github.com/common-fate/clio v1.1.0
 	github.com/common-fate/ddb v0.15.1-0.20230424033643-2558c36a3a5e
 	github.com/common-fate/grab v1.0.0
-	github.com/common-fate/iso8601 v1.1.1
+	github.com/common-fate/iso8601 v1.1.0
 	github.com/common-fate/provider-registry-sdk-go v0.19.0
 	github.com/fatih/color v1.13.0
 	github.com/go-chi/cors v1.2.1
