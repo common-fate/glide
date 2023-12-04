@@ -160,7 +160,8 @@ func TestOverlapsExistingGrant(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			got, err := overlapsExistingGrantCheck(tc.accessRequest, tc.upcomingRequests, tc.currentRequestRule, tc.allRules, tc.clock)
 			assert.NoError(t, err)

@@ -95,7 +95,8 @@ func TestValidateFavorite(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&storage.GetAccessRuleCurrent{Result: tc.rule}, tc.ruleErr)
@@ -431,7 +432,8 @@ func TestValidateCreate(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			db := ddbmock.New(t)
 			if tc.withAccessRule != nil {

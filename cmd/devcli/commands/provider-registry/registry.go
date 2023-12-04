@@ -38,7 +38,7 @@ var ListCommand = cli.Command{
 		}
 
 		//check that the provider type matches one in our registry
-		res, err := registryClient.ListAllProvidersWithResponse(ctx)
+		res, err := registryClient.ListAllProvidersWithResponse(ctx, &providerregistrysdk.ListAllProvidersParams{})
 		if err != nil {
 			return err
 		}

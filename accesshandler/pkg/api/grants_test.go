@@ -49,9 +49,10 @@ func TestPostGrants(t *testing.T) {
 			Provider: &okta.Provider{},
 		},
 	})
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			handler := newTestServer(t, withClock(clk))
 
 			req, err := http.NewRequest("POST", "/api/v1/grants", strings.NewReader(tc.body))
@@ -95,9 +96,10 @@ func TestRevokeGrant(t *testing.T) {
 		{name: "create grant and revoke ok", revokeBody: `{"revokerId":"1234"}`, body: fmt.Sprintf(`{"id":"abcd","subject":"chris@commonfate.io","provider":"okta","with":{"group":"Admins"},"start":"%s","end":"%s"}`, TenAMISO8601, TenThirtyAMISO8601), wantCode: http.StatusCreated, wantCodeRevoke: http.StatusOK},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			handler := newTestServer(t, withClock(clk))
 
 			//create grant
@@ -169,9 +171,10 @@ func TestValidateGrant(t *testing.T) {
 			Provider: &testvault.Provider{},
 		},
 	})
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			handler := newTestServer(t, withClock(clk))
 
 			req, err := http.NewRequest("POST", "/api/v1/grants/validate", strings.NewReader(tc.body))

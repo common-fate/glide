@@ -56,7 +56,8 @@ func TestIntegration(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.Name, func(t *testing.T) {
 
 			idp, ok := Registry().IdentityProviders[tc.idpType]

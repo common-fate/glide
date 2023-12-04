@@ -82,7 +82,8 @@ func TestGovListAccessRules(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&storage.ListCurrentAccessRules{Result: tc.rules}, tc.mockListErr)
@@ -164,7 +165,8 @@ func TestGovCreateAccessRule(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()

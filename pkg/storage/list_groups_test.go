@@ -38,7 +38,8 @@ func TestListGroups(t *testing.T) {
 			notWant: []identity.Group{},
 		},
 	}
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			ctx := context.Background()
 			s := newTestingStorage(t)

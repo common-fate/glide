@@ -46,7 +46,8 @@ func TestUserCreateFavorite(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			mockAccess := mocks.NewMockAccessService(ctrl)
@@ -118,7 +119,8 @@ func TestUserGetFavorite(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&storage.GetFavoriteForUser{Result: tc.mockGetFavorite}, tc.mockGetFavoritetErr)
@@ -193,7 +195,8 @@ func TestUserListFavorites(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&storage.ListFavoritesForUser{Result: tc.mockFavorites}, tc.mockDBQueryErr)

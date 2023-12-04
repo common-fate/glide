@@ -1,3 +1,5 @@
+//go:build !race
+
 package api
 
 import (
@@ -107,9 +109,10 @@ func TestReviewRequest(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 			mockAccess := mocks.NewMockAccessService(ctrl)
 

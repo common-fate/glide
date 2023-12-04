@@ -41,7 +41,8 @@ func TestHealthcheckHandler(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 
@@ -151,12 +152,11 @@ func TestRegisterHandler(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
-
-		tc := tc
+	for i := range testcases {
+		tc := testcases[i]
 
 		t.Run(tc.name, func(t *testing.T) {
-			// t.Parallel()
+			//
 
 			ctrl := gomock.NewController(t)
 
@@ -247,13 +247,11 @@ func TestListHandlers(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
-
-		// assign tc to a new variable so that it is not overwritten in the loop
-		tc := tc
+	for i := range testcases {
+		tc := testcases[i]
 
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&storage.ListHandlers{Result: tc.handlers}, tc.mockListErr)
 
@@ -296,7 +294,7 @@ func TestGetHandler(t *testing.T) {
 			name:                          "ok",
 			wantCode:                      http.StatusOK,
 			mockGetTargetGroupDepResponse: handler.Handler{ID: "123"},
-			want:                          `{"icon":"","id":"123","targetDeployments":null,"targetSchema":{"From":"","Schema":{}}}`,
+			want:                          `{"awsAccount":"","awsRegion":"","diagnostics":[],"functionArn":"arn:aws:lambda:::function:123","healthy":false,"id":"123","runtime":""}`,
 		},
 		{
 			name:                     "deployment not found",
@@ -312,9 +310,10 @@ func TestGetHandler(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&storage.GetHandler{Result: &tc.mockGetTargetGroupDepResponse}, tc.mockGetTargetGroupDepErr)
 
@@ -382,9 +381,10 @@ func TestDeleteHandler(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&storage.GetHandler{Result: &tc.mockGetHandlerResponse}, tc.mockGetHandlerErr)
 			ctrl := gomock.NewController(t)

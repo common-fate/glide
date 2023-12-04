@@ -98,8 +98,8 @@ func (s *Service) CreateGroup(ctx context.Context, req types.CreateTargetGroupRe
 	}
 
 	var icon string
-	if response.JSON200.Icon != nil {
-		icon = *response.JSON200.Icon
+	if response.JSON200.Meta != nil && response.JSON200.Meta.Icon != nil {
+		icon = *response.JSON200.Meta.Icon
 	}
 
 	now := s.Clock.Now()

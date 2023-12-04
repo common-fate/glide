@@ -39,7 +39,8 @@ func TestReviewURL(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			got, err := ReviewURL(tc.giveURL, tc.giveID)
 			if err != nil {

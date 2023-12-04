@@ -48,7 +48,8 @@ func TestSecretStringValue(t *testing.T) {
 		{name: "json.Marshal() on a Field renders nothing", give: string(fBytes), want: `{"test":{}}`},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			assert.Equal(t, tc.want, tc.give)
 		})
@@ -80,7 +81,8 @@ func TestGeneralUsage(t *testing.T) {
 		{name: "string", giveField: StringField("test", &value, "testing"), giveValue: "some value", wantField: &Field{key: "test", description: "testing", value: &valueSetting, secret: false, optional: false, hasChanged: true}},
 		{name: "optionalString", giveField: OptionalStringField("test", &optionalValue, "testing"), giveValue: "some value", wantField: &Field{key: "test", description: "testing", value: &optionalValueSetting, secret: false, optional: true, hasChanged: true}},
 	}
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			assert.NoError(t, tc.giveField.Set(tc.giveValue))
 			assert.Equal(t, tc.wantField.secretPathFunc == nil, tc.giveField.secretPathFunc == nil)
@@ -147,7 +149,8 @@ func TestLoad(t *testing.T) {
 			StringField("a", &test2.a, "usage"),
 		}, giveLoader: &MapLoader{Values: map[string]string{}}, wantError: errors.New("could not find a in map")},
 	}
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			err := tc.giveConfig.Load(context.Background(), tc.giveLoader)
 			if tc.wantError != nil {
@@ -175,7 +178,8 @@ func TestDump(t *testing.T) {
 		{name: "ok", giveConfig: Config{}, giveDumper: SafeDumper{}, wantMap: map[string]string{}, wantError: nil},
 		{name: "with values, redacted secret", giveConfig: Config{StringField("a", &a, ""), SecretStringField("b", &b, "", WithNoArgs(""))}, giveDumper: SafeDumper{}, wantMap: map[string]string{"a": "testing", "b": "*****"}, wantError: nil},
 	}
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			res, err := tc.giveConfig.Dump(context.Background(), tc.giveDumper)
 			if tc.wantError != nil {
@@ -200,7 +204,8 @@ func TestNilValuesPanic(t *testing.T) {
 		{name: "SecretStringField with nil value panics", callback: func() { SecretStringField("", nil, "", WithNoArgs("")) }, wantPanic: ErrFieldValueMustNotBeNil},
 		{name: "OptionalStringField with nil value panics", callback: func() { OptionalStringField("", nil, "") }, wantPanic: ErrFieldValueMustNotBeNil},
 	}
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			if tc.wantPanic != nil {
 				defer func() {

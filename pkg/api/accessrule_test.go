@@ -72,9 +72,10 @@ func TestAdminCreateAccessRule(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
@@ -157,9 +158,10 @@ func TestAdminUpdateAccessRule(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
@@ -266,9 +268,10 @@ func TestAdminListAccessRules(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&storage.ListCurrentAccessRules{Result: tc.rules}, tc.mockListErr)
 
@@ -342,7 +345,7 @@ func TestUserListAccessRules(t *testing.T) {
 				},
 			},
 
-			want: `{"accessRules":[{"description":"string","id":"rule1","isCurrent":false,"name":"string","target":{"provider":{"id":"string","type":"okta"}},"timeConstraints":{"maxDurationSeconds":0},"version":""},{"description":"string","id":"rule2","isCurrent":false,"name":"string","target":{"provider":{"id":"string","type":"okta"}},"timeConstraints":{"maxDurationSeconds":0},"version":""}],"next":null}`,
+			want: `{"accessRules":[{"createdAt":"0001-01-01T00:00:00Z","description":"string","id":"rule1","isCurrent":false,"name":"string","target":{"provider":{"id":"string","type":"okta"}},"timeConstraints":{"maxDurationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z","version":""},{"createdAt":"0001-01-01T00:00:00Z","description":"string","id":"rule2","isCurrent":false,"name":"string","target":{"provider":{"id":"string","type":"okta"}},"timeConstraints":{"maxDurationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z","version":""}],"next":null}`,
 		},
 		{
 			name:         "no rules found",
@@ -360,14 +363,14 @@ func TestUserListAccessRules(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
 
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&storage.ListAccessRulesForStatus{Result: tc.rules}, tc.mockRulesErr)
 			a := API{DB: db}
-			handler := newTestServer(t, &a)
+			handler := newTestServer(t, &a, withRequestUser(identity.User{Groups: []string{"string"}}))
 
 			req, err := http.NewRequest("GET", "/api/v1/access-rules", nil)
 			if err != nil {
@@ -416,7 +419,7 @@ func TestUserGetAccessRuleApprovals(t *testing.T) {
 			},
 			wantCode:                     http.StatusOK,
 			withRequestArgumentsResponse: make(map[string]types.RequestArgument),
-			want:                         `{"description":"","id":"","isCurrent":false,"name":"","target":{"arguments":{},"provider":{"id":"","type":""}},"timeConstraints":{"maxDurationSeconds":0},"version":""}`,
+			want:                         `{"canRequest":true,"description":"","id":"","isCurrent":false,"name":"","target":{"arguments":{},"provider":{"id":"","type":""}},"timeConstraints":{"maxDurationSeconds":0},"version":""}`,
 		},
 		{
 			name:           "no rule found",
@@ -429,8 +432,8 @@ func TestUserGetAccessRuleApprovals(t *testing.T) {
 			name:           "not authorised to access the rule",
 			giveRuleID:     "exists",
 			mockGetRuleErr: rulesvc.ErrUserNotAuthorized,
-			wantCode:       http.StatusNotFound,
-			want:           `{"error":"this rule doesn't exist or you don't have permission to access it"}`,
+			wantCode:       http.StatusForbidden,
+			want:           `{"error":"you don't have permission to access this rule"}`,
 		},
 		{
 			name:           "internal error",
@@ -441,9 +444,10 @@ func TestUserGetAccessRuleApprovals(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
@@ -520,8 +524,8 @@ func TestUserGetAccessRule(t *testing.T) {
 			name:           "not authorised to access the rule",
 			giveRuleID:     "exists",
 			mockGetRuleErr: rulesvc.ErrUserNotAuthorized,
-			wantCode:       http.StatusNotFound,
-			want:           `{"error":"this rule doesn't exist or you don't have permission to access it"}`,
+			wantCode:       http.StatusForbidden,
+			want:           `{"error":"you don't have permission to access this rule"}`,
 		},
 		{
 			name:           "internal error",
@@ -532,9 +536,10 @@ func TestUserGetAccessRule(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
@@ -602,6 +607,10 @@ func TestLookupAccessRules(t *testing.T) {
 							},
 						},
 					},
+					SelectableWithOptionValues: []types.KeyValue{
+						{Key: "accountId", Value: "123456789012"},
+						{Key: "permissionSetArn", Value: "arn:aws:sso:::permissionSet/ssoins-1234/ps-12341"},
+					},
 				},
 			},
 			want: `[{"accessRule":{"createdAt":"0001-01-01T00:00:00Z","description":"","id":"test","isCurrent":false,"name":"","target":{"provider":{"id":"test-provider","type":"aws-sso"}},"timeConstraints":{"maxDurationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z","version":""},"selectableWithOptionValues":[{"key":"accountId","value":"123456789012"},{"key":"permissionSetArn","value":"arn:aws:sso:::permissionSet/ssoins-1234/ps-12341"}]}]`,
@@ -623,6 +632,10 @@ func TestLookupAccessRules(t *testing.T) {
 							},
 						},
 					},
+					SelectableWithOptionValues: []types.KeyValue{
+						{Key: "accountId", Value: "123456789012"},
+						{Key: "permissionSetArn", Value: "arn:aws:sso:::permissionSet/ssoins-1234/ps-12341"},
+					},
 				},
 				{
 					Rule: rule.AccessRule{
@@ -636,9 +649,13 @@ func TestLookupAccessRules(t *testing.T) {
 							},
 						},
 					},
+					SelectableWithOptionValues: []types.KeyValue{
+						{Key: "accountId", Value: "123456789012"},
+						{Key: "permissionSetArn", Value: "arn:aws:sso:::permissionSet/ssoins-1234/ps-12341"},
+					},
 				},
 			},
-			want: `[{"accessRule":{"createdAt":"0001-01-01T00:00:00Z","description":"","id":"test","isCurrent":false,"name":"","target":{"provider":{"id":"test-provider","type":"aws-sso"}},"timeConstraints":{"maxDurationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z","version":""},"selectableWithOptionValues":[{"key":"accountId","value":"123456789012"},{"key":"permissionSetArn","value":"arn:aws:sso:::permissionSet/ssoins-1234/ps-12341"}]}]`,
+			want: `[{"accessRule":{"createdAt":"0001-01-01T00:00:00Z","description":"","id":"test","isCurrent":false,"name":"","target":{"provider":{"id":"test-provider","type":"aws-sso"}},"timeConstraints":{"maxDurationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z","version":""},"selectableWithOptionValues":[{"key":"accountId","value":"123456789012"},{"key":"permissionSetArn","value":"arn:aws:sso:::permissionSet/ssoins-1234/ps-12341"}]},{"accessRule":{"createdAt":"0001-01-01T00:00:00Z","description":"","id":"second","isCurrent":false,"name":"","target":{"provider":{"id":"test-provider","type":"aws-sso"}},"timeConstraints":{"maxDurationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z","version":""},"selectableWithOptionValues":[{"key":"accountId","value":"123456789012"},{"key":"permissionSetArn","value":"arn:aws:sso:::permissionSet/ssoins-1234/ps-12341"}]}]`,
 		},
 		{
 			name:     "match with selectable",
@@ -673,9 +690,10 @@ func TestLookupAccessRules(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 

@@ -20,7 +20,8 @@ func TestOktaOrganizationURLValidation(t *testing.T) {
 		{name: "http not allowed", giveURL: "http://josh.okta.com", wantError: errors.New("okta Organization URL must use https scheme")},
 		{name: "non okta host not allowed", giveURL: "https://bad.hacker.com", wantError: errors.New("okta Organization URL must use the okta.com host. For security, if you use a custom domain for your Okta instance you need to configure the okta provider directly via the gdeploy CLI.")},
 	}
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			err := validateOktaURL(tc.giveURL)
 			if tc.wantError == nil {

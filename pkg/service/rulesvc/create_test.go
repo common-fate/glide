@@ -98,7 +98,8 @@ func TestCreateAccessRule(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 
 			dbc := ddbmock.New(t)
@@ -331,7 +332,8 @@ func TestProcessTarget(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			dbc := ddbmock.Client{
 				PutErr: tc.wantErr,

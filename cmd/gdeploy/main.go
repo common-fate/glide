@@ -7,14 +7,20 @@ import (
 	"github.com/common-fate/clio/clierr"
 	"github.com/common-fate/common-fate/cmd/gdeploy/commands"
 	"github.com/common-fate/common-fate/cmd/gdeploy/commands/backup"
+	"github.com/common-fate/common-fate/cmd/gdeploy/commands/bootstrap"
 	"github.com/common-fate/common-fate/cmd/gdeploy/commands/cache"
+	"github.com/common-fate/common-fate/cmd/gdeploy/commands/config"
 	"github.com/common-fate/common-fate/cmd/gdeploy/commands/dashboard"
+	"github.com/common-fate/common-fate/cmd/gdeploy/commands/handler"
 	"github.com/common-fate/common-fate/cmd/gdeploy/commands/identity"
+	"github.com/common-fate/common-fate/cmd/gdeploy/commands/legacyprovider"
 	"github.com/common-fate/common-fate/cmd/gdeploy/commands/logs"
 	"github.com/common-fate/common-fate/cmd/gdeploy/commands/notifications"
 	"github.com/common-fate/common-fate/cmd/gdeploy/commands/provider"
 	"github.com/common-fate/common-fate/cmd/gdeploy/commands/release"
 	"github.com/common-fate/common-fate/cmd/gdeploy/commands/restore"
+	"github.com/common-fate/common-fate/cmd/gdeploy/commands/rules"
+	"github.com/common-fate/common-fate/cmd/gdeploy/commands/targetgroup"
 	mw "github.com/common-fate/common-fate/cmd/gdeploy/middleware"
 	"github.com/common-fate/common-fate/internal"
 	"github.com/common-fate/common-fate/internal/build"
@@ -55,12 +61,21 @@ func main() {
 			mw.WithBeforeFuncs(&identity.Command, mw.RequireDeploymentConfig(), mw.VerifyGDeployCompatibility(), mw.RequireAWSCredentials()),
 			mw.WithBeforeFuncs(&backup.Command, mw.RequireDeploymentConfig(), mw.PreventDevUsage(), mw.VerifyGDeployCompatibility(), mw.RequireAWSCredentials()),
 			mw.WithBeforeFuncs(&restore.Command, mw.RequireDeploymentConfig(), mw.PreventDevUsage(), mw.VerifyGDeployCompatibility(), mw.RequireAWSCredentials()),
-			mw.WithBeforeFuncs(&provider.Command, mw.RequireDeploymentConfig(), mw.VerifyGDeployCompatibility(), mw.RequireAWSCredentials()),
+			mw.WithBeforeFuncs(&legacyprovider.Command, mw.RequireDeploymentConfig(), mw.VerifyGDeployCompatibility(), mw.RequireAWSCredentials()),
 			mw.WithBeforeFuncs(&notifications.Command, mw.RequireDeploymentConfig(), mw.VerifyGDeployCompatibility(), mw.RequireAWSCredentials()),
 			mw.WithBeforeFuncs(&dashboard.Command, mw.RequireDeploymentConfig(), mw.VerifyGDeployCompatibility(), mw.RequireAWSCredentials()),
 			mw.WithBeforeFuncs(&cache.Command, mw.RequireDeploymentConfig(), mw.RequireAWSCredentials()),
 			mw.WithBeforeFuncs(&commands.InitCommand, mw.RequireAWSCredentials()),
 			mw.WithBeforeFuncs(&release.Command, mw.RequireDeploymentConfig()),
+
+			&commands.Login,
+			&commands.Logout,
+			&config.Command,
+			&rules.Command,
+			&provider.Command,
+			&targetgroup.Command,
+			&handler.Command,
+			mw.WithBeforeFuncs(&bootstrap.Command, mw.RequireAWSCredentials()),
 		},
 	}
 

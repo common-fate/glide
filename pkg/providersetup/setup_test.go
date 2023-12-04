@@ -55,7 +55,8 @@ func TestUpdateValidationStatus(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			setup := tc.give
 			setup.UpdateValidationStatus()
@@ -90,7 +91,8 @@ func TestToProvider(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			got := tc.give.ToProvider()
 			assert.Equal(t, tc.want, got)

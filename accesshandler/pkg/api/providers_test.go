@@ -38,9 +38,10 @@ func TestGetProvider(t *testing.T) {
 		},
 	})
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			handler := newTestServer(t)
 
 			req, err := http.NewRequest("GET", "/api/v1/providers/"+tc.giveProviderId, nil)
@@ -78,9 +79,9 @@ func TestListProviders(t *testing.T) {
 			Provider: &testgroups.Provider{},
 		},
 	})
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
 			handler := newTestServer(t)
 
 			req, err := http.NewRequest("GET", "/api/v1/providers", nil)
@@ -127,9 +128,10 @@ func TestGetProviderArgs(t *testing.T) {
 		{name: "not found", giveProviderId: "badid", wantCode: http.StatusNotFound, wantErr: notFoundErr.Error()},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			handler := newTestServer(t)
 
 			req, err := http.NewRequest("GET", "/api/v1/providers/"+tc.giveProviderId+"/args", nil)
@@ -190,15 +192,25 @@ func TestListProviderArgOptions(t *testing.T) {
 			Provider: tg,
 		},
 	})
+
+	description := "a category containing all groups"
+	groups := &types.Groups{
+		AdditionalProperties: make(map[string][]types.GroupOption),
+	}
+
+	groups.AdditionalProperties["category"] = []types.GroupOption{
+		{Label: "all", Children: []string{"group1"}, Description: &description, Value: "all"},
+	}
 	testcases := []testcase{
-		{name: "ok", giveProviderId: "test", giveArgId: "group", wantCode: http.StatusOK, wantBody: types.ArgOptionsResponse{Options: options}},
+		{name: "ok", giveProviderId: "test", giveArgId: "group", wantCode: http.StatusOK, wantBody: types.ArgOptionsResponse{Options: options, Groups: groups}},
 		{name: "provider not found", giveProviderId: "badid", giveArgId: "notexist", wantCode: http.StatusNotFound, wantErr: notFoundErr.Error()},
 		{name: "arg not found", giveProviderId: "test", giveArgId: "notexist", wantCode: http.StatusNotFound, wantErr: invalidArgErr.Error()},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+			//
 			handler := newTestServer(t)
 
 			req, err := http.NewRequest("GET", "/api/v1/providers/"+tc.giveProviderId+"/args/"+tc.giveArgId+"/options", nil)

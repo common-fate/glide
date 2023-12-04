@@ -57,7 +57,8 @@ func TestGetRequest(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			ctx := context.Background()
 			q := GetRequest{ID: tc.giveID}
@@ -95,7 +96,8 @@ func TestListRequests(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			ctx := context.Background()
 			q := ListRequests{}
@@ -163,7 +165,8 @@ func TestListRequestsForStatus(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			ctx := context.Background()
 
@@ -232,7 +235,8 @@ func TestListRequestsForUser(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			ctx := context.Background()
 
@@ -304,7 +308,8 @@ func TestListRequestsForUserAndStatus(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			ctx := context.Background()
 

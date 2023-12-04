@@ -189,7 +189,7 @@ func DeployProductionFrontend(ctx context.Context, cfg config.FrontendDeployerCo
 			Bucket: &cfg.FrontendBucket,
 			Delete: &types.Delete{
 				Objects: toDelete,
-				Quiet:   true,
+				Quiet:   aws.Bool(true),
 			},
 		})
 		return err
@@ -275,7 +275,7 @@ func paginatedListObjects(ctx context.Context, client *s3.Client, in *s3.ListObj
 		if err != nil {
 			return err
 		}
-		hasMore = objectsRes.IsTruncated
+		hasMore = aws.ToBool(objectsRes.IsTruncated)
 		nextToken = objectsRes.NextContinuationToken
 		if len(objectsRes.Contents) > 0 {
 			err = callback(objectsRes.Contents)

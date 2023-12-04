@@ -13,6 +13,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
+	"github.com/common-fate/grab"
 )
 
 func (a *API) AdminArchiveAccessRule(w http.ResponseWriter, r *http.Request, ruleId string) {
@@ -69,7 +70,7 @@ func (a *API) AdminListAccessRules(w http.ResponseWriter, r *http.Request, param
 
 	res := types.ListAccessRulesDetailResponse{
 		AccessRules: make([]types.AccessRuleDetail, len(rules)),
-		Next:        &qr.NextPage,
+		Next:        grab.If(qr != nil, grab.Ptr(grab.Value(qr).NextPage), nil),
 	}
 	for i, r := range rules {
 		res.AccessRules[i] = r.ToAPIDetail()

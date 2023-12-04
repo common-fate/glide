@@ -7,19 +7,24 @@ import (
 
 	"github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/accesshandler/pkg/types/ahmocks"
-	"github.com/stretchr/testify/assert"
-
+	"github.com/common-fate/common-fate/pkg/storage"
+	"github.com/common-fate/common-fate/pkg/target"
+	"github.com/common-fate/ddb"
+	"github.com/common-fate/ddb/ddbmock"
 	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestListProviders(t *testing.T) {
 
 	type testcase struct {
-		name          string
-		mockCreate    *types.ListProvidersResponse
-		mockCreateErr error
-		wantCode      int
-		wantBody      string
+		name                    string
+		mockCreate              *types.ListProvidersResponse
+		withListTargetGroups    []target.Group
+		withListTargetGroupsErr error
+		mockCreateErr           error
+		wantCode                int
+		wantBody                string
 	}
 
 	list := []types.Provider{
@@ -41,7 +46,8 @@ func TestListProviders(t *testing.T) {
 				JSON200:      &list,
 				HTTPResponse: &http.Response{StatusCode: http.StatusOK},
 			},
-			wantBody: `[{"id":"cf-dev","type":"aws-sso"}]`,
+			withListTargetGroups: []target.Group{},
+			wantBody:             `[{"id":"cf-dev","type":"aws-sso"}]`,
 		},
 		{
 			name:     "empty list should return empty array []",
@@ -50,7 +56,8 @@ func TestListProviders(t *testing.T) {
 				JSON200:      &emptyList,
 				HTTPResponse: &http.Response{StatusCode: http.StatusOK},
 			},
-			wantBody: `[]`,
+			withListTargetGroupsErr: ddb.ErrNoItems,
+			wantBody:                `[]`,
 		},
 		{
 			name:     "JSON500 should return error message",
@@ -75,9 +82,9 @@ func TestListProviders(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
+	for i := range testcases {
+		tc := testcases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
 
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
@@ -85,8 +92,12 @@ func TestListProviders(t *testing.T) {
 			m := ahmocks.NewMockClientWithResponsesInterface(ctrl)
 			m.EXPECT().ListProvidersWithResponse(gomock.Any(), gomock.Any()).Return(tc.mockCreate, tc.mockCreateErr)
 
+			db := ddbmock.New(t)
+			db.MockQueryWithErr(&storage.ListTargetGroups{Result: tc.withListTargetGroups}, tc.withListTargetGroupsErr)
+
 			a := API{
 				AccessHandlerClient: m,
+				DB:                  db,
 			}
 
 			handler := newTestServer(t, &a)
