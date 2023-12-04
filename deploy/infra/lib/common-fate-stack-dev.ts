@@ -87,8 +87,8 @@ export class CommonFateStackDev extends cdk.Stack {
     );
 
     const vpcConfig: VpcConfig = {
-      subnetIds: cdk.Fn.conditionIf(attachLambdaToVpcCondition.logicalId, props.subnetIds.split(","), []),
-      securityGroupIds: cdk.Fn.conditionIf(attachLambdaToVpcCondition.logicalId, props.securityGroups.split(","), []),
+      SubnetIds: cdk.Fn.conditionIf(attachLambdaToVpcCondition.logicalId, props.subnetIds.split(","), []),
+      SecurityGroupIds: cdk.Fn.conditionIf(attachLambdaToVpcCondition.logicalId, props.securityGroups.split(","), []),
     }
 
 

@@ -157,16 +157,23 @@ export class AppBackend extends Construct {
 
     this._KMSkey.grantEncryptDecrypt(this._lambda);
 
+    const createAutoApprovalPolicy = new CfnCondition(
+        this,
+        "CreateAutoApprovalPolicyCondition",
+        {
+          expression: cdk.Fn.conditionNot(cdk.Fn.conditionEquals(props.autoApprovalLambdaARN, "")),
+        }
+    );
+
+    const autoApprovalPolicy =  new PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      resources: [cdk.Fn.conditionIf(createAutoApprovalPolicy.logicalId, props.autoApprovalLambdaARN, "*").toString()],
+      // Using "none:null" is a bit of a hack. Later we can refactor code as mentioned here https://github.com/common-fate/glide/pull/635#discussion_r1402084765
+      actions: [cdk.Fn.conditionIf(createAutoApprovalPolicy.logicalId, 'lambda:InvokeFunction', "none:null").toString()],
+    })
+
     // If an auto-approval lambda ARN is specified we need to grant permissions to RestAPIHandlerFunction to invoke it.
-    if (props.autoApprovalLambdaARN.length !== 0) {
-      this._lambda.addToRolePolicy(
-          new PolicyStatement({
-            effect: iam.Effect.ALLOW,
-            resources: [props.autoApprovalLambdaARN],
-            actions: ['lambda:InvokeFunction'],
-          })
-      );
-    }
+    this._lambda.addToRolePolicy(autoApprovalPolicy);
 
     this._lambda.addToRolePolicy(
       new PolicyStatement({
