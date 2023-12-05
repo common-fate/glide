@@ -251,6 +251,7 @@ github.com/common-fate/frontmatter v0.0.0-20220825121704-2d2ec51f9c73 h1:JZt+aGT
 github.com/common-fate/frontmatter v0.0.0-20220825121704-2d2ec51f9c73/go.mod h1:wzIx7x7HUJ7wtLG1pTgRJhHkPqxntv7r45t19obL/gQ=
 github.com/common-fate/grab v1.0.0 h1:uRtMdWJcxWHdawIjlI7Q65BFfPrquKKKCiLd6ezfbhQ=
 github.com/common-fate/grab v1.0.0/go.mod h1:L0qa03RwqOMZz9PrrWw9eI145i5FQRf+iLtNSJypQvY=
+github.com/common-fate/iso8601 v1.1.0 h1:nrej9shsK1aB4IyOAjZl68xGk8yDuUxVwQjoDzxSK2c=
 github.com/common-fate/iso8601 v1.1.0/go.mod h1:DU4mvUEkkWZUUSJq2aCuNqM1luSb0Pwyb2dLzXS+img=
 github.com/common-fate/iso8601 v1.1.1 h1:IRl4ZRFM6wfPD+YKcjrtFh6Wlr4pkiPb3VCgcT8bmpY=
 github.com/common-fate/iso8601 v1.1.1/go.mod h1:OHz9nvJN4s3x69rlImm8pkVXL/leyDqs5jdKUtLk5ZQ=
