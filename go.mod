@@ -6,12 +6,12 @@ require (
 	github.com/99designs/keyring v1.2.2
 	github.com/AzureAD/microsoft-authentication-library-for-go v0.5.3
 	github.com/aws/aws-sdk-go v1.44.213
-	github.com/aws/aws-sdk-go-v2 v1.23.1
+	github.com/aws/aws-sdk-go-v2 v1.23.5
 	github.com/aws/aws-sdk-go-v2/config v1.25.6
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.14.4
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.40.2
 	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.34.1
-	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.25.4
+	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.26.3
 	github.com/aws/aws-sdk-go-v2/service/ecs v1.34.1
 	github.com/aws/aws-sdk-go-v2/service/eks v1.34.1
 	github.com/aws/aws-sdk-go-v2/service/iam v1.27.4
@@ -158,15 +158,15 @@ require (
 require (
 	github.com/aws/aws-sdk-go-v2/credentials v1.16.5
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.14.5 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.2.4 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.5.4 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.2.8 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.5.8 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.7.1 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.10.1 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery v1.8.4 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.10.3 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery v1.8.9 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.10.4 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.17.4 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.25.5
-	github.com/aws/smithy-go v1.17.0
+	github.com/aws/smithy-go v1.18.1
 	github.com/benbjohnson/clock v1.3.0
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1 // indirect
 	github.com/go-openapi/jsonpointer v0.19.6 // indirect
@@ -193,7 +193,7 @@ require (
 	github.com/TylerBrock/saw v0.2.2
 	github.com/aws-cloudformation/rain v1.2.0 // indirect
 	github.com/aws/aws-lambda-go v1.32.0
-	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.12.4
+	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.9.9
 	github.com/aws/aws-sdk-go-v2/service/cloudfront v1.31.1
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.28.1
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.30.4
@@ -204,9 +204,9 @@ require (
 	github.com/briandowns/spinner v1.23.0
 	github.com/common-fate/analytics-go v0.2.0
 	github.com/common-fate/clio v1.1.0
-	github.com/common-fate/ddb v0.15.1-0.20230424033643-2558c36a3a5e
+	github.com/common-fate/ddb v0.15.0
 	github.com/common-fate/grab v1.0.0
-	github.com/common-fate/iso8601 v1.1.1
+	github.com/common-fate/iso8601 v1.1.0
 	github.com/common-fate/provider-registry-sdk-go v0.19.0
 	github.com/fatih/color v1.13.0
 	github.com/go-chi/cors v1.2.1
