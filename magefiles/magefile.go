@@ -81,7 +81,7 @@ func (Build) Backend() error {
 		"GOOS":   "linux",
 		"GOARCH": "amd64",
 	}
-	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/commonfate", "cmd/lambda/commonfate/handler.go")
+	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/commonfate/bootstrap", "cmd/lambda/commonfate/handler.go")
 }
 
 func (Build) Granter() error {
@@ -89,7 +89,7 @@ func (Build) Granter() error {
 		"GOOS":   "linux",
 		"GOARCH": "amd64",
 	}
-	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/granter", "cmd/lambda/granter/handler.go")
+	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/granter/bootstrap", "cmd/lambda/granter/handler.go")
 }
 
 func (Build) FrontendDeployer() error {
@@ -97,7 +97,7 @@ func (Build) FrontendDeployer() error {
 		"GOOS":   "linux",
 		"GOARCH": "amd64",
 	}
-	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/frontend-deployer", "cmd/lambda/frontend-deployer/handler.go")
+	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/frontend-deployer/bootstrap", "cmd/lambda/frontend-deployer/handler.go")
 }
 
 func (Build) AccessHandler() error {
@@ -105,7 +105,7 @@ func (Build) AccessHandler() error {
 		"GOOS":   "linux",
 		"GOARCH": "amd64",
 	}
-	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/access-handler", "cmd/lambda/access-handler/handler.go")
+	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/access-handler/bootstrap", "cmd/lambda/access-handler/handler.go")
 }
 
 func (Build) Syncer() error {
@@ -113,21 +113,21 @@ func (Build) Syncer() error {
 		"GOOS":   "linux",
 		"GOARCH": "amd64",
 	}
-	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/syncer", "cmd/lambda/syncer/handler.go")
+	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/syncer/bootstrap", "cmd/lambda/syncer/handler.go")
 }
 func (Build) HealthChecker() error {
 	env := map[string]string{
 		"GOOS":   "linux",
 		"GOARCH": "amd64",
 	}
-	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/healthcheck", "cmd/lambda/healthcheck/handler.go")
+	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/healthcheck/bootstrap", "cmd/lambda/healthcheck/handler.go")
 }
 func (Build) CacheSyncer() error {
 	env := map[string]string{
 		"GOOS":   "linux",
 		"GOARCH": "amd64",
 	}
-	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/cache-sync", "cmd/lambda/cache-sync/handler.go")
+	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/cache-sync/bootstrap", "cmd/lambda/cache-sync/handler.go")
 }
 
 func (Build) SlackNotifier() error {
@@ -135,7 +135,7 @@ func (Build) SlackNotifier() error {
 		"GOOS":   "linux",
 		"GOARCH": "amd64",
 	}
-	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/slack-notifier", "cmd/lambda/event-handlers/notifiers/slack/handler.go")
+	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/slack-notifier/bootstrap", "cmd/lambda/event-handlers/notifiers/slack/handler.go")
 }
 
 func (Build) EventHandler() error {
@@ -143,7 +143,7 @@ func (Build) EventHandler() error {
 		"GOOS":   "linux",
 		"GOARCH": "amd64",
 	}
-	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/event-handler", "cmd/lambda/event-handlers/audit-trail/handler.go")
+	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/event-handler/bootstrap", "cmd/lambda/event-handlers/audit-trail/handler.go")
 }
 
 func (Build) Webhook() error {
@@ -151,21 +151,21 @@ func (Build) Webhook() error {
 		"GOOS":   "linux",
 		"GOARCH": "amd64",
 	}
-	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/webhook", "cmd/lambda/webhook/handler.go")
+	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/webhook/bootstrap", "cmd/lambda/webhook/handler.go")
 }
 func (Build) TargetGroupGranter() error {
 	env := map[string]string{
 		"GOOS":   "linux",
 		"GOARCH": "amd64",
 	}
-	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/targetgroup-granter", "cmd/lambda/targetgroup-granter/handler.go")
+	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/targetgroup-granter/bootstrap", "cmd/lambda/targetgroup-granter/handler.go")
 }
 func (Build) Governance() error {
 	env := map[string]string{
 		"GOOS":   "linux",
 		"GOARCH": "amd64",
 	}
-	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/governance", "cmd/lambda/governance/handler.go")
+	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/governance/bootstrap", "cmd/lambda/governance/handler.go")
 }
 
 func (Build) FrontendAWSExports() error {
@@ -213,19 +213,19 @@ func (Build) Frontend() error {
 // PackageBackend zips the Go API so that it can be deployed to Lambda.
 func PackageBackend() error {
 	mg.Deps(Build.Backend)
-	return sh.Run("zip", "--junk-paths", "bin/commonfate.zip", "bin/commonfate")
+	return sh.Run("zip", "--junk-paths", "bin/commonfate.zip", "bin/commonfate/bootstrap")
 }
 
 // PackageTargetGroupGranter zips the Go TargetGroupGranter so that it can be deployed to Lambda.
 func PackageTargetGroupGranter() error {
 	mg.Deps(Build.TargetGroupGranter)
-	return sh.Run("zip", "--junk-paths", "bin/targetgroup-granter.zip", "bin/targetgroup-granter")
+	return sh.Run("zip", "--junk-paths", "bin/targetgroup-granter.zip", "bin/targetgroup-granter/bootstrap")
 }
 
 // PackageHealthChecker zips the Go deployment health checker so that it can be deployed to Lambda.
 func PackageHealthChecker() error {
 	mg.Deps(Build.HealthChecker)
-	return sh.Run("zip", "--junk-paths", "bin/healthcheck.zip", "bin/healthcheck")
+	return sh.Run("zip", "--junk-paths", "bin/healthcheck.zip", "bin/healthcheck/bootstrap")
 }
 
 func Package() {
@@ -237,55 +237,55 @@ func Package() {
 // PackageGranter zips the Go granter so that it can be deployed to Lambda.
 func PackageGranter() error {
 	mg.Deps(Build.Granter)
-	return sh.Run("zip", "--junk-paths", "bin/granter.zip", "bin/granter")
+	return sh.Run("zip", "--junk-paths", "bin/granter.zip", "bin/granter/bootstrap")
 }
 
 // PackageFrontendDeployer zips the Go frontend deployer so that it can be deployed to Lambda.
 func PackageFrontendDeployer() error {
 	mg.Deps(Build.FrontendDeployer)
-	return sh.Run("zip", "--junk-paths", "bin/frontend-deployer.zip", "bin/frontend-deployer")
+	return sh.Run("zip", "--junk-paths", "bin/frontend-deployer.zip", "bin/frontend-deployer/bootstrap")
 }
 
 // PackageAccessHandler zips the Go access handler API so that it can be deployed to Lambda.
 func PackageAccessHandler() error {
 	mg.Deps(Build.AccessHandler)
-	return sh.Run("zip", "--junk-paths", "bin/access-handler.zip", "bin/access-handler")
+	return sh.Run("zip", "--junk-paths", "bin/access-handler.zip", "bin/access-handler/bootstrap")
 }
 
 // PackageSyncer zips the Go Syncer function handler so that it can be deployed to Lambda.
 func PackageSyncer() error {
 	mg.Deps(Build.Syncer)
-	return sh.Run("zip", "--junk-paths", "bin/syncer.zip", "bin/syncer")
+	return sh.Run("zip", "--junk-paths", "bin/syncer.zip", "bin/syncer/bootstrap")
 }
 
 // PackageSyncer zips the Go Syncer function handler so that it can be deployed to Lambda.
 func PackageCacheSyncer() error {
 	mg.Deps(Build.CacheSyncer)
-	return sh.Run("zip", "--junk-paths", "bin/cache-sync.zip", "bin/cache-sync")
+	return sh.Run("zip", "--junk-paths", "bin/cache-sync.zip", "bin/cache-sync/bootstrap")
 }
 
 // PackageNotifier zips the Go notifier so that it can be deployed to Lambda.
 func PackageSlackNotifier() error {
 	mg.Deps(Build.SlackNotifier)
-	return sh.Run("zip", "--junk-paths", "bin/slack-notifier.zip", "bin/slack-notifier")
+	return sh.Run("zip", "--junk-paths", "bin/slack-notifier.zip", "bin/slack-notifier/bootstrap")
 }
 
 // PackageEventHandler zips the Go event handler so that it can be deployed to Lambda.
 func PackageEventHandler() error {
 	mg.Deps(Build.EventHandler)
-	return sh.Run("zip", "--junk-paths", "bin/event-handler.zip", "bin/event-handler")
+	return sh.Run("zip", "--junk-paths", "bin/event-handler.zip", "bin/event-handler/bootstrap")
 }
 
 // PackageWebhook zips the Go webhook handler so that it can be deployed to Lambda.
 func PackageWebhook() error {
 	mg.Deps(Build.Webhook)
-	return sh.Run("zip", "--junk-paths", "bin/webhook.zip", "bin/webhook")
+	return sh.Run("zip", "--junk-paths", "bin/webhook.zip", "bin/webhook/bootstrap")
 }
 
 // PackageGovernance zips the Go governance handler so that it can be deployed to Lambda.
 func PackageGovernance() error {
 	mg.Deps(Build.Governance)
-	return sh.Run("zip", "--junk-paths", "bin/governance.zip", "bin/governance")
+	return sh.Run("zip", "--junk-paths", "bin/governance.zip", "bin/governance/bootstrap")
 }
 
 type Deploy mg.Namespace

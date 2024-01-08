@@ -12,8 +12,8 @@
   },
   "devDependencies": {
     "@aws-cdk/aws-apigatewayv2-authorizers-alpha": "2.55.1-alpha.0",
-    "@aws-cdk/cloud-assembly-schema": "^2.75.0",
-    "@aws-cdk/cx-api": "^2.75.0",
+    "@aws-cdk/cloud-assembly-schema": "^2.118.0",
+    "@aws-cdk/cx-api": "^2.118.0",
     "@types/jest": "^26.0.24",
     "@types/node": "10.17.27",
     "jest": "^26.6.3",
@@ -24,8 +24,8 @@
   "dependencies": {
     "@aws-sdk/client-ssm": "^3.315.0",
     "@types/aws-lambda": "^8.10.114",
-    "aws-cdk": "^2.75.0",
-    "aws-cdk-lib": "^2.75.0",
+    "aws-cdk": "^2.118.0",
+    "aws-cdk-lib": "^2.118.0",
     "aws-lambda": "^1.0.7",
     "aws-sdk": "^2.1360.0",
     "cdk-assets": "^2.72.1",

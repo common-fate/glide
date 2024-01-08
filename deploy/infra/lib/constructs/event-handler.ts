@@ -27,7 +27,7 @@ export class EventHandler extends Construct {
         environment: {
           COMMONFATE_TABLE_NAME: props.dynamoTable.tableName,
         },
-        runtime: lambda.Runtime.GO_1_X,
+        runtime: lambda.Runtime.PROVIDED_AL2,
         handler: "event-handler",
       },
       vpcConfig: props.vpcConfig,

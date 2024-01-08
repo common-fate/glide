@@ -85,7 +85,7 @@ export class AppBackend extends Construct {
         path.join(__dirname, "..", "..", "..", "..", "bin", "webhook.zip")
       ),
       timeout: Duration.seconds(20),
-      runtime: lambda.Runtime.GO_1_X,
+      runtime: lambda.Runtime.PROVIDED_AL2,
       handler: "webhook",
       environment: {
         COMMONFATE_TABLE_NAME: this._dynamoTable.tableName,
@@ -149,7 +149,7 @@ export class AppBackend extends Construct {
           COMMONFATE_IDENTITY_GROUP_FILTER: props.identityGroupFilter,
           COMMONFATE_AUTO_APPROVAL_LAMBDA_ARN: props.autoApprovalLambdaARN,
         },
-        runtime: lambda.Runtime.GO_1_X,
+        runtime: lambda.Runtime.PROVIDED_AL2,
         handler: "commonfate",
       },
       vpcConfig: props.vpcConfig,
@@ -158,19 +158,33 @@ export class AppBackend extends Construct {
     this._KMSkey.grantEncryptDecrypt(this._lambda);
 
     const createAutoApprovalPolicy = new CfnCondition(
-        this,
-        "CreateAutoApprovalPolicyCondition",
-        {
-          expression: cdk.Fn.conditionNot(cdk.Fn.conditionEquals(props.autoApprovalLambdaARN, "")),
-        }
+      this,
+      "CreateAutoApprovalPolicyCondition",
+      {
+        expression: cdk.Fn.conditionNot(
+          cdk.Fn.conditionEquals(props.autoApprovalLambdaARN, "")
+        ),
+      }
     );
 
-    const autoApprovalPolicy =  new PolicyStatement({
+    const autoApprovalPolicy = new PolicyStatement({
       effect: iam.Effect.ALLOW,
-      resources: [cdk.Fn.conditionIf(createAutoApprovalPolicy.logicalId, props.autoApprovalLambdaARN, "*").toString()],
+      resources: [
+        cdk.Fn.conditionIf(
+          createAutoApprovalPolicy.logicalId,
+          props.autoApprovalLambdaARN,
+          "*"
+        ).toString(),
+      ],
       // Using "none:null" is a bit of a hack. Later we can refactor code as mentioned here https://github.com/common-fate/glide/pull/635#discussion_r1402084765
-      actions: [cdk.Fn.conditionIf(createAutoApprovalPolicy.logicalId, 'lambda:InvokeFunction', "none:null").toString()],
-    })
+      actions: [
+        cdk.Fn.conditionIf(
+          createAutoApprovalPolicy.logicalId,
+          "lambda:InvokeFunction",
+          "none:null"
+        ).toString(),
+      ],
+    });
 
     // If an auto-approval lambda ARN is specified we need to grant permissions to RestAPIHandlerFunction to invoke it.
     this._lambda.addToRolePolicy(autoApprovalPolicy);

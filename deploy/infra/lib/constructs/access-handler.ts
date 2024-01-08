@@ -106,7 +106,7 @@ export class AccessHandler extends Construct {
           COMMONFATE_ACCESS_REMOTE_CONFIG_URL: props.remoteConfigUrl,
           COMMONFATE_REMOTE_CONFIG_HEADERS: props.remoteConfigHeaders,
         },
-        runtime: lambda.Runtime.GO_1_X,
+        runtime: lambda.Runtime.PROVIDED_AL2,
         handler: "access-handler",
         role: this._executionRole,
       },
