@@ -559,6 +559,12 @@ func (c *Config) CfnParams() ([]types.Parameter, error) {
 			ParameterValue: aws.String(strings.Join(p.LambdaSecurityGroups, ",")),
 		})
 	}
+	if len(c.Deployment.Parameters.AutoApprovalLambdaARN) != 0 {
+		res = append(res, types.Parameter{
+			ParameterKey:   aws.String("AutoApprovalLambdaARN"),
+			ParameterValue: aws.String(p.AutoApprovalLambdaARN),
+		})
+	}
 	return res, nil
 }
 
