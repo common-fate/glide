@@ -548,15 +548,21 @@ func (c *Config) CfnParams() ([]types.Parameter, error) {
 	}
 	if len(c.Deployment.Parameters.LambdaSubnetIds) != 0 {
 		res = append(res, types.Parameter{
-			ParameterKey:   aws.String("LambdaSubnetIds"),
+			ParameterKey:   aws.String("SubnetIds"),
 			ParameterValue: aws.String(strings.Join(p.LambdaSubnetIds, ",")),
 		})
 	}
 
 	if len(c.Deployment.Parameters.LambdaSecurityGroups) != 0 {
 		res = append(res, types.Parameter{
-			ParameterKey:   aws.String("LambdaSecurityGroups"),
+			ParameterKey:   aws.String("SecurityGroups"),
 			ParameterValue: aws.String(strings.Join(p.LambdaSecurityGroups, ",")),
+		})
+	}
+	if len(c.Deployment.Parameters.AutoApprovalLambdaARN) != 0 {
+		res = append(res, types.Parameter{
+			ParameterKey:   aws.String("AutoApprovalLambdaARN"),
+			ParameterValue: aws.String(p.AutoApprovalLambdaARN),
 		})
 	}
 	return res, nil
