@@ -28,7 +28,7 @@
     "aws-cdk-lib": "^2.118.0",
     "aws-lambda": "^1.0.7",
     "aws-sdk": "^2.1360.0",
-    "cdk-assets": "^2.72.1",
+    "cdk-assets": "^2.121.1",
     "cognito-at-edge": "^1.4.0",
     "constructs": "^10.2.1",
     "js-yaml": "^4.1.0"

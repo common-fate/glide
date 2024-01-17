@@ -29,8 +29,8 @@ importers:
         specifier: ^2.1360.0
         version: 2.1360.0
       cdk-assets:
-        specifier: ^2.72.1
-        version: 2.72.1
+        specifier: ^2.121.1
+        version: 2.121.1
       cognito-at-edge:
         specifier: ^1.4.0
         version: 1.4.0
@@ -450,13 +450,16 @@ packages:
   /@aws-cdk/cloud-assembly-schema@2.118.0:
     resolution: {integrity: sha512-xph0q31OPzcHO/J7aMA3UfT3LCZafN+CDOUn5zyBwDWBlkPCFvY+YLOOIB7RNpULW/rJ3NyKT7qu1MOOwyEupw==}
     engines: {node: '>= 14.15.0'}
+    dependencies:
+      jsonschema: 1.4.1
+      semver: 7.5.4
     dev: true
     bundledDependencies:
       - jsonschema
       - semver
 
-  /@aws-cdk/cloud-assembly-schema@2.72.1:
-    resolution: {integrity: sha512-sffYNtKZbhGACfRX6BnDlp4ruHaqkuElwEnMIaiaih4ro2Z0+a960wKkpC6P5tKf/KWUkNocu91qeKgqvIxYmA==}
+  /@aws-cdk/cloud-assembly-schema@2.121.1:
+    resolution: {integrity: sha512-y8DozF2w2LmhkHOn5D331xerD2n91Tt47L02R3w+C9D0Gz4HI5KpEWf1mR6rb4Un2heYXpZS1Wdc4e9xiWPUPQ==}
     engines: {node: '>= 14.15.0'}
     dev: false
     bundledDependencies:
@@ -470,17 +473,18 @@ packages:
       '@aws-cdk/cloud-assembly-schema': 2.118.0
     dependencies:
       '@aws-cdk/cloud-assembly-schema': 2.118.0
+      semver: 7.5.4
     dev: true
     bundledDependencies:
       - semver
 
-  /@aws-cdk/cx-api@2.72.1(@aws-cdk/cloud-assembly-schema@2.72.1):
-    resolution: {integrity: sha512-ATNdCF0mqXvF1oj0B4SD7gcadOqt12y1jt1agtor4CKw3C3hH4gjG5CuRvtY5F4Sc1YEhssE7y8gtr6WJgYsCA==}
+  /@aws-cdk/cx-api@2.121.1(@aws-cdk/cloud-assembly-schema@2.121.1):
+    resolution: {integrity: sha512-3azpovH8VVuPwG9OfLCfiwmbC5lfG224GgBlzexM54o/LalWi1nc6gDMPejSRiaP0XpSFzWQRTW29c/AvllO3g==}
     engines: {node: '>= 14.15.0'}
     peerDependencies:
-      '@aws-cdk/cloud-assembly-schema': 2.72.1
+      '@aws-cdk/cloud-assembly-schema': 2.121.1
     dependencies:
-      '@aws-cdk/cloud-assembly-schema': 2.72.1
+      '@aws-cdk/cloud-assembly-schema': 2.121.1
     dev: false
     bundledDependencies:
       - semver
@@ -6366,7 +6370,7 @@ packages:
       debug: 4.3.4
       globby: 11.1.0
       is-glob: 4.0.3
-      semver: 7.3.8
+      semver: 7.5.0
       tsutils: 3.21.0(typescript@4.9.4)
       typescript: 4.9.4
     transitivePeerDependencies:
@@ -6692,8 +6696,8 @@ packages:
       readable-stream: 2.3.8
     dev: false
 
-  /archiver@5.3.1:
-    resolution: {integrity: sha512-8KyabkmbYrH+9ibcTScQ1xCJC/CGcugdVIwB+53f5sZziXgwUh3iXlAlANMxcZyDEfTHMe6+Z5FofV8nopXP7w==}
+  /archiver@5.3.2:
+    resolution: {integrity: sha512-+25nxyyznAXF7Nef3y0EbBeqmGZgeN/BxHX29Rs39djAfaFalmQ89SE6CWyDCHzGL0yt/ycBtNOmGTW0FyGWNw==}
     engines: {node: '>= 10'}
     dependencies:
       archiver-utils: 2.1.0
@@ -6862,6 +6866,22 @@ packages:
 
   /aws-sdk@2.1360.0:
     resolution: {integrity: sha512-wW1CviH1s6bl5+wO+KM7aSc3yy6cQPJT85Fd4rQgrn0uwfjg9fx7KJ0FRhv+eU4DabkRjcSMlKo1IGhARmT6Tw==}
+    engines: {node: '>= 10.0.0'}
+    dependencies:
+      buffer: 4.9.2
+      events: 1.1.1
+      ieee754: 1.1.13
+      jmespath: 0.16.0
+      querystring: 0.2.0
+      sax: 1.2.1
+      url: 0.10.3
+      util: 0.12.5
+      uuid: 8.0.0
+      xml2js: 0.5.0
+    dev: false
+
+  /aws-sdk@2.1537.0:
+    resolution: {integrity: sha512-ILC4pSOA07XdkqbOVGJ4W2s1cBlmG5xQnVEgo4g5g0vhrjpuJm3jTSkBSGAOqpGuZ0TA/5uFCfsGnYnpoT2z0A==}
     engines: {node: '>= 10.0.0'}
     dependencies:
       buffer: 4.9.2
@@ -7309,15 +7329,15 @@ packages:
       rsvp: 4.8.5
     dev: true
 
-  /cdk-assets@2.72.1:
-    resolution: {integrity: sha512-qxKgIBAdJhBJV23WAGLcQ4x89k/zmYhWeQeZW3TEbv//TZFIRWlgpkz6XnTzNIuluWghxMOvHym/LoRMpSaJcg==}
+  /cdk-assets@2.121.1:
+    resolution: {integrity: sha512-exvDylOACoM4qPgm7uxOL6AyapaWvNy3ObqstzVGdHwfYzKAXyFaho5g4t1k/fzS0+fUFI58OBudndM1bpDgHQ==}
     engines: {node: '>= 14.15.0'}
     hasBin: true
     dependencies:
-      '@aws-cdk/cloud-assembly-schema': 2.72.1
-      '@aws-cdk/cx-api': 2.72.1(@aws-cdk/cloud-assembly-schema@2.72.1)
-      archiver: 5.3.1
-      aws-sdk: 2.1360.0
+      '@aws-cdk/cloud-assembly-schema': 2.121.1
+      '@aws-cdk/cx-api': 2.121.1(@aws-cdk/cloud-assembly-schema@2.121.1)
+      archiver: 5.3.2
+      aws-sdk: 2.1537.0
       glob: 7.2.3
       mime: 2.6.0
       yargs: 16.2.0
@@ -13448,6 +13468,14 @@ packages:
 
   /semver@7.5.0:
     resolution: {integrity: sha512-+XC0AD/R7Q2mPSRuy2Id0+CGTZ98+8f+KvwirxOKIEyid+XSx6HbC63p+O4IndTHuX5Z+JxQ0TghCkO5Cg/2HA==}
+    engines: {node: '>=10'}
+    hasBin: true
+    dependencies:
+      lru-cache: 6.0.0
+    dev: true
+
+  /semver@7.5.4:
+    resolution: {integrity: sha512-1bCSESV6Pv+i21Hvpxp3Dx+pSD8lIPt8uVjRrxAUt/nbswYc+tK6Y2btiULjd4+fnq15PX+nqQDC7Oft7WkwcA==}
     engines: {node: '>=10'}
     hasBin: true
     dependencies:
