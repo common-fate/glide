@@ -41,7 +41,7 @@ export class TargetGroupGranter extends Construct {
           COMMONFATE_EVENT_BUS_SOURCE: props.eventBusSourceName,
           COMMONFATE_TABLE_NAME: props.dynamoTable.tableName,
         },
-        runtime: lambda.Runtime.GO_1_X,
+        runtime: lambda.Runtime.PROVIDED_AL2,
         handler: "targetgroup-granter",
       },
       vpcConfig: props.vpcConfig,

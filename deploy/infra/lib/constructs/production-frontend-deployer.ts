@@ -54,7 +54,7 @@ export class ProductionFrontendDeployer extends Construct {
           COMMONFATE_CLI_CLIENT_ID: props.cliClientId,
           COMMONFATE_API_URL: props.apiUrl,
         },
-        runtime: lambda.Runtime.GO_1_X,
+        runtime: lambda.Runtime.PROVIDED_AL2,
         handler: "frontend-deployer",
       },
       vpcConfig: props.vpcConfig,

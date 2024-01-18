@@ -52,7 +52,7 @@ export class IdpSync extends Construct {
           CF_ANALYTICS_DEPLOYMENT_STAGE: props.analyticsDeploymentStage,
           COMMONFATE_IDENTITY_GROUP_FILTER: props.identityGroupFilter,
         },
-        runtime: lambda.Runtime.GO_1_X,
+        runtime: lambda.Runtime.PROVIDED_AL2,
         handler: "syncer",
       },
       vpcConfig: props.vpcConfig,

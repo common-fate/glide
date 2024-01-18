@@ -56,7 +56,7 @@ export class Governance extends Construct {
 
             COMMONFATE_PAGINATION_KMS_KEY_ARN: this._KMSkey.keyArn,
           },
-          runtime: lambda.Runtime.GO_1_X,
+          runtime: lambda.Runtime.PROVIDED_AL2,
           handler: "governance",
         },
         vpcConfig: props.vpcConfig,

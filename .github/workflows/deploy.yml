@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - 'release/**'
+      - "release/**"
 
 jobs:
   release:
@@ -20,12 +20,12 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: 7.1.5
+          version: 8.11.0
 
       - name: Setup NodeJS
         uses: actions/setup-node@v3
         with:
-          node-version: "16"
+          node-version: "21"
           cache: "pnpm"
 
       - name: Setup Go

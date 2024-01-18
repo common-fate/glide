@@ -31,7 +31,7 @@ export class HealthChecker extends Construct {
         environment: {
           COMMONFATE_TABLE_NAME: props.dynamoTable.tableName,
         },
-        runtime: lambda.Runtime.GO_1_X,
+        runtime: lambda.Runtime.PROVIDED_AL2,
         handler: "healthcheck",
       },
       vpcConfig: props.vpcConfig,

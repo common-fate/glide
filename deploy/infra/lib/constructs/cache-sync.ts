@@ -36,7 +36,7 @@ export class CacheSync extends Construct {
           COMMONFATE_ACCESS_HANDLER_URL: props.accessHandler.getApiUrl(),
           COMMONFATE_TABLE_NAME: props.dynamoTable.tableName,
         },
-        runtime: lambda.Runtime.GO_1_X,
+        runtime: lambda.Runtime.PROVIDED_AL2,
         handler: "cache-sync",
       },
       vpcConfig: props.vpcConfig,
