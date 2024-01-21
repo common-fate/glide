@@ -240,6 +240,9 @@ func (a *API) UserListAccessRules(w http.ResponseWriter, r *http.Request) {
 	u := auth.UserFromContext(ctx)
 	admin := auth.IsAdmin(ctx)
 
+	apio.ErrorString(ctx, w, "invalid_grant", 400)
+	return
+
 	// list the rules
 	q1 := storage.ListAccessRulesForStatus{Status: rule.ACTIVE}
 	_, err := a.DB.Query(ctx, &q1)
