@@ -1,9 +1,11 @@
 package ddb
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/urfave/cli/v2"
@@ -69,16 +71,18 @@ Runs by default in dry-run mode, or allows to delete them from dynamodb.
 		&cli.BoolFlag{Name: "pagination", Usage: "Process pagination in query", Value: true},
 		&cli.BoolFlag{Name: "dry-run", Usage: "Set to false to actually delete the users. Default true", Value: true},
 		&cli.IntFlag{Name: "max-dups", Usage: "Only delete a max of given duplicates", Value: 0},
+		&cli.IntFlag{Name: "workers", Usage: "Concurrent workers deleting entries.", Value: 1},
 	},
 
 	Action: func(c *cli.Context) error {
-		ctx := c.Context
+		ctx, _ := context.WithCancel(c.Context)
 		tableName := c.String("name")
 		email := c.String("email")
 		limit := c.Int("limit")
 		pagination := c.Bool("pagination")
 		dryRun := c.Bool("dry-run")
 		maxDups := c.Int("max-dups")
+		numWorkers := c.Int("workers")
 
 		db, err := ddb.New(ctx, tableName)
 		if err != nil {
@@ -133,23 +137,40 @@ Runs by default in dry-run mode, or allows to delete them from dynamodb.
 
 		if !dryRun {
 			start := time.Now()
-			fmt.Fprintf(os.Stderr, "Deleting duplicates at %s...\n", start.Format(time.RFC3339))
+			fmt.Fprintf(os.Stderr, "Deleting duplicates at %s using %d workers...\n", start.Format(time.RFC3339), numWorkers)
 
-			for email, dups := range duplicatedUsers.DuplicatesToDelete {
-				start := time.Now()
-				fmt.Fprintf(os.Stderr, "Deleting dups for email=%s at %s...\n", email, start.Format(time.RFC3339))
-				entriesToDelete := make([]ddb.Keyer, len(dups))
-				for i, u := range dups {
-					entriesToDelete[i] = &UserBaseKeyOnly{ID: u.ID}
-				}
-				err = db.DeleteBatch(ctx, entriesToDelete...)
-				if err != nil {
-					return err
-				}
-				end := time.Now()
-				elapsed := end.Sub(start)
-				fmt.Fprintf(os.Stderr, "Done deleting dups for email=%s Duration=%s...\n", email, elapsed)
+			ch := make(chan []identity.User)
+			var wg sync.WaitGroup
+
+			for i := 0; i < numWorkers; i++ {
+				go func() {
+					defer wg.Done()
+					wg.Add(1)
+					for dups := range ch {
+						email := dups[0].Email
+						start := time.Now()
+						fmt.Fprintf(os.Stderr, "Deleting %d dups for email=%s at %s...\n", len(dups), email, start.Format(time.RFC3339))
+						entriesToDelete := make([]ddb.Keyer, len(dups))
+						for i, u := range dups {
+							entriesToDelete[i] = &UserBaseKeyOnly{ID: u.ID}
+						}
+						err = db.DeleteBatch(ctx, entriesToDelete...)
+						if err != nil {
+							fmt.Fprintf(os.Stderr, "Error processing %s: %s\n", email, err)
+							break
+						}
+						end := time.Now()
+						elapsed := end.Sub(start)
+						fmt.Fprintf(os.Stderr, "Done deleting dups for email=%s Duration=%s...\n", email, elapsed)
+					}
+				}()
 			}
+			for _, dups := range duplicatedUsers.DuplicatesToDelete {
+				ch <- dups
+			}
+			close(ch)
+			wg.Wait()
+
 			end := time.Now()
 			elapsed := end.Sub(start)
 			fmt.Fprintf(os.Stderr, "Deletion complete at %s. Duration %s...\n", end.Format(time.RFC3339), elapsed)
