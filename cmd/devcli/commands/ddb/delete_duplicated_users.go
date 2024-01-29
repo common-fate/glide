@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/urfave/cli/v2"
 
@@ -13,26 +14,38 @@ import (
 	"github.com/common-fate/ddb"
 )
 
-func findDuplicates(users []identity.User, maxDups int) []identity.User {
-	toDelete := []identity.User{}
-	userMap := map[string]identity.User{}
+type DuplicateUsersReport struct {
+	DuplicatesToDelete   map[string][]identity.User
+	InitialToKeep        map[string]identity.User
+	TotalDuplicatesCount int
+}
+
+func findDuplicates(users []identity.User, maxDups int) *DuplicateUsersReport {
+	result := DuplicateUsersReport{
+		DuplicatesToDelete: map[string][]identity.User{},
+		InitialToKeep:      map[string]identity.User{},
+	}
 
 	for _, u := range users {
-		if u2, ok := userMap[u.Email]; ok {
-			if u2.CreatedAt.Before(u.CreatedAt) {
-				toDelete = append(toDelete, u)
-			} else {
-				userMap[u.Email] = u
-				toDelete = append(toDelete, u2)
-			}
+		if u2, ok := result.InitialToKeep[u.Email]; !ok {
+			result.InitialToKeep[u.Email] = u
 		} else {
-			userMap[u.Email] = u
-		}
-		if maxDups > 0 && len(toDelete) >= maxDups {
-			break
+			if _, ok := result.DuplicatesToDelete[u.Email]; !ok {
+				result.DuplicatesToDelete[u.Email] = []identity.User{}
+			}
+			if u2.CreatedAt.Before(u.CreatedAt) {
+				result.DuplicatesToDelete[u.Email] = append(result.DuplicatesToDelete[u.Email], u)
+			} else {
+				result.InitialToKeep[u.Email] = u2
+				result.DuplicatesToDelete[u.Email] = append(result.DuplicatesToDelete[u.Email], u2)
+			}
+			result.TotalDuplicatesCount = result.TotalDuplicatesCount + 1
+			if maxDups > 0 && result.TotalDuplicatesCount >= maxDups {
+				break
+			}
 		}
 	}
-	return toDelete
+	return &result
 }
 
 var deleteDuplicatedUsersCommand = cli.Command{
@@ -113,18 +126,33 @@ Runs by default in dry-run mode, or allows to delete them from dynamodb.
 		}
 		fmt.Println(string(b))
 
-		fmt.Fprintf(os.Stderr, "Found %d duplicated\n", len(duplicatedUsers))
+		fmt.Fprintf(os.Stderr, "Found %d duplicated users\n", duplicatedUsers.TotalDuplicatesCount)
+		for k, v := range duplicatedUsers.DuplicatesToDelete {
+			fmt.Fprintf(os.Stderr, " - %s: %d\n", k, len(v))
+		}
 
 		if !dryRun {
-			fmt.Fprintln(os.Stderr, "Deleting duplicates...")
-			entriesToDelete := make([]ddb.Keyer, len(duplicatedUsers))
-			for i, u := range duplicatedUsers {
-				entriesToDelete[i] = &UserBaseKeyOnly{ID: u.ID}
+			start := time.Now()
+			fmt.Fprintf(os.Stderr, "Deleting duplicates at %s...\n", start.Format(time.RFC3339))
+
+			for email, dups := range duplicatedUsers.DuplicatesToDelete {
+				start := time.Now()
+				fmt.Fprintf(os.Stderr, "Deleting dups for email=%s at %s...\n", email, start.Format(time.RFC3339))
+				entriesToDelete := make([]ddb.Keyer, len(dups))
+				for i, u := range dups {
+					entriesToDelete[i] = &UserBaseKeyOnly{ID: u.ID}
+				}
+				err = db.DeleteBatch(ctx, entriesToDelete...)
+				if err != nil {
+					return err
+				}
+				end := time.Now()
+				elapsed := end.Sub(start)
+				fmt.Fprintf(os.Stderr, "Done deleting dups for email=%s Duration=%s...\n", email, elapsed)
 			}
-			err = db.DeleteBatch(ctx, entriesToDelete...)
-			if err != nil {
-				return err
-			}
+			end := time.Now()
+			elapsed := end.Sub(start)
+			fmt.Fprintf(os.Stderr, "Deletion complete at %s. Duration %s...\n", end.Format(time.RFC3339), elapsed)
 		} else {
 			fmt.Fprintln(os.Stderr, "WARNING: Dry-run mode, skipping deletion...")
 		}
