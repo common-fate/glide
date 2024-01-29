@@ -5,36 +5,13 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/urfave/cli/v2"
 
 	"github.com/common-fate/common-fate/pkg/identity"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/storage/ddbhelpers"
-	"github.com/common-fate/common-fate/pkg/storage/keys"
 	"github.com/common-fate/ddb"
 )
-
-// Needed to filter by duplicates. Not needed in normal operations
-type ListUsersForEmail struct {
-	Result []identity.User `ddb:"result"`
-	Email  string
-}
-
-func (l *ListUsersForEmail) BuildQuery() (*dynamodb.QueryInput, error) {
-
-	qi := dynamodb.QueryInput{
-		IndexName:              aws.String(keys.IndexNames.GSI2),
-		KeyConditionExpression: aws.String("GSI2PK = :pk2 and GSI2SK = :sk2"),
-		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk2": &types.AttributeValueMemberS{Value: keys.Users.GSI2PK},
-			":sk2": &types.AttributeValueMemberS{Value: keys.Users.GSI2SK(string(l.Email))},
-		},
-	}
-	return &qi, nil
-}
 
 func findDuplicates(users []identity.User, maxDups int) []identity.User {
 	toDelete := []identity.User{}
@@ -142,7 +119,7 @@ Runs by default in dry-run mode, or allows to delete them from dynamodb.
 			fmt.Fprintln(os.Stderr, "Deleting duplicates...")
 			entriesToDelete := make([]ddb.Keyer, len(duplicatedUsers))
 			for i, u := range duplicatedUsers {
-				entriesToDelete[i] = &u
+				entriesToDelete[i] = &UserBaseKeyOnly{ID: u.ID}
 			}
 			err = db.DeleteBatch(ctx, entriesToDelete...)
 			if err != nil {
