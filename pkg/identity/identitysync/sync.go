@@ -193,7 +193,16 @@ func (s *IdentitySyncer) Sync(ctx context.Context) error {
 		return err
 	}
 
-	usersMap, groupsMap := processUsersAndGroups(s.idpType, idpUsers, idpGroups, dbUsers, dbGroups, useIdpGroupsAsFilter)
+	usersMap, duplicateUsersMap, groupsMap := processUsersAndGroups(s.idpType, idpUsers, idpGroups, dbUsers, dbGroups, useIdpGroupsAsFilter)
+
+	if len(duplicateUsersMap) > 0 {
+		duplicatedEmails := []string{}
+		for k, _ := range duplicateUsersMap {
+			duplicatedEmails = append(duplicatedEmails, k)
+		}
+		log.Errorw("error found duplicate entries in DB", "users.duplicate-count", len(duplicateUsersMap), "users.dupliated-emails", duplicatedEmails)
+	}
+
 	items := make([]ddb.Keyer, 0, len(usersMap)+len(groupsMap))
 	for _, v := range usersMap {
 		vi := v
@@ -259,7 +268,7 @@ func listAllDbGroups(ctx context.Context, db ddb.Storage) ([]identity.Group, err
 // useIdpGroupsAsFilter == true: only users with groups that exist in the IDP will be returned, this is used conditionally with a regex filter that prefilters any groups. Side effects: users with no groups are removed, only filtered groups show in the UI (loss of information; for better or worse)
 //
 // useIdpGroupsAsFilter == false: users with no groups remain, all groups show in the UI. If a user/group is removed from the IDP, it will be archived in the DB
-func processUsersAndGroups(idpType string, idpUsers []identity.IDPUser, idpGroups []identity.IDPGroup, internalUsers []identity.User, internalGroups []identity.Group, useIdpGroupsAsFilter bool) (map[string]identity.User, map[string]identity.Group) {
+func processUsersAndGroups(idpType string, idpUsers []identity.IDPUser, idpGroups []identity.IDPGroup, internalUsers []identity.User, internalGroups []identity.Group, useIdpGroupsAsFilter bool) (map[string]identity.User, map[string][]identity.User, map[string]identity.Group) {
 
 	idpGroupMap := make(map[string]identity.IDPGroup)
 	for _, g := range idpGroups {
@@ -270,8 +279,23 @@ func processUsersAndGroups(idpType string, idpUsers []identity.IDPUser, idpGroup
 		idpUserMap[u.Email] = u
 	}
 	ddbUserMap := make(map[string]identity.User)
+	ddbUserDuplicatedMap := make(map[string][]identity.User)
 	for _, u := range internalUsers {
-		ddbUserMap[u.Email] = u
+		// Collect the latest updated entry with same email
+		// This is to deal in the bogus case of duplicates in storage
+		if u2, ok := ddbUserMap[u.Email]; !ok {
+			ddbUserMap[u.Email] = u
+		} else {
+			if _, ok := ddbUserDuplicatedMap[u.Email]; !ok {
+				ddbUserDuplicatedMap[u.Email] = []identity.User{}
+			}
+			if u.CreatedAt.Before(u2.CreatedAt) {
+				ddbUserMap[u.Email] = u
+				ddbUserDuplicatedMap[u.Email] = append(ddbUserDuplicatedMap[u.Email], u2)
+			} else {
+				ddbUserDuplicatedMap[u.Email] = append(ddbUserDuplicatedMap[u.Email], u)
+			}
+		}
 	}
 	ddbGroupMap := make(map[string]identity.Group)
 	// This map ensures we have a distinct list of ids
@@ -415,5 +439,5 @@ func processUsersAndGroups(idpType string, idpUsers []identity.IDPUser, idpGroup
 		}
 	}
 
-	return ddbUserMap, ddbGroupMap
+	return ddbUserMap, ddbUserDuplicatedMap, ddbGroupMap
 }
