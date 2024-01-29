@@ -12,6 +12,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/gconfig"
 	"github.com/common-fate/common-fate/pkg/identity"
 	"github.com/common-fate/common-fate/pkg/storage"
+	"github.com/common-fate/common-fate/pkg/storage/ddbhelpers"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 	"go.uber.org/zap"
@@ -178,8 +179,7 @@ func (s *IdentitySyncer) Sync(ctx context.Context) error {
 
 	s.setDeploymentInfo(ctx, log, depid.UserInfo{UserCount: len(idpUsers), GroupCount: len(idpGroups), IDP: s.idpType})
 
-	uq := &storage.ListUsers{}
-	_, err = s.db.Query(ctx, uq)
+	dbUsers, err := listAllDbUsers(ctx, s.db)
 	if err != nil {
 		return err
 	}
@@ -188,7 +188,12 @@ func (s *IdentitySyncer) Sync(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	usersMap, groupsMap := processUsersAndGroups(s.idpType, idpUsers, idpGroups, uq.Result, gq.Result, useIdpGroupsAsFilter)
+	dbGroups, err := listAllDbGroups(ctx, s.db)
+	if err != nil {
+		return err
+	}
+
+	usersMap, groupsMap := processUsersAndGroups(s.idpType, idpUsers, idpGroups, dbUsers, dbGroups, useIdpGroupsAsFilter)
 	items := make([]ddb.Keyer, 0, len(usersMap)+len(groupsMap))
 	for _, v := range usersMap {
 		vi := v
@@ -212,6 +217,38 @@ func (s *IdentitySyncer) setDeploymentInfo(ctx context.Context, log *zap.Sugared
 	if dep != nil {
 		ac.Track(dep.ToAnalytics())
 	}
+}
+
+func listAllDbUsers(ctx context.Context, db ddb.Storage) ([]identity.User, error) {
+	dbUsers := []identity.User{}
+	uq := &storage.ListUsers{}
+	err := ddbhelpers.QueryPages(ctx, db, uq,
+		func(pageResult *ddb.QueryResult, pageQueryBuilder ddb.QueryBuilder, lastPage bool) bool {
+			if qb, ok := pageQueryBuilder.(*storage.ListUsers); ok {
+				dbUsers = append(dbUsers, qb.Result...)
+			} else {
+				panic("Unknown type for QueryBuilder")
+			}
+			return true
+		},
+	)
+	return dbUsers, err
+}
+
+func listAllDbGroups(ctx context.Context, db ddb.Storage) ([]identity.Group, error) {
+	dbGroups := []identity.Group{}
+	uq := &storage.ListGroups{}
+	err := ddbhelpers.QueryPages(ctx, db, uq,
+		func(pageResult *ddb.QueryResult, pageQueryBuilder ddb.QueryBuilder, lastPage bool) bool {
+			if qb, ok := pageQueryBuilder.(*storage.ListGroups); ok {
+				dbGroups = append(dbGroups, qb.Result...)
+			} else {
+				panic("Unknown type for QueryBuilder")
+			}
+			return true
+		},
+	)
+	return dbGroups, err
 }
 
 // processUsersAndGroups
