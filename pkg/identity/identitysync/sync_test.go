@@ -14,15 +14,16 @@ import (
 func TestIdentitySyncProcessor(t *testing.T) {
 
 	type testcase struct {
-		name                 string
-		giveIdpUsers         []identity.IDPUser
-		giveIdpGroups        []identity.IDPGroup
-		giveInternalUsers    []identity.User
-		giveInternalGroups   []identity.Group
-		wantUserMap          map[string]identity.User
-		wantGroupMap         map[string]identity.Group
-		withIdpType          string
-		useIdpGroupsAsFilter bool
+		name                  string
+		giveIdpUsers          []identity.IDPUser
+		giveIdpGroups         []identity.IDPGroup
+		giveInternalUsers     []identity.User
+		giveInternalGroups    []identity.Group
+		wantUserMap           map[string]identity.User
+		wantDuplicatedUserMap map[string][]identity.User
+		wantGroupMap          map[string]identity.Group
+		withIdpType           string
+		useIdpGroupsAsFilter  bool
 	}
 	now := time.Now()
 	testcases := []testcase{
@@ -431,7 +432,7 @@ func TestIdentitySyncProcessor(t *testing.T) {
 					Status:    types.IdpStatusACTIVE,
 				},
 				"alice@mail.com": {
-					ID:        "user3",
+					ID:        "_",
 					FirstName: "alice",
 					Email:     "alice@mail.com",
 					Groups:    []string{},
@@ -680,15 +681,120 @@ func TestIdentitySyncProcessor(t *testing.T) {
 			withIdpType:          identity.INTERNAL,
 			useIdpGroupsAsFilter: true,
 		},
+		{
+			name: "duplicated users are detected and only the first used",
+			giveIdpUsers: []identity.IDPUser{
+				{
+					ID:        "user1",
+					FirstName: "josh",
+					LastName:  "wilkes",
+					Email:     "josh@test.go",
+					Groups: []string{
+						"internalEveryoneId",
+					},
+				},
+			},
+			giveIdpGroups: []identity.IDPGroup{
+				{
+					ID:          "internalEveryoneId",
+					Name:        "everyone",
+					Description: "a description",
+				},
+			},
+			giveInternalUsers: []identity.User{
+				{
+					ID:        "user1",
+					FirstName: "josh",
+					LastName:  "wilkes",
+					Email:     "josh@test.go",
+					Status:    types.IdpStatusACTIVE,
+					CreatedAt: now.Add(-time.Hour * 1),
+				},
+				{
+					ID:        "user2",
+					FirstName: "josh",
+					LastName:  "wilkes",
+					Email:     "josh@test.go",
+					Status:    types.IdpStatusACTIVE,
+					CreatedAt: now.Add(-time.Hour * 20),
+				},
+				{
+					ID:        "user3",
+					FirstName: "josh",
+					LastName:  "wilkes",
+					Email:     "josh@test.go",
+					Status:    types.IdpStatusACTIVE,
+					CreatedAt: now.Add(-time.Hour * 3),
+				},
+				{
+					ID:        "user4",
+					FirstName: "josh",
+					LastName:  "wilkes",
+					Email:     "josh@test.go",
+					Status:    types.IdpStatusACTIVE,
+					CreatedAt: now.Add(-time.Hour * 4),
+				},
+			},
+			giveInternalGroups: []identity.Group{},
+			wantUserMap: map[string]identity.User{
+				"josh@test.go": {
+					ID:        "user2",
+					FirstName: "josh",
+					LastName:  "wilkes",
+					Email:     "josh@test.go",
+					Status:    types.IdpStatusACTIVE,
+					CreatedAt: now.Add(-time.Hour * 20),
+				},
+			},
+			wantDuplicatedUserMap: map[string][]identity.User{
+				"josh@test.go": {
+					{
+						ID:        "user1",
+						FirstName: "josh",
+						LastName:  "wilkes",
+						Email:     "josh@test.go",
+						Status:    types.IdpStatusACTIVE,
+						CreatedAt: now.Add(-time.Hour * 1),
+					},
+					{
+						ID:        "user3",
+						FirstName: "josh",
+						LastName:  "wilkes",
+						Email:     "josh@test.go",
+						Status:    types.IdpStatusACTIVE,
+						CreatedAt: now.Add(-time.Hour * 3),
+					},
+					{
+						ID:        "user4",
+						FirstName: "josh",
+						LastName:  "wilkes",
+						Email:     "josh@test.go",
+						Status:    types.IdpStatusACTIVE,
+						CreatedAt: now.Add(-time.Hour * 4),
+					},
+				},
+			},
+			wantGroupMap: map[string]identity.Group{
+				"internalEveryoneId": {
+					ID:          "_",
+					IdpID:       "internalEveryoneId",
+					Name:        "everyone",
+					Description: "a description",
+					Status:      types.IdpStatusACTIVE,
+				},
+			},
+		},
 	}
 	for i := range testcases {
 		tc := testcases[i]
 
 		t.Run(tc.name, func(t *testing.T) {
-			gotUsers, gotGroups := processUsersAndGroups(tc.withIdpType, tc.giveIdpUsers, tc.giveIdpGroups, tc.giveInternalUsers, tc.giveInternalGroups, tc.useIdpGroupsAsFilter)
+			gotUsers, gotDuplicatedUsers, gotGroups := processUsersAndGroups(tc.withIdpType, tc.giveIdpUsers, tc.giveIdpGroups, tc.giveInternalUsers, tc.giveInternalGroups, tc.useIdpGroupsAsFilter)
 			for k, u := range tc.wantUserMap {
 				got := gotUsers[k]
-				u.ID = got.ID
+				if u.ID == "" || u.ID == "_" {
+					u.ID = got.ID
+				}
 				if u.Groups == nil {
 					u.Groups = got.Groups
 					sort.Strings(u.Groups)
@@ -705,7 +811,9 @@ func TestIdentitySyncProcessor(t *testing.T) {
 
 			for k, g := range tc.wantGroupMap {
 				got := gotGroups[k]
-				g.ID = got.ID
+				if g.ID == "" || g.ID == "_" {
+					g.ID = got.ID
+				}
 				if g.CreatedAt.IsZero() {
 					g.CreatedAt = got.CreatedAt
 				}
@@ -729,6 +837,9 @@ func TestIdentitySyncProcessor(t *testing.T) {
 			}
 
 			assert.Exactly(t, tc.wantUserMap, gotUsers)
+			if tc.wantDuplicatedUserMap != nil {
+				assert.Exactly(t, tc.wantDuplicatedUserMap, gotDuplicatedUsers)
+			}
 			assert.Exactly(t, tc.wantGroupMap, gotGroups)
 		})
 	}
