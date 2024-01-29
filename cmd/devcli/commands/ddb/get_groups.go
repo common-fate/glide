@@ -53,7 +53,7 @@ var getGroupsCommand = cli.Command{
 			return err
 		}
 
-		b, err := json.Marshal(gq.Result)
+		b, err := json.MarshalIndent(gq.Result, "", "  ")
 		if err != nil {
 			return err
 		}
