@@ -193,15 +193,23 @@ func (s *IdentitySyncer) Sync(ctx context.Context) error {
 		return err
 	}
 
+	log.Infow("loaded users and groups from storage", "users.count", len(dbUsers), "groups.count", len(dbGroups))
+
 	usersMap, duplicateUsersMap, groupsMap := processUsersAndGroups(s.idpType, idpUsers, idpGroups, dbUsers, dbGroups, useIdpGroupsAsFilter)
 
 	if len(duplicateUsersMap) > 0 {
 		duplicatedEmails := []string{}
 		for k, _ := range duplicateUsersMap {
 			duplicatedEmails = append(duplicatedEmails, k)
+			// Avoid logging too many emails
+			if len(duplicatedEmails) >= 10 {
+				break
+			}
 		}
-		log.Errorw("error found duplicate entries in DB", "users.duplicate-count", len(duplicateUsersMap), "users.dupliated-emails", duplicatedEmails)
+		log.Errorw("error found duplicate entries in DB. Email list in log sample might be truncated.", "users.duplicate-count", len(duplicateUsersMap), "users.dupliated-emails", duplicatedEmails)
 	}
+
+	log.Infow("writing users and groups to storage", "users.count", len(usersMap), "groups.count", len(usersMap))
 
 	items := make([]ddb.Keyer, 0, len(usersMap)+len(groupsMap))
 	for _, v := range usersMap {
