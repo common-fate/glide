@@ -15,9 +15,11 @@
 
 <br/>
 
-## What is Common Fate?
+⚠️ Please note that Glide will be transitioning to a sunset phase, with the project being archived on May 16, 2024. For more information, kindly refer to [our announcement post](https://www.commonfate.io/blog/sunsetting-glide)
 
-Common Fate is an open source privileged access management framework which makes requesting roles a breeze.
+## What is Glide?
+
+Glide is an open source privileged access management framework which makes requesting roles a breeze.
 
 **Get access**: set up rules defining who can request access to what, and the resource owners who can approve access.
 
@@ -33,7 +35,7 @@ https://user-images.githubusercontent.com/77259048/182606232-4c164a27-7e7c-4f17-
 
 ## Documentation
 
-Check out our [documentation](https://docs.commonfate.io/granted-approvals/introduction) for detailed guide on getting started!
+Check out our [documentation](https://docs.commonfate.io/glide/introduction) for detailed guide on getting started!
 
 ## Contributing
 
@@ -41,7 +43,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for information on how to contribute. W
 
 ## Security
 
-See [SECURITY.md](./SECURITY.md) for security information. You can view our full security documentation on the [Common Fate website](https://docs.commonfate.io/granted-approvals/security-architecture).
+See [SECURITY.md](./SECURITY.md) for security information. You can view our full security documentation on the [Common Fate website](https://docs.commonfate.io/glide/security-architecture).
 
 ## Licence
 
