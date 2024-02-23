@@ -12,6 +12,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/gconfig"
 	"github.com/common-fate/common-fate/pkg/identity"
 	"github.com/common-fate/common-fate/pkg/storage"
+	"github.com/common-fate/common-fate/pkg/storage/ddbhelpers"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 	"go.uber.org/zap"
@@ -178,8 +179,7 @@ func (s *IdentitySyncer) Sync(ctx context.Context) error {
 
 	s.setDeploymentInfo(ctx, log, depid.UserInfo{UserCount: len(idpUsers), GroupCount: len(idpGroups), IDP: s.idpType})
 
-	uq := &storage.ListUsers{}
-	_, err = s.db.Query(ctx, uq)
+	dbUsers, err := listAllDbUsers(ctx, s.db)
 	if err != nil {
 		return err
 	}
@@ -188,7 +188,29 @@ func (s *IdentitySyncer) Sync(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	usersMap, groupsMap := processUsersAndGroups(s.idpType, idpUsers, idpGroups, uq.Result, gq.Result, useIdpGroupsAsFilter)
+	dbGroups, err := listAllDbGroups(ctx, s.db)
+	if err != nil {
+		return err
+	}
+
+	log.Infow("loaded users and groups from storage", "users.count", len(dbUsers), "groups.count", len(dbGroups))
+
+	usersMap, duplicateUsersMap, groupsMap := processUsersAndGroups(s.idpType, idpUsers, idpGroups, dbUsers, dbGroups, useIdpGroupsAsFilter)
+
+	if len(duplicateUsersMap) > 0 {
+		duplicatedEmails := []string{}
+		for k, _ := range duplicateUsersMap {
+			duplicatedEmails = append(duplicatedEmails, k)
+			// Avoid logging too many emails
+			if len(duplicatedEmails) >= 10 {
+				break
+			}
+		}
+		log.Errorw("error found duplicate entries in DB. Email list in log sample might be truncated.", "users.duplicate-count", len(duplicateUsersMap), "users.dupliated-emails", duplicatedEmails)
+	}
+
+	log.Infow("writing users and groups to storage", "users.count", len(usersMap), "groups.count", len(usersMap))
+
 	items := make([]ddb.Keyer, 0, len(usersMap)+len(groupsMap))
 	for _, v := range usersMap {
 		vi := v
@@ -214,6 +236,38 @@ func (s *IdentitySyncer) setDeploymentInfo(ctx context.Context, log *zap.Sugared
 	}
 }
 
+func listAllDbUsers(ctx context.Context, db ddb.Storage) ([]identity.User, error) {
+	dbUsers := []identity.User{}
+	uq := &storage.ListUsers{}
+	err := ddbhelpers.QueryPages(ctx, db, uq,
+		func(pageResult *ddb.QueryResult, pageQueryBuilder ddb.QueryBuilder, lastPage bool) bool {
+			if qb, ok := pageQueryBuilder.(*storage.ListUsers); ok {
+				dbUsers = append(dbUsers, qb.Result...)
+			} else {
+				panic("Unknown type for QueryBuilder")
+			}
+			return true
+		},
+	)
+	return dbUsers, err
+}
+
+func listAllDbGroups(ctx context.Context, db ddb.Storage) ([]identity.Group, error) {
+	dbGroups := []identity.Group{}
+	uq := &storage.ListGroups{}
+	err := ddbhelpers.QueryPages(ctx, db, uq,
+		func(pageResult *ddb.QueryResult, pageQueryBuilder ddb.QueryBuilder, lastPage bool) bool {
+			if qb, ok := pageQueryBuilder.(*storage.ListGroups); ok {
+				dbGroups = append(dbGroups, qb.Result...)
+			} else {
+				panic("Unknown type for QueryBuilder")
+			}
+			return true
+		},
+	)
+	return dbGroups, err
+}
+
 // processUsersAndGroups
 // contains all the logic for create/update/archive for users and groups
 // It returns a map of users and groups ready to be inserted to the database
@@ -222,7 +276,7 @@ func (s *IdentitySyncer) setDeploymentInfo(ctx context.Context, log *zap.Sugared
 // useIdpGroupsAsFilter == true: only users with groups that exist in the IDP will be returned, this is used conditionally with a regex filter that prefilters any groups. Side effects: users with no groups are removed, only filtered groups show in the UI (loss of information; for better or worse)
 //
 // useIdpGroupsAsFilter == false: users with no groups remain, all groups show in the UI. If a user/group is removed from the IDP, it will be archived in the DB
-func processUsersAndGroups(idpType string, idpUsers []identity.IDPUser, idpGroups []identity.IDPGroup, internalUsers []identity.User, internalGroups []identity.Group, useIdpGroupsAsFilter bool) (map[string]identity.User, map[string]identity.Group) {
+func processUsersAndGroups(idpType string, idpUsers []identity.IDPUser, idpGroups []identity.IDPGroup, internalUsers []identity.User, internalGroups []identity.Group, useIdpGroupsAsFilter bool) (map[string]identity.User, map[string][]identity.User, map[string]identity.Group) {
 
 	idpGroupMap := make(map[string]identity.IDPGroup)
 	for _, g := range idpGroups {
@@ -233,8 +287,23 @@ func processUsersAndGroups(idpType string, idpUsers []identity.IDPUser, idpGroup
 		idpUserMap[u.Email] = u
 	}
 	ddbUserMap := make(map[string]identity.User)
+	ddbUserDuplicatedMap := make(map[string][]identity.User)
 	for _, u := range internalUsers {
-		ddbUserMap[u.Email] = u
+		// Collect the latest updated entry with same email
+		// This is to deal in the bogus case of duplicates in storage
+		if u2, ok := ddbUserMap[u.Email]; !ok {
+			ddbUserMap[u.Email] = u
+		} else {
+			if _, ok := ddbUserDuplicatedMap[u.Email]; !ok {
+				ddbUserDuplicatedMap[u.Email] = []identity.User{}
+			}
+			if u.CreatedAt.Before(u2.CreatedAt) {
+				ddbUserMap[u.Email] = u
+				ddbUserDuplicatedMap[u.Email] = append(ddbUserDuplicatedMap[u.Email], u2)
+			} else {
+				ddbUserDuplicatedMap[u.Email] = append(ddbUserDuplicatedMap[u.Email], u)
+			}
+		}
 	}
 	ddbGroupMap := make(map[string]identity.Group)
 	// This map ensures we have a distinct list of ids
@@ -378,5 +447,5 @@ func processUsersAndGroups(idpType string, idpUsers []identity.IDPUser, idpGroup
 		}
 	}
 
-	return ddbUserMap, ddbGroupMap
+	return ddbUserMap, ddbUserDuplicatedMap, ddbGroupMap
 }

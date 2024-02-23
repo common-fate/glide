@@ -6,6 +6,7 @@ import (
 
 	"github.com/common-fate/common-fate/cmd/devcli/commands/cache"
 	"github.com/common-fate/common-fate/cmd/devcli/commands/db"
+	"github.com/common-fate/common-fate/cmd/devcli/commands/ddb"
 	"github.com/common-fate/common-fate/cmd/devcli/commands/events"
 	"github.com/common-fate/common-fate/cmd/devcli/commands/grants"
 	"github.com/common-fate/common-fate/cmd/devcli/commands/groups"
@@ -27,6 +28,7 @@ func main() {
 		Commands: []*cli.Command{
 			&groups.GroupsCommand,
 			&db.DBCommand,
+			&ddb.DDBCommand,
 			&events.EventsCommand,
 			&slack.SlackCommand,
 			&cache.CacheCommand,
